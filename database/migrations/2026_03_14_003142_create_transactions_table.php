@@ -13,6 +13,12 @@ return new class extends Migration
     {
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('order_id')->constrained()->cascadeOnDelete();
+            $table->string('payphone_ref')->nullable();
+            $table->decimal('amount', 10, 2);
+            $table->enum('status', ['approved', 'rejected', 'cancelled', 'pending']);
+            $table->json('response_payload');
+            $table->string('client_transaction_id')->nullable();
             $table->timestamps();
         });
     }

@@ -3,63 +3,94 @@
 namespace App\Http\Controllers;
 
 use App\Models\Service;
+use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ServiceController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $services = Service::with('category')->latest()->paginate(10);
+        return view('admin.services.index', compact('services'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        $categories = Category::where('type', 'service')->get();
+        return view('admin.services.create', compact('categories'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'name'        => 'required|string|max:255',
+            'category_id' => 'nullable|exists:categories,id',
+            'description' => 'nullable|string',
+            'price'       => 'required|numeric|min:0',
+            'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'active'      => 'boolean',
+        ]);
+
+        $data = $request->except('image');
+        $data['active'] = $request->has('active');
+
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('services', 'public');
+        }
+
+        Service::create($data);
+
+        return redirect()->route('admin.services.index')
+            ->with('success', 'Servicio creado correctamente.');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Service $service)
     {
-        //
+        return view('admin.services.show', compact('service'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Service $service)
     {
-        //
+        $categories = Category::where('type', 'service')->get();
+        return view('admin.services.edit', compact('service', 'categories'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Service $service)
     {
-        //
+        $request->validate([
+            'name'        => 'required|string|max:255',
+            'category_id' => 'nullable|exists:categories,id',
+            'description' => 'nullable|string',
+            'price'       => 'required|numeric|min:0',
+            'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'active'      => 'boolean',
+        ]);
+
+        $data = $request->except('image');
+        $data['active'] = $request->has('active');
+
+        if ($request->hasFile('image')) {
+            if ($service->image) {
+                Storage::disk('public')->delete($service->image);
+            }
+            $data['image'] = $request->file('image')->store('services', 'public');
+        }
+
+        $service->update($data);
+
+        return redirect()->route('admin.services.index')
+            ->with('success', 'Servicio actualizado correctamente.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Service $service)
     {
-        //
+        if ($service->image) {
+            Storage::disk('public')->delete($service->image);
+        }
+        $service->delete();
+
+        return redirect()->route('admin.services.index')
+            ->with('success', 'Servicio eliminado correctamente.');
     }
 }
