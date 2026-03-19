@@ -1,47 +1,95 @@
-<x-guest-layout>
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+<!DOCTYPE html>
+<html lang="es">
 
-    <form method="POST" action="{{ route('login') }}">
-        @csrf
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @php($empresa = App\Models\Empresa::first())
+    <title>Login - {{ $empresa->nombre ?? 'Sistema' }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    @vite(['resources/scss/all.scss'])
+</head>
 
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+<body class="min-h-screen flex items-center justify-center bg-white relative">
+
+    <!-- Ventana flotante más compacta -->
+    <div class="w-full max-w-sm bg-white bg-opacity-95 backdrop-blur-xl rounded-2xl shadow-2xl p-6">
+
+        <!-- Logo -->
+        <div class="text-center mb-3">
+            <img src="{{ $empresa->logo_url ?? asset('Images/empresa-logo.jpg') }}" alt="{{ $empresa->nombre ?? 'Sistema' }}"
+                class="w-24 h-24 mx-auto object-contain rounded-full shadow-md">
+            <h1 class="text-base font-bold text-gray-700 mt-1">Iniciar Sesión</h1>
         </div>
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
+        <!-- Formulario -->
+        <form method="POST" action="{{ route('login') }}" class="space-y-4 mx-auto w-full max-w-xs">
+            @csrf
 
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="current-password" />
+            <!-- Email -->
+            <div>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">Correo Electrónico</label>
+                <input id="email" name="email" type="email"
+                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg" placeholder="tu@email.com"
+                    value="{{ old('email') }}" required autofocus>
+                <x-input-error :messages="$errors->get('email')" class="text-red-500 text-xs mt-1" />
+            </div>
 
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
+            <!-- Password -->
+            <div>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">Contraseña</label>
 
-        <!-- Remember Me -->
-        <div class="block mt-4">
-            <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" name="remember">
-                <span class="ms-2 text-sm text-gray-600">{{ __('Remember me') }}</span>
-            </label>
-        </div>
+                <div class="relative">
+                    <input id="password" name="password" type="password"
+                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg" placeholder="••••••••" required>
 
-        <div class="flex items-center justify-end mt-4">
-            @if (Route::has('password.request'))
-                <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
-                    {{ __('Forgot your password?') }}
-                </a>
-            @endif
+                    <!-- Ícono ojo -->
+                    <i class="bi bi-eye-slash absolute right-3 top-2.5 text-gray-600 cursor-pointer"
+                        onclick="togglePassword('password', this)"></i>
+                </div>
+                <x-input-error :messages="$errors->get('password')" class="text-red-500 text-xs mt-1" />
+            </div>
 
-            <x-primary-button class="ms-3">
-                {{ __('Log in') }}
-            </x-primary-button>
-        </div>
-    </form>
-</x-guest-layout>
+            <!-- Remember / Forgot -->
+            <div class="flex items-center justify-between text-xs">
+                <label class="flex items-center">
+                    <input type="checkbox" name="remember" class="h-3.5 w-3.5 border-gray-300 rounded">
+                    <span class="ml-1 text-gray-600">Recordarme</span>
+                </label>
+
+                @if (Route::has('password.request'))
+                    <a href="{{ route('password.request') }}" class="text-red-600 hover:text-red-800">
+                        ¿Olvidaste tu contraseña?
+                    </a>
+                @endif
+            </div>
+
+            <!-- Botón -->
+            <button type="submit"
+                class="w-full py-2 bg-red-600 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-red-700 transition">
+                Iniciar Sesión
+            </button>
+        </form>
+
+    </div>
+
+</body>
+
+<script>
+    function togglePassword(id, icon) {
+        const input = document.getElementById(id);
+
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.remove("bi-eye-slash");
+            icon.classList.add("bi-eye");
+        } else {
+            input.type = "password";
+            icon.classList.remove("bi-eye");
+            icon.classList.add("bi-eye-slash");
+        }
+    }
+</script>
+
+</html>
