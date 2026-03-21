@@ -8,7 +8,6 @@
     <title>Login - {{ $empresa->nombre ?? 'Sistema' }}</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    @vite(['resources/scss/all.scss'])
 </head>
 
 <body class="min-h-screen flex items-center justify-center bg-white relative">
@@ -71,9 +70,7 @@
                 Iniciar Sesión
             </button>
         </form>
-
     </div>
-
 </body>
 
 <script>
