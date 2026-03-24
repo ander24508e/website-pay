@@ -10,12 +10,20 @@ use App\Http\Controllers\CarritoController;
 use App\Http\Controllers\EmpresaController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 
 // Página principal — catálogo público
 Route::get('/', [CatalogoController::class, 'index'])->name('home');
 Route::get('/catalogo', [CatalogoController::class, 'index'])->name('catalogo');
 Route::get('/catalogo/producto/{product}', [CatalogoController::class, 'showProduct'])->name('catalogo.product');
 Route::get('/catalogo/servicio/{service}', [CatalogoController::class, 'showService'])->name('catalogo.service');
+
+Route::get('/dashboard', function () {
+    if (Auth::user()->hasRole('admin')) {
+        return redirect()->route('admin.dashboard');
+    }
+    return redirect()->route('home');
+})->middleware('auth')->name('dashboard');
 
 // Carrito — público pero requiere auth para pagar
 Route::get('/carrito', [CarritoController::class, 'index'])->name('carrito.index');

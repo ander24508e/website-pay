@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\Service;
 use App\Models\Category;
+use App\Models\Empresa;
 use Illuminate\Http\Request;
 
 class CatalogoController extends Controller
@@ -13,19 +14,18 @@ class CatalogoController extends Controller
     {
         $products = Product::with('category')
             ->where('active', true)
-            ->when($request->categoria, fn($q) => $q->where('category_id', $request->categoria))
-            ->when($request->buscar, fn($q) => $q->where('name', 'like', '%'.$request->buscar.'%'))
-            ->latest()->paginate(12);
+            ->latest()
+            ->get();
 
         $services = Service::with('category')
             ->where('active', true)
-            ->when($request->categoria, fn($q) => $q->where('category_id', $request->categoria))
-            ->when($request->buscar, fn($q) => $q->where('name', 'like', '%'.$request->buscar.'%'))
-            ->latest()->paginate(12);
+            ->latest()
+            ->get();
 
         $categories = Category::all();
+        $empresa    = Empresa::first();
 
-        return view('catalogo.index', compact('products', 'services', 'categories'));
+        return view('website.home', compact('products', 'services', 'categories', 'empresa'));
     }
 
     public function showProduct(Product $product)

@@ -9,10 +9,10 @@ class CategoryController extends Controller
 {
     public function index()
     {
-        $categories = Category::latest()->paginate(10);
+        // Carga products y services para mostrar el conteo en la vista
+        $categories = Category::with(['products', 'services'])->latest()->get();
         return view('admin.categories.index', compact('categories'));
     }
-
     public function create()
     {
         return view('admin.categories.create');
