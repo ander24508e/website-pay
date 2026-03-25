@@ -2,44 +2,68 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ProfileUpdateRequest;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
-    /**
-     * Display the user's profile form.
-     */
     public function edit(Request $request): View
     {
-        return view('profile.edit', [
+        return view('profile.partials.profileEdit', [
             'user' => $request->user(),
         ]);
     }
 
-    /**
-     * Update the user's profile information.
-     */
-    public function update(ProfileUpdateRequest $request): RedirectResponse
+    public function update(Request $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        $request->validate([
+            'name'       => 'required|string|max:255',
+            'email'      => 'required|email|unique:users,email,' . $user->id,
+            'foto_perfil'=> 'nullable|image|mimes:jpeg,png,jpg|max:4096',
+            'current_password' => 'nullable|string',
+            'password'   => 'nullable|min:8|confirmed',
+        ]);
+
+        // 1. Información personal
+        $user->name  = $request->name;
+        $user->email = $request->email;
+
+        // 2. Foto de perfil
+        if ($request->hasFile('foto_perfil') && $request->file('foto_perfil')->isValid()) {
+            if ($user->foto_perfil && Storage::disk('public')->exists($user->foto_perfil)) {
+                Storage::disk('public')->delete($user->foto_perfil);
+            }
+            $fileName = 'profile-' . $user->id . '-' . time() . '.' . $request->foto_perfil->getClientOriginalExtension();
+            $user->foto_perfil = $request->foto_perfil->storeAs('fotos_perfil', $fileName, 'public');
         }
 
-        $request->user()->save();
+        // 3. Contraseña opcional
+        if ($request->filled('current_password')) {
+            if (!Hash::check($request->current_password, $user->password)) {
+                return back()->withErrors(['current_password' => 'La contraseña actual no es correcta.']);
+            }
+            if ($request->filled('password')) {
+                $user->password = Hash::make($request->password);
+            }
+        }
 
-        return Redirect::route('profile.edit')->with('status', 'profile-updated');
+        // 4. Invalidar email si cambió
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
+        }
+
+        $user->save();
+
+        return Redirect::route('profile.edit')->with('success', 'Perfil actualizado correctamente.');
     }
 
-    /**
-     * Delete the user's account.
-     */
     public function destroy(Request $request): RedirectResponse
     {
         $request->validateWithBag('userDeletion', [
@@ -48,10 +72,12 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
+        if ($user->foto_perfil && Storage::disk('public')->exists($user->foto_perfil)) {
+            Storage::disk('public')->delete($user->foto_perfil);
+        }
+
         Auth::logout();
-
         $user->delete();
-
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
