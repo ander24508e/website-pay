@@ -7,16 +7,11 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\CatalogoController;
 use App\Http\Controllers\CarritoController;
+use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\EmpresaController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
-
-// Página principal — catálogo público
-Route::get('/', [CatalogoController::class, 'index'])->name('home');
-Route::get('/catalogo', [CatalogoController::class, 'index'])->name('catalogo');
-Route::get('/catalogo/producto/{product}', [CatalogoController::class, 'showProduct'])->name('catalogo.product');
-Route::get('/catalogo/servicio/{service}', [CatalogoController::class, 'showService'])->name('catalogo.service');
 
 Route::get('/dashboard', function () {
     if (Auth::user()->hasRole('admin')) {
@@ -24,6 +19,20 @@ Route::get('/dashboard', function () {
     }
     return redirect()->route('home');
 })->middleware('auth')->name('dashboard');
+
+// Panel Cliente
+Route::middleware(['auth', 'role:cliente'])->prefix('cliente')->name('cliente.')->group(function () {
+    Route::get('/compras',  [ClienteController::class, 'compras'])->name('compras');
+    Route::get('/perfil',   [ClienteController::class, 'perfil'])->name('perfil');
+    Route::put('/perfil',   [ClienteController::class, 'actualizarPerfil'])->name('perfil.update');
+});
+
+
+// Página principal — catálogo público
+Route::get('/', [CatalogoController::class, 'index'])->name('home');
+Route::get('/catalogo', [CatalogoController::class, 'index'])->name('catalogo');
+Route::get('/catalogo/producto/{product}', [CatalogoController::class, 'showProduct'])->name('catalogo.product');
+Route::get('/catalogo/servicio/{service}', [CatalogoController::class, 'showService'])->name('catalogo.service');
 
 // Carrito — público pero requiere auth para pagar
 Route::get('/carrito', [CarritoController::class, 'index'])->name('carrito.index');

@@ -45,5 +45,15 @@ return new class extends Migration
         Schema::dropIfExists('users');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn('foto_perfil');
+        });
+    }
+
+    public function update(): void
+    {
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('foto_perfil')->nullable()->after('email');
+        });
     }
 };
