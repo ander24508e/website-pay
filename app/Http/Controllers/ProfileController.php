@@ -24,8 +24,8 @@ class ProfileController extends Controller
         $user = $request->user();
 
         $request->validate([
-            'name'       => 'required|string|max:255',
-            'email'      => 'required|email|unique:users,email,' . $user->id,
+            'name'       => 'nullable|string|max:255',
+            'email'      => 'nullable|email|unique:users,email,' . $user->id,
             'foto_perfil'=> 'nullable|image|mimes:jpeg,png,jpg|max:4096',
             'current_password' => 'nullable|string',
             'password'   => 'nullable|min:8|confirmed',

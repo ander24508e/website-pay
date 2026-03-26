@@ -1,18 +1,18 @@
 <style>
     .navbar {
         position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
+        inset-block-start: 0;
+        inset-inline-start: 0;
+        inset-inline-end: 0;
         z-index: 1000;
         display: flex;
         align-items: center;
         justify-content: space-between;
         padding: 0 2.5rem;
-        height: 70px;
+        block-size: 70px;
         background: rgba(10, 10, 10, 0.92);
         backdrop-filter: blur(12px);
-        border-bottom: 1px solid rgba(216, 33, 40, 0.2);
+        border-block-end: 1px solid rgba(216, 33, 40, 0.2);
     }
 
     .navbar-brand {
@@ -93,8 +93,8 @@
                 <li><a href="{{ route('admin.dashboard') }}" class="btn-login">⚡ Panel Admin</a></li>
             @else
                 {{-- Navbar Cliente --}}
-                <li><a href="{{ route('cliente.compras') }}">Mis Compras</a></li>
-                <li><a href="{{ route('cliente.perfil') }}">Mi Perfil</a></li>
+                <li><a href="{{ route('customer.compras') }}">Mis Compras</a></li>
+                <li><a href="{{ route('profile.edit') }}">Mi Perfil</a></li>
                 <li>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
