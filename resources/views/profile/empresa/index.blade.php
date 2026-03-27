@@ -1,200 +1,173 @@
-@extends('menu')
+@extends('layouts.admin')
 
-@section('contenido')
-    @vite(['resources/scss/empresa.scss'])
+@section('title', 'Mi Empresa')
 
-    {{-- Notificación de éxito --}}
-    @if (session('status') === 'empresa-updated')
-        <div class="notification-success">
-            <div class="notification-content">
-                <i class="bi bi-check-circle"></i>
-                <span>{{ __('Información actualizada correctamente.') }}</span>
-            </div>
-            <button class="notification-close" onclick="this.parentElement.remove()">
-                <i class="bi bi-x"></i>
-            </button>
-        </div>
-    @endif
+@section('content')
 
-    <div class="app-container">
-        <div class="app-wrapper">
-            <div class="app-card">
-                <div class="app-content">
-                    <form method="post" action="{{ route('empresa.update') }}" enctype="multipart/form-data">
-                        @csrf
-                        @method('patch')
+{{-- Header --}}
+<div class="flex items-center justify-between mb-8">
+    <div>
+        <h2 class="text-2xl font-bold text-gray-800">🏢 Mi Empresa</h2>
+        <p class="text-gray-500 text-sm mt-1">Configura el nombre, logo e información de contacto</p>
+    </div>
+</div>
 
-                        <!-- Sección Logo Extendida - Rediseñada según imagen -->
-                        <div class="empresa-logo-section">
-                            <div class="logo-preview-container"
-                                style="display: flex; align-items: center; gap: 2rem; flex-wrap: wrap;">
-                                <div class="logo-preview-wrapper"
-                                    style="display: flex; flex-direction: column; align-items: center;">
-                                    <img src="{{ $empresa->logo_url }}" class="empresa-logo-preview" alt="Logo actual"
-                                        id="current-logo-preview"
-                                        style="inline-size: 150px; block-size: 150px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem; margin-block-end: 0.5rem;">
-                                    <span class="logo-current-text" style="font-size: 0.85rem; color: #666;">Logo
-                                        actual</span>
-                                </div>
+{{-- Alerta éxito --}}
+@if(session('status') === 'empresa-updated')
+    <div class="mb-6 bg-green-100 border border-green-400 text-green-800 px-4 py-3 rounded-lg flex items-center justify-between">
+        <span>✅ Información actualizada correctamente.</span>
+        <button onclick="this.parentElement.remove()" class="text-green-600 hover:text-green-800 font-bold text-lg leading-none">×</button>
+    </div>
+@endif
 
-                                <div class="logo-upload-section">
-                                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-block-end: 0.5rem;">
-                                        <span style="color: #555; font-size: 0.9rem;">Seleccionar archivo |</span>
-                                        <span style="color: #d82128; font-size: 0.9rem;" id="file-name-display">
-                                            @if($empresa->logo)
-                                                {{ basename($empresa->logo) }}
-                                            @else
-                                                Ningún archivo seleccionado
-                                            @endif
-                                        </span>
-                                    </div>
+<form method="POST" action="{{ route('admin.empresa.update') }}" enctype="multipart/form-data">
+    @csrf
+    @method('PUT')
 
-                                    <div class="modern-file-upload">
-                                        <input type="file" id="logo" name="logo" accept="image/*"
-                                            class="modern-file-input" onchange="previewLogo(this)" style="display: none;">
-                                        <button type="button" onclick="document.getElementById('logo').click()"
-                                            style="background: #d82128; color: white; border: none; padding: 0.75rem 2rem; border-radius: 50px; font-size: 1rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 15px rgba(216, 33, 40, 0.3); transition: all 0.3s ease;"
-                                            onmouseover="this.style.background='#b41b21'"
-                                            onmouseout="this.style.background='#d82128'">
-                                            <i class="bi bi-cloud-arrow-up" style="font-size: 1.2rem;"></i>
-                                            Cambiar Logo
-                                        </button>
-                                    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                                    <p class="empresa-logo-hint"
-                                        style="font-size: 0.8rem; color: #999; margin-block-start: 0.75rem;">
-                                        <i class="bi bi-info-circle"></i>
-                                        JPG, PNG, SVG (Max: 4MB)
-                                    </p>
+        {{-- Columna izquierda — Logo --}}
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">Logo de la Empresa</p>
 
-                                    @error('logo')
-                                        <span class="error-message">{{ $message }}</span>
-                                    @enderror
-                                </div>
-                            </div>
-                        </div>
+                {{-- Preview --}}
+                <div class="flex flex-col items-center mb-5">
+                    <img src="{{ $empresa->logo_url }}"
+                         id="logo-preview"
+                         alt="Logo actual"
+                         class="w-32 h-32 rounded-xl object-contain border border-gray-200 shadow-sm mb-2">
+                    <span class="text-xs text-gray-400">Logo actual</span>
+                </div>
 
-                        {{-- Sección Información --}}
-                        <div class="app-section">
-                            <h2 class="section-title">
-                                <i class="bi bi-building"></i>
-                                Información de la Empresa
-                            </h2>
+                {{-- Upload --}}
+                <input type="file" id="logo" name="logo" accept="image/*"
+                       style="display:none;" onchange="previewLogo(this)">
 
-                            <div class="fields-grid">
-                                <div class="form-group">
-                                    <label for="nombre" class="form-label">Nombre de la Empresa</label>
-                                    <input type="text" id="nombre" name="nombre"
-                                        value="{{ old('nombre', $empresa->nombre) }}" class="form-input"
-                                        placeholder="Nombre de tu empresa" required autofocus>
-                                    @error('nombre')
-                                        <span class="error-message">{{ $message }}</span>
-                                    @enderror
-                                </div>
+                <button type="button"
+                        onclick="document.getElementById('logo').click()"
+                        class="w-full bg-gray-900 text-white py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-sm flex items-center justify-center gap-2">
+                    ☁️ Cambiar Logo
+                </button>
 
-                                <div class="form-group">
-                                    <label for="telefono" class="form-label">Teléfono</label>
-                                    <input type="tel" id="telefono" name="telefono"
-                                        value="{{ old('telefono', $empresa->telefono) }}" class="form-input"
-                                        placeholder="Número de contacto">
-                                    <small class="text-muted" style="font-size: 0.75rem; color: #999; margin-block-start: 0.25rem; display: block;">
-                                       
-                                    </small>
-                                    @error('telefono')
-                                        <span class="error-message">{{ $message }}</span>
-                                    @enderror
-                                </div>
-                            </div>
+                <p id="file-name" class="text-xs text-gray-400 text-center mt-2">
+                    {{ $empresa->logo ? basename($empresa->logo) : 'Ningún archivo seleccionado' }}
+                </p>
 
-                            <div class="form-group">
-                                <label for="direccion" class="form-label">Dirección</label>
-                                <textarea id="direccion" name="direccion" class="form-input" placeholder="Dirección completa de la empresa"
-                                    rows="3">{{ old('direccion', $empresa->direccion) }}</textarea>
-                                <small class="text-muted" style="font-size: 0.75rem; color: #999; margin-block-start: 0.25rem; display: block;">
-                                
-                                </small>
-                                @error('direccion')
-                                    <span class="error-message">{{ $message }}</span>
-                                @enderror
-                            </div>
-                        </div>
+                <p class="text-xs text-gray-400 text-center mt-1">JPG, PNG o SVG — Máx. 4MB</p>
 
-                        {{-- Botón Guardar --}}
-                        <div class="save-section">
-                            <button type="submit" class="btn-primary">
-                                <i class="bi bi-check-lg"></i>
-                                {{ __('Guardar Cambios') }}
+                @error('logo')
+                    <p class="text-red-500 text-xs mt-2 text-center">{{ $message }}</p>
+                @enderror
+
+                {{-- Eliminar logo --}}
+                @if($empresa->logo)
+                    <div class="mt-4 pt-4 border-t border-gray-100">
+                        <form action="{{ route('admin.empresa.deleteLogo') }}" method="POST"
+                              onsubmit="return confirm('¿Eliminar el logo actual?')">
+                            @csrf
+                            @method('DELETE')
+                            <button class="w-full text-red-500 hover:text-red-700 text-xs font-medium py-2 rounded-lg hover:bg-red-50 transition">
+                                🗑 Eliminar logo actual
                             </button>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        {{-- Columna derecha — Información --}}
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-5">Información de la Empresa</p>
+
+                {{-- Nombre --}}
+                <div class="mb-5">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nombre de la Empresa *</label>
+                    <input type="text" name="nombre"
+                           value="{{ old('nombre', $empresa->nombre) }}"
+                           class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm @error('nombre') border-red-400 @enderror"
+                           placeholder="Ej: Lavadora y Lubricadora Endara">
+                    @error('nombre')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- Teléfono --}}
+                <div class="mb-5">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                    <input type="tel" name="telefono"
+                           value="{{ old('telefono', $empresa->telefono) }}"
+                           class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm"
+                           placeholder="Ej: +593 99 999 9999">
+                    @error('telefono')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- Dirección --}}
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
+                    <textarea name="direccion" rows="3"
+                              class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm resize-none"
+                              placeholder="Ej: Cayambe, Pichincha, Ecuador">{{ old('direccion', $empresa->direccion) }}</textarea>
+                    @error('direccion')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- Botón guardar --}}
+                <div class="flex gap-3">
+                    <button type="submit"
+                            class="bg-gray-900 text-white px-6 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-sm">
+                        Guardar Cambios
+                    </button>
+                    <a href="{{ route('admin.dashboard') }}"
+                       class="bg-gray-100 text-gray-700 px-6 py-2.5 rounded-lg hover:bg-gray-200 transition font-medium text-sm">
+                        Cancelar
+                    </a>
                 </div>
             </div>
         </div>
     </div>
+</form>
+
 @endsection
 
+@push('scripts')
 <script>
-    function previewLogo(input) {
-        if (input.files && input.files[0]) {
-            const file = input.files[0];
-            
-            // Validar tamaño (4MB)
-            const maxSize = 4 * 1024 * 1024;
-            if (file.size > maxSize) {
-                alert('La imagen es muy grande. Máximo 4MB.');
-                input.value = '';
-                return;
-            }
-            
-            // Validar tipo
-            const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/svg+xml'];
-            if (!validTypes.includes(file.type) && !file.name.match(/\.svg$/i)) {
-                alert('Solo se permiten imágenes JPG, PNG y SVG.');
-                input.value = '';
-                return;
-            }
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const preview = document.getElementById('current-logo-preview');
-                preview.src = e.target.result;
-                
-                // Pequeña animación
-                preview.style.opacity = '0.5';
-                setTimeout(() => {
-                    preview.style.opacity = '1';
-                }, 100);
-            }
-            reader.readAsDataURL(file);
-            
-            // Actualizar nombre del archivo
-            const fileNameDisplay = document.getElementById('file-name-display');
-            if (fileNameDisplay) {
-                fileNameDisplay.textContent = file.name;
-                fileNameDisplay.style.color = '#d82128';
-            }
-        }
+function previewLogo(input) {
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+
+    if (file.size > 4 * 1024 * 1024) {
+        alert('La imagen es muy grande. Máximo 4MB.');
+        input.value = '';
+        return;
     }
 
-    // Auto-ocultar notificación después de 4 segundos
-    document.addEventListener('DOMContentLoaded', function() {
-        const notification = document.querySelector('.notification-success');
-        if (notification) {
-            setTimeout(() => {
-                notification.style.opacity = '0';
-                notification.style.transform = 'translateY(-100%)';
-                setTimeout(() => notification.remove(), 300);
-            }, 4000);
-        }
+    const reader = new FileReader();
+    reader.onload = e => {
+        document.getElementById('logo-preview').src = e.target.result;
+    };
+    reader.readAsDataURL(file);
 
-        // Actualizar el nombre del archivo cuando se selecciona uno
-        const fileInput = document.getElementById('logo');
-        if (fileInput) {
-            fileInput.addEventListener('change', function() {
-                if (this.files && this.files[0]) {
-                    previewLogo(this);
-                }
-            });
-        }
-    });
+    const nameEl = document.getElementById('file-name');
+    nameEl.textContent = file.name;
+    nameEl.classList.add('text-red-500');
+    nameEl.classList.remove('text-gray-400');
+}
+
+// Auto-ocultar alerta
+document.addEventListener('DOMContentLoaded', () => {
+    const alert = document.querySelector('.bg-green-100');
+    if (alert) {
+        setTimeout(() => {
+            alert.style.transition = 'opacity 0.4s';
+            alert.style.opacity = '0';
+            setTimeout(() => alert.remove(), 400);
+        }, 4000);
+    }
+});
 </script>
+@endpush

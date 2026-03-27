@@ -43,8 +43,8 @@
     <a href="{{ route('home') }}" class="topbar-brand">ENDARA <span>CARWASH</span></a>
     <nav class="topbar-nav">
         <a href="{{ route('home') }}">Inicio</a>
-        <a href="{{ route('cliente.compras') }}">Mis Compras</a>
-        <a href="{{ route('cliente.perfil') }}" class="active">Mi Perfil</a>
+        <a href="{{ route('customer.compras') }}">Mis Compras</a>
+        <a href="{{ route('customer.perfil') }}" class="active">Mi Perfil</a>
         <form method="POST" action="{{ route('logout') }}">
             @csrf
             <button class="btn-logout">Salir</button>
@@ -73,7 +73,7 @@
     </div>
 
     <div class="card">
-        <form action="{{ route('cliente.perfil.update') }}" method="POST" enctype="multipart/form-data">
+        <form action="{{ route('customer.perfil.update') }}" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PUT')
 

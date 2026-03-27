@@ -60,8 +60,8 @@
     <a href="{{ route('home') }}" class="topbar-brand">ENDARA <span>CARWASH</span></a>
     <nav class="topbar-nav">
         <a href="{{ route('home') }}">Inicio</a>
-        <a href="{{ route('cliente.compras') }}" class="active">Mis Compras</a>
-        <a href="{{ route('cliente.perfil') }}">Mi Perfil</a>
+        <a href="{{ route('customer.compras') }}" class="active">Mis Compras</a>
+        <a href="{{ route('customer.perfil') }}">Mi Perfil</a>
         <form method="POST" action="{{ route('logout') }}">
             @csrf
             <button class="btn-logout">Salir</button>
