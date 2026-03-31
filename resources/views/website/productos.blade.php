@@ -5,6 +5,7 @@
         <div class="divider"></div>
         <p class="section-sub">Aceites y lubricantes de las mejores marcas para mantener tu motor en perfectas condiciones.</p>
     </div>
+
     <div class="carousel-wrapper">
         <div class="carousel-track" id="productos-track">
             @forelse($products as $product)
@@ -29,6 +30,7 @@
             @endforelse
         </div>
     </div>
+
     <div class="carousel-controls">
         <button class="carousel-btn" onclick="slide('productos-track', -1)">&#8592;</button>
         <button class="carousel-btn" onclick="slide('productos-track',  1)">&#8594;</button>

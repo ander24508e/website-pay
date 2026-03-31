@@ -5,6 +5,7 @@
         <div class="divider"></div>
         <p class="section-sub">Desde un lavado rápido hasta lubricación completa del motor, ofrecemos soluciones para mantener tu vehículo en óptimas condiciones.</p>
     </div>
+
     <div class="carousel-wrapper">
         <div class="carousel-track" id="servicios-track">
             @forelse($services as $service)
@@ -34,6 +35,7 @@
             @endforelse
         </div>
     </div>
+
     <div class="carousel-controls">
         <button class="carousel-btn" onclick="slide('servicios-track', -1)">&#8592;</button>
         <button class="carousel-btn" onclick="slide('servicios-track',  1)">&#8594;</button>

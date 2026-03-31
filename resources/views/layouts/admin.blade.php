@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
@@ -17,6 +18,8 @@
             --gray-600: #4b5563;
             --gray-500: #6b7280;
             --gray-100: #f3f4f6;
+            --sidebar-width: 240px;
+            --sidebar-collapsed-width: 72px;
             --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
             --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
         }
@@ -33,64 +36,106 @@
             overflow-x: hidden;
         }
 
-        /* ========== SIDEBAR (Desktop y móvil cuando está abierto) ========== */
+        /* ========== SIDEBAR (Colapsable al hacer clic) ========== */
         .sidebar {
             position: fixed;
             left: 0;
             top: 0;
             bottom: 0;
-            width: 280px;
+            width: var(--sidebar-width);
             background: var(--gray-900);
             color: white;
-            transform: translateX(-100%);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 1000;
             overflow-y: auto;
+            overflow-x: hidden;
             box-shadow: var(--shadow-xl);
+            cursor: pointer;
         }
 
-        .sidebar.open {
-            transform: translateX(0);
+        /* Efecto hover al pasar por el sidebar */
+        .sidebar:hover {
+            background: var(--gray-800);
+        }
+
+        /* Sidebar colapsado */
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed-width);
+        }
+
+        /* Ocultar texto cuando está colapsado */
+        .sidebar.collapsed .sidebar-nav a span:last-child,
+        .sidebar.collapsed .sidebar-header p,
+        .sidebar.collapsed .sidebar-footer button span:last-child {
+            display: none;
+        }
+
+        /* Centrar íconos cuando está colapsado */
+        .sidebar.collapsed .sidebar-nav a {
+            justify-content: center;
+            padding: 0.75rem;
+        }
+
+        .sidebar.collapsed .sidebar-header h1 {
+            font-size: 0;
+            text-align: center;
+        }
+
+        .sidebar.collapsed .sidebar-header h1::before {
+            content: "⚡";
+            font-size: 1.5rem;
+        }
+
+        .sidebar.collapsed .sidebar-footer button {
+            justify-content: center;
+            padding: 0.75rem;
         }
 
         .sidebar-header {
-            padding: 1.5rem;
+            padding: 1.25rem;
             border-bottom: 1px solid var(--gray-800);
+            transition: padding 0.3s;
+            pointer-events: none;
         }
 
         .sidebar-header h1 {
-            font-size: 1.25rem;
+            font-size: 1.1rem;
             font-weight: 700;
+            white-space: nowrap;
         }
 
         .sidebar-header p {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--gray-500);
             margin-top: 0.25rem;
+            white-space: nowrap;
         }
 
         .sidebar-nav {
-            padding: 1rem;
+            padding: 0.75rem;
             display: flex;
             flex-direction: column;
             gap: 0.25rem;
+            pointer-events: auto;
         }
 
         .sidebar-nav a {
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            padding: 0.75rem 1rem;
+            padding: 0.7rem 0.875rem;
             border-radius: 0.5rem;
             color: var(--gray-100);
             text-decoration: none;
             transition: all 0.2s;
-            font-size: 0.875rem;
+            font-size: 0.85rem;
             font-weight: 500;
+            white-space: nowrap;
+            pointer-events: auto;
         }
 
         .sidebar-nav a:hover {
-            background: var(--gray-800);
+            background: var(--gray-700);
         }
 
         .sidebar-nav a.active {
@@ -98,16 +143,22 @@
             color: white;
         }
 
+        .sidebar-nav a span:first-child {
+            font-size: 1.2rem;
+            min-width: 28px;
+        }
+
         .sidebar-footer {
-            padding: 1rem;
+            padding: 0.75rem;
             border-top: 1px solid var(--gray-800);
             margin-top: auto;
+            pointer-events: auto;
         }
 
         .sidebar-footer button {
             width: 100%;
             text-align: left;
-            padding: 0.75rem 1rem;
+            padding: 0.7rem 0.875rem;
             border-radius: 0.5rem;
             background: transparent;
             border: none;
@@ -116,22 +167,35 @@
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            font-size: 0.875rem;
+            font-size: 0.85rem;
             font-weight: 500;
             transition: all 0.2s;
+            white-space: nowrap;
         }
 
         .sidebar-footer button:hover {
             background: rgba(248, 113, 113, 0.1);
         }
 
-        /* ========== BOTTOM SHEET (Menú deslizable desde abajo) ========== */
+        /* ========== MAIN CONTENT ========== */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 1.5rem;
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Cuando sidebar está colapsado */
+        .sidebar.collapsed~.main-content {
+            margin-left: var(--sidebar-collapsed-width);
+        }
+
+        /* ========== BOTTOM SHEET (Móvil) ========== */
         .bottom-sheet-trigger {
             position: fixed;
             bottom: 1rem;
             right: 1rem;
-            width: 56px;
-            height: 56px;
+            width: 52px;
+            height: 52px;
             border-radius: 50%;
             background: var(--primary);
             color: white;
@@ -141,14 +205,9 @@
             box-shadow: var(--shadow-lg);
             z-index: 100;
             transition: all 0.2s;
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: center;
-        }
-
-        .bottom-sheet-trigger:hover {
-            transform: scale(1.05);
-            background: var(--primary-dark);
         }
 
         .bottom-sheet-overlay {
@@ -180,17 +239,18 @@
             max-height: 80vh;
             overflow-y: auto;
             box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+            display: none;
         }
 
         .bottom-sheet.open {
             transform: translateY(0);
         }
 
-        /* Handle (barra para arrastrar) */
         .bottom-sheet-handle {
             display: flex;
             justify-content: center;
             padding: 12px 0 8px;
+            cursor: grab;
         }
 
         .bottom-sheet-handle span {
@@ -238,17 +298,9 @@
             font-weight: 500;
         }
 
-        .bottom-sheet-nav a:hover {
-            background: var(--gray-100);
-        }
-
         .bottom-sheet-nav a.active {
             background: var(--primary-light);
             color: var(--primary);
-        }
-
-        .bottom-sheet-nav a span:first-child {
-            font-size: 1.25rem;
         }
 
         .bottom-sheet-footer {
@@ -271,40 +323,69 @@
             gap: 1rem;
             font-size: 1rem;
             font-weight: 500;
-            transition: all 0.2s;
         }
 
-        .bottom-sheet-footer button:hover {
-            background: #fee2e2;
+        /* ========== RESPONSIVE ========== */
+        @media (min-width: 768px) {
+
+            .bottom-sheet-trigger,
+            .bottom-sheet-overlay,
+            .bottom-sheet {
+                display: none !important;
+            }
         }
 
-        /* ========== MAIN CONTENT ========== */
-        .main-content {
-            padding: 1rem;
-            min-height: 100vh;
+        @media (max-width: 767px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 85%;
+                max-width: 300px;
+                transition: transform 0.3s ease;
+                cursor: default;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar:hover {
+                background: var(--gray-900);
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+                padding: 1rem;
+            }
+
+            .bottom-sheet-trigger {
+                display: flex;
+            }
+
+            .bottom-sheet {
+                display: block;
+            }
+
+            .menu-toggle-mobile {
+                position: fixed;
+                top: 1rem;
+                left: 1rem;
+                width: 44px;
+                height: 44px;
+                border-radius: 0.5rem;
+                background: var(--primary);
+                color: white;
+                border: none;
+                font-size: 1.25rem;
+                cursor: pointer;
+                z-index: 100;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: var(--shadow-lg);
+            }
         }
 
-        /* Botón menú hamburguesa (solo móvil) */
-        .menu-toggle {
-            position: fixed;
-            top: 1rem;
-            left: 1rem;
-            z-index: 99;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 0.5rem;
-            width: 44px;
-            height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-            cursor: pointer;
-            box-shadow: var(--shadow-lg);
-        }
-
-        /* Overlay para sidebar */
+        /* Overlay móvil */
         .sidebar-overlay {
             position: fixed;
             inset: 0;
@@ -318,59 +399,59 @@
             display: block;
         }
 
-        /* ========== RESPONSIVE ========== */
-        @media (min-width: 768px) {
-            .sidebar {
-                transform: translateX(0);
-                position: fixed;
-            }
-
-            .menu-toggle,
-            .bottom-sheet-trigger,
-            .bottom-sheet-overlay,
-            .bottom-sheet {
-                display: none;
-            }
-
-            .main-content {
-                margin-left: 280px;
-                padding: 2rem;
-            }
-
-            .sidebar-overlay {
-                display: none !important;
-            }
-        }
-
-        @media (max-width: 767px) {
-            .sidebar {
-                width: 85%;
-                max-width: 320px;
-            }
-        }
-
         /* Animaciones */
         @keyframes slideIn {
-            from { transform: translateX(-100%); }
-            to { transform: translateX(0); }
+            from {
+                transform: translateX(-100%);
+            }
+
+            to {
+                transform: translateX(0);
+            }
         }
 
         .sidebar.open {
             animation: slideIn 0.3s ease-out;
         }
+
+        /* Tooltip flotante al colapsar (feedback visual) */
+        .sidebar-tooltip {
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            z-index: 2000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .sidebar-tooltip.show {
+            opacity: 1;
+        }
     </style>
 </head>
+
 <body>
 
-    <!-- Botón menú hamburguesa (móvil) -->
-    <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú lateral">
+    <!-- Tooltip flotante para feedback -->
+    <div class="sidebar-tooltip" id="sidebarTooltip"></div>
+
+    <!-- Botón menú hamburguesa (solo móvil) -->
+    <button class="menu-toggle-mobile" id="menuToggleMobile" aria-label="Abrir menú">
         ☰
     </button>
 
-    <!-- Overlay para sidebar -->
+    <!-- Overlay para sidebar móvil -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <!-- Sidebar tradicional (Desktop y móvil cuando se abre) -->
+    <!-- Sidebar (Colapsable al hacer clic) -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <h1>⚡ Admin Panel</h1>
@@ -378,25 +459,56 @@
         </div>
 
         <nav class="sidebar-nav">
-            <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">📊 Dashboard</a>
-            <a href="{{ route('admin.categories.index') }}" class="{{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">🏷️ Categorías</a>
-            <a href="{{ route('admin.products.index') }}" class="{{ request()->routeIs('admin.products.*') ? 'active' : '' }}">📦 Productos</a>
-            <a href="{{ route('admin.services.index') }}" class="{{ request()->routeIs('admin.services.*') ? 'active' : '' }}">🛠️ Servicios</a>
-            <a href="{{ route('admin.orders.index') }}" class="{{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">🧾 Órdenes</a>
-            <a href="{{ route('admin.empresa.edit') }}" class="{{ request()->routeIs('admin.empresa.*') ? 'active' : '' }}">🏢 Mi Empresa</a>
-            <a href="{{ route('admin.transactions.index') }}" class="{{ request()->routeIs('admin.transactions.*') ? 'active' : '' }}">💳 Transacciones</a>
+            <a href="{{ route('admin.dashboard') }}"
+                class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                <span>📊</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ route('admin.categories.index') }}"
+                class="{{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
+                <span>🏷️</span>
+                <span>Categorías</span>
+            </a>
+            <a href="{{ route('admin.products.index') }}"
+                class="{{ request()->routeIs('admin.products.*') ? 'active' : '' }}">
+                <span>📦</span>
+                <span>Productos</span>
+            </a>
+            <a href="{{ route('admin.services.index') }}"
+                class="{{ request()->routeIs('admin.services.*') ? 'active' : '' }}">
+                <span>🛠️</span>
+                <span>Servicios</span>
+            </a>
+            <a href="{{ route('admin.orders.index') }}"
+                class="{{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
+                <span>🧾</span>
+                <span>Órdenes</span>
+            </a>
+            <a href="{{ route('admin.empresa.edit') }}"
+                class="{{ request()->routeIs('admin.empresa.*') ? 'active' : '' }}">
+                <span>🏢</span>
+                <span>Mi Empresa</span>
+            </a>
+            <a href="{{ route('admin.transactions.index') }}"
+                class="{{ request()->routeIs('admin.transactions.*') ? 'active' : '' }}">
+                <span>💳</span>
+                <span>Transacciones</span>
+            </a>
         </nav>
 
         <div class="sidebar-footer">
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <button type="submit">🚪 Cerrar sesión</button>
+                <button type="submit">
+                    <span>🚪</span>
+                    <span>Cerrar sesión</span>
+                </button>
             </form>
         </div>
     </aside>
 
     <!-- Contenido principal -->
-    <main class="main-content">
+    <main class="main-content" id="mainContent">
         @if (session('success'))
             <div class="mb-6 bg-green-100 border border-green-400 text-green-800 px-4 py-3 rounded-lg shadow-sm">
                 ✅ {{ session('success') }}
@@ -432,31 +544,38 @@
         </div>
 
         <nav class="bottom-sheet-nav">
-            <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+            <a href="{{ route('admin.dashboard') }}"
+                class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                 <span>📊</span>
                 <span>Dashboard</span>
             </a>
-            <a href="{{ route('admin.categories.index') }}" class="{{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
+            <a href="{{ route('admin.categories.index') }}"
+                class="{{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
                 <span>🏷️</span>
                 <span>Categorías</span>
             </a>
-            <a href="{{ route('admin.products.index') }}" class="{{ request()->routeIs('admin.products.*') ? 'active' : '' }}">
+            <a href="{{ route('admin.products.index') }}"
+                class="{{ request()->routeIs('admin.products.*') ? 'active' : '' }}">
                 <span>📦</span>
                 <span>Productos</span>
             </a>
-            <a href="{{ route('admin.services.index') }}" class="{{ request()->routeIs('admin.services.*') ? 'active' : '' }}">
+            <a href="{{ route('admin.services.index') }}"
+                class="{{ request()->routeIs('admin.services.*') ? 'active' : '' }}">
                 <span>🛠️</span>
                 <span>Servicios</span>
             </a>
-            <a href="{{ route('admin.orders.index') }}" class="{{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
+            <a href="{{ route('admin.orders.index') }}"
+                class="{{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
                 <span>🧾</span>
                 <span>Órdenes</span>
             </a>
-            <a href="{{ route('admin.empresa.edit') }}" class="{{ request()->routeIs('admin.empresa.*') ? 'active' : '' }}">
+            <a href="{{ route('admin.empresa.edit') }}"
+                class="{{ request()->routeIs('admin.empresa.*') ? 'active' : '' }}">
                 <span>🏢</span>
                 <span>Mi Empresa</span>
             </a>
-            <a href="{{ route('admin.transactions.index') }}" class="{{ request()->routeIs('admin.transactions.*') ? 'active' : '' }}">
+            <a href="{{ route('admin.transactions.index') }}"
+                class="{{ request()->routeIs('admin.transactions.*') ? 'active' : '' }}">
                 <span>💳</span>
                 <span>Transacciones</span>
             </a>
@@ -474,41 +593,83 @@
     </div>
 
     <script>
-        // ========== ELEMENTOS ==========
-        const menuToggle = document.getElementById('menuToggle');
+        // ========== SIDEBAR COLLAPSE AL HACER CLIC (DESKTOP) ==========
         const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const tooltip = document.getElementById('sidebarTooltip');
+
+        // Recuperar estado guardado
+        const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+        if (isCollapsed && window.innerWidth >= 768) {
+            sidebar.classList.add('collapsed');
+        }
+
+        // Variable para controlar si el clic fue en un enlace
+        let clickOnLink = false;
+
+        // Detectar clics en enlaces para no colapsar
+        document.querySelectorAll('#sidebar a, #sidebar button').forEach(el => {
+            el.addEventListener('click', (e) => {
+                clickOnLink = true;
+                // En móvil, cerrar sidebar después del clic
+                if (window.innerWidth < 768) {
+                    closeMobileSidebar();
+                }
+                // Dejar que el enlace haga su trabajo
+                setTimeout(() => {
+                    clickOnLink = false;
+                }, 100);
+            });
+        });
+
+        // Colapsar/expandir al hacer clic en el sidebar (solo en desktop)
+        sidebar.addEventListener('click', (e) => {
+            // Solo en desktop (>= 768px)
+            if (window.innerWidth >= 768) {
+                // Si el clic fue en un enlace o botón, no colapsar
+                if (clickOnLink) {
+                    clickOnLink = false;
+                    return;
+                }
+
+                // Colapsar/expandir
+                sidebar.classList.toggle('collapsed');
+                const collapsed = sidebar.classList.contains('collapsed');
+                localStorage.setItem('sidebarCollapsed', collapsed);
+            }
+        });
+
+        // Prevenir que los clics en elementos interactivos propaguen al sidebar
+        document.querySelectorAll('#sidebar a, #sidebar button, #sidebar .sidebar-header').forEach(el => {
+            el.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+        });
+
+        // ========== SIDEBAR MÓVIL ==========
+        const menuToggleMobile = document.getElementById('menuToggleMobile');
         const sidebarOverlay = document.getElementById('sidebarOverlay');
 
-        const bottomSheetTrigger = document.getElementById('bottomSheetTrigger');
-        const bottomSheet = document.getElementById('bottomSheet');
-        const bottomSheetOverlay = document.getElementById('bottomSheetOverlay');
-
-        // ========== FUNCIONES SIDEBAR ==========
-        function openSidebar() {
+        function openMobileSidebar() {
             sidebar.classList.add('open');
             sidebarOverlay.classList.add('active');
             document.body.style.overflow = 'hidden';
         }
 
-        function closeSidebar() {
+        function closeMobileSidebar() {
             sidebar.classList.remove('open');
             sidebarOverlay.classList.remove('active');
             document.body.style.overflow = '';
         }
 
-        menuToggle?.addEventListener('click', openSidebar);
-        sidebarOverlay?.addEventListener('click', closeSidebar);
+        menuToggleMobile?.addEventListener('click', openMobileSidebar);
+        sidebarOverlay?.addEventListener('click', closeMobileSidebar);
 
-        // Cerrar sidebar al hacer clic en enlaces (móvil)
-        document.querySelectorAll('#sidebar a, #sidebar button').forEach(el => {
-            el.addEventListener('click', () => {
-                if (window.innerWidth < 768) {
-                    closeSidebar();
-                }
-            });
-        });
+        // ========== BOTTOM SHEET MÓVIL ==========
+        const bottomSheetTrigger = document.getElementById('bottomSheetTrigger');
+        const bottomSheet = document.getElementById('bottomSheet');
+        const bottomSheetOverlay = document.getElementById('bottomSheetOverlay');
 
-        // ========== FUNCIONES BOTTOM SHEET ==========
         function openBottomSheet() {
             bottomSheet.classList.add('open');
             bottomSheetOverlay.classList.add('active');
@@ -536,12 +697,12 @@
         // Cerrar con tecla ESC
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
-                if (sidebar.classList.contains('open')) closeSidebar();
+                if (sidebar.classList.contains('open')) closeMobileSidebar();
                 if (bottomSheet.classList.contains('open')) closeBottomSheet();
             }
         });
 
-        // ========== DETECTAR SWIPE HACIA ARRIBA (para abrir bottom sheet) ==========
+        // ========== SWIPE PARA ABRIR BOTTOM SHEET ==========
         let touchStartY = 0;
         let touchEndY = 0;
 
@@ -552,19 +713,15 @@
         document.addEventListener('touchend', (e) => {
             touchEndY = e.changedTouches[0].clientY;
             const swipeDistance = touchEndY - touchStartY;
-            
-            // Si el usuario desliza hacia arriba desde la parte inferior (menos de 100px desde el borde)
             const isNearBottom = touchStartY > window.innerHeight - 100;
-            
+
             if (isNearBottom && swipeDistance < -30 && !bottomSheet.classList.contains('open')) {
                 openBottomSheet();
             }
         });
 
-        // Cerrar con swipe hacia abajo dentro del bottom sheet
-        const sheetHandle = document.querySelector('.bottom-sheet-handle');
+        // Cerrar con swipe hacia abajo
         let sheetStartY = 0;
-
         bottomSheet.addEventListener('touchstart', (e) => {
             sheetStartY = e.touches[0].clientY;
         });
@@ -572,7 +729,6 @@
         bottomSheet.addEventListener('touchmove', (e) => {
             const currentY = e.touches[0].clientY;
             const delta = currentY - sheetStartY;
-            
             if (delta > 30 && bottomSheet.classList.contains('open')) {
                 closeBottomSheet();
             }
@@ -584,7 +740,7 @@
             clearTimeout(resizeTimer);
             resizeTimer = setTimeout(() => {
                 if (window.innerWidth >= 768) {
-                    closeSidebar();
+                    closeMobileSidebar();
                     closeBottomSheet();
                     document.body.style.overflow = '';
                 }
@@ -594,4 +750,5 @@
 
     @stack('scripts')
 </body>
+
 </html>
