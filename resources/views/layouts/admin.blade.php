@@ -442,12 +442,7 @@
 
     <!-- Tooltip flotante para feedback -->
     <div class="sidebar-tooltip" id="sidebarTooltip"></div>
-
-    <!-- Botón menú hamburguesa (solo móvil) -->
-    <button class="menu-toggle-mobile" id="menuToggleMobile" aria-label="Abrir menú">
-        ☰
-    </button>
-
+    
     <!-- Overlay para sidebar móvil -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
@@ -507,27 +502,13 @@
         </div>
     </aside>
 
-    <!-- Contenido principal -->
     <main class="main-content" id="mainContent">
-        @if (session('success'))
-            <div class="mb-6 bg-green-100 border border-green-400 text-green-800 px-4 py-3 rounded-lg shadow-sm">
-                ✅ {{ session('success') }}
-            </div>
-        @endif
-
-        @if (session('error'))
-            <div class="mb-6 bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded-lg shadow-sm">
-                ❌ {{ session('error') }}
-            </div>
-        @endif
+        {{-- Toast Notifications - Aparecen y desaparecen automáticamente --}}
+        @include('partials.toast-notifications')
 
         @yield('content')
     </main>
 
-    <!-- BOTÓN FLOTANTE PARA ABRIR BOTTOM SHEET (Móvil) -->
-    <button class="bottom-sheet-trigger" id="bottomSheetTrigger">
-        ☰
-    </button>
 
     <!-- Overlay difuminado para bottom sheet -->
     <div class="bottom-sheet-overlay" id="bottomSheetOverlay"></div>

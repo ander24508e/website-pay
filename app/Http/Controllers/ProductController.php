@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\NotificationHelper;
 use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Http\Request;
@@ -33,17 +34,23 @@ class ProductController extends Controller
             'active'      => 'boolean',
         ]);
 
-        $data = $request->except('image');
-        $data['active'] = $request->has('active');
+        try {
+            $data = $request->except('image');
+            $data['active'] = $request->has('active');
 
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('products', 'public');
+            if ($request->hasFile('image')) {
+                $data['image'] = $request->file('image')->store('products', 'public');
+            }
+
+            Product::create($data);
+
+            NotificationHelper::success('Producto creado correctamente.');
+            return redirect()->route('admin.products.index');
+
+        } catch (\Exception $e) {
+            NotificationHelper::error('Error al crear el producto: ' . $e->getMessage());
+            return back()->withInput();
         }
-
-        Product::create($data);
-
-        return redirect()->route('admin.products.index')
-            ->with('success', 'Producto creado correctamente.');
     }
 
     public function show(Product $product)
@@ -69,31 +76,43 @@ class ProductController extends Controller
             'active'      => 'boolean',
         ]);
 
-        $data = $request->except('image');
-        $data['active'] = $request->has('active');
+        try {
+            $data = $request->except('image');
+            $data['active'] = $request->has('active');
 
-        if ($request->hasFile('image')) {
-            // Elimina imagen anterior si existe
-            if ($product->image) {
-                Storage::disk('public')->delete($product->image);
+            if ($request->hasFile('image')) {
+                // Elimina imagen anterior si existe
+                if ($product->image) {
+                    Storage::disk('public')->delete($product->image);
+                }
+                $data['image'] = $request->file('image')->store('products', 'public');
             }
-            $data['image'] = $request->file('image')->store('products', 'public');
+
+            $product->update($data);
+
+            NotificationHelper::success('Producto actualizado correctamente.');
+            return redirect()->route('admin.products.index');
+
+        } catch (\Exception $e) {
+            NotificationHelper::error('Error al actualizar el producto: ' . $e->getMessage());
+            return back()->withInput();
         }
-
-        $product->update($data);
-
-        return redirect()->route('admin.products.index')
-            ->with('success', 'Producto actualizado correctamente.');
     }
 
     public function destroy(Product $product)
     {
-        if ($product->image) {
-            Storage::disk('public')->delete($product->image);
-        }
-        $product->delete();
+        try {
+            if ($product->image) {
+                Storage::disk('public')->delete($product->image);
+            }
+            $product->delete();
 
-        return redirect()->route('admin.products.index')
-            ->with('success', 'Producto eliminado correctamente.');
+            NotificationHelper::success('Producto eliminado correctamente.');
+            return redirect()->route('admin.products.index');
+
+        } catch (\Exception $e) {
+            NotificationHelper::error('Error al eliminar el producto: ' . $e->getMessage());
+            return back();
+        }
     }
 }
