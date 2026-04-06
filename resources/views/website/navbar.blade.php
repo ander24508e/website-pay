@@ -200,7 +200,7 @@
             @if(auth()->user()->hasRole('admin'))
                 <li><a href="{{ route('admin.dashboard') }}" class="btn-login">⚡ Panel Admin</a></li>
             @else
-                <li><a href="{{ route('cliente.compras') }}">Mis Compras</a></li>
+                <li><a href="{{ route('customer.compras') }}">Mis Compras</a></li>
                 <li><a href="{{ route('profile.edit') }}">Mi Perfil</a></li>
                 <li>
                     <form method="POST" action="{{ route('logout') }}">
@@ -230,7 +230,7 @@
         @if(auth()->user()->hasRole('admin'))
             <li><a href="{{ route('admin.dashboard') }}" class="btn-login-mobile">⚡ Panel Admin</a></li>
         @else
-            <li><a href="{{ route('cliente.compras') }}" onclick="closeMenu()">Mis Compras</a></li>
+            <li><a href="{{ route('customer.compras') }}" onclick="closeMenu()">Mis Compras</a></li>
             <li><a href="{{ route('profile.edit') }}" onclick="closeMenu()">Mi Perfil</a></li>
             <li>
                 <form method="POST" action="{{ route('logout') }}">
