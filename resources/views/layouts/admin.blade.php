@@ -442,18 +442,18 @@
 
     <!-- Tooltip flotante para feedback -->
     <div class="sidebar-tooltip" id="sidebarTooltip"></div>
-    
+
     <!-- Overlay para sidebar móvil -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <!-- Sidebar (Colapsable al hacer clic) -->
-    <aside class="sidebar" id="sidebar">
+    <aside class="sidebar flex flex-col h-full" id="sidebar">
         <div class="sidebar-header">
             <h1>⚡ Admin Panel</h1>
             <p>{{ auth()->user()?->name ?? 'Administrador' }}</p>
         </div>
 
-        <nav class="sidebar-nav">
+        <nav class="sidebar-nav flex-1">
             <a href="{{ route('admin.dashboard') }}"
                 class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                 <span>📊</span>
@@ -479,29 +479,30 @@
                 <span>🧾</span>
                 <span>Órdenes</span>
             </a>
-            <a href="{{ route('admin.empresa.edit') }}"
-                class="{{ request()->routeIs('admin.empresa.*') ? 'active' : '' }}">
-                <span>🏢</span>
-                <span>Mi Empresa</span>
-            </a>
             <a href="{{ route('admin.transactions.index') }}"
                 class="{{ request()->routeIs('admin.transactions.*') ? 'active' : '' }}">
                 <span>💳</span>
                 <span>Transacciones</span>
             </a>
+            <!-- Mi Empresa dentro del nav, justo antes del footer -->
+            <a href="{{ route('admin.empresa.edit') }}"
+                class="{{ request()->routeIs('admin.empresa.*') ? 'active' : '' }}">
+                <span>🏢</span>
+                <span>Mi Empresa</span>
+            </a>
         </nav>
 
-        <div class="sidebar-footer">
+        <div class="sidebar-footer mt-auto">
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <button type="submit">
+                <button type="submit"
+                    class="w-full text-left px-4 py-2 rounded-lg hover:bg-red-700 transition flex items-center gap-3 text-red-400">
                     <span>🚪</span>
                     <span>Cerrar sesión</span>
                 </button>
             </form>
         </div>
     </aside>
-
     <main class="main-content" id="mainContent">
         {{-- Toast Notifications - Aparecen y desaparecen automáticamente --}}
         @include('partials.toast-notifications')
@@ -563,6 +564,11 @@
         </nav>
 
         <div class="bottom-sheet-footer">
+            <a href="{{ route('admin.empresa.edit') }}"
+                class="{{ request()->routeIs('admin.empresa.*') ? 'active' : '' }}">
+                <span>🏢</span>
+                <span>Mi Empresa</span>
+            </a>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit">

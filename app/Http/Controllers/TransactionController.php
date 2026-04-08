@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 
 class TransactionController extends Controller
 {
@@ -13,26 +14,39 @@ class TransactionController extends Controller
     {
         $order = Order::findOrFail(session('current_order_id'));
 
+        // Verificar el pago con Payphone antes de confirmar
+        $verification = Http::withToken(config('services.payphone.token'))
+            ->post(config('services.payphone.base_url') . '/api/button/Confirm', [
+                'id'                  => $request->id,
+                'clientTransactionId' => $request->clientTransactionId,
+            ]);
+
+        $payload = $verification->json();
+        $status  = ($payload['transactionStatus'] ?? '') === 'Approved' ? 'approved' : 'rejected';
+
         Transaction::create([
-            'order_id'             => $order->id,
-            'payphone_ref'         => $request->transactionId ?? null,
-            'amount'               => $order->total,
-            'status'               => 'approved',
-            'response_payload'     => $request->all(), // guarda todo
-            'client_transaction_id'=> $request->clientTransactionId ?? null,
+            'order_id'              => $order->id,
+            'payphone_ref'          => $request->id ?? null,
+            'amount'                => $order->total,
+            'status'                => $status,
+            'response_payload'      => $payload,
+            'client_transaction_id' => $request->clientTransactionId ?? null,
         ]);
 
-        $order->update([
-            'status'                  => 'paid',
-            'payphone_transaction_id' => $request->transactionId ?? null,
-        ]);
+        if ($status === 'approved') {
+            $order->update([
+                'status'                  => 'paid',
+                'payphone_transaction_id' => $request->id ?? null,
+            ]);
+            session()->forget(['carrito', 'current_order_id']);
+            return redirect()->route('orden.confirmacion', $order)
+                ->with('success', '¡Pago realizado con éxito!');
+        }
 
-        session()->forget(['carrito', 'current_order_id']);
-
-        return redirect()->route('orden.confirmacion', $order)
-            ->with('success', '¡Pago realizado con éxito!');
+        $order->update(['status' => 'failed']);
+        return redirect()->route('carrito.index')
+            ->with('error', 'El pago fue rechazado. Intenta de nuevo.');
     }
-
     // Payphone redirige aquí cuando cancela
     public function cancel(Request $request)
     {
