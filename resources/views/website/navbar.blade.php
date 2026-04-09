@@ -196,11 +196,13 @@
         <li><a href="{{ route('home') }}#servicios">Servicios</a></li>
         <li><a href="{{ route('home') }}#productos">Productos</a></li>
         <li><a href="{{ route('home') }}#contacto">Contacto</a></li>
+        <li><a href="{{ route('home') }}/carrito">Carrito</a></li>
+
         @auth
             @if(auth()->user()->hasRole('admin'))
                 <li><a href="{{ route('admin.dashboard') }}" class="btn-login">⚡ Panel Admin</a></li>
             @else
-                <li><a href="{{ route('customer.compras') }}">Mis Compras</a></li>
+                <li><a href="{{ route('/customer.compras') }}">Mis Compras</a></li>
                 <li><a href="{{ route('profile.edit') }}">Mi Perfil</a></li>
                 <li>
                     <form method="POST" action="{{ route('logout') }}">
@@ -225,12 +227,13 @@
     <li><a href="{{ route('home') }}#inicio" onclick="closeMenu()">Inicio</a></li>
     <li><a href="{{ route('home') }}#servicios" onclick="closeMenu()">Servicios</a></li>
     <li><a href="{{ route('home') }}#productos" onclick="closeMenu()">Productos</a></li>
-    <li><a href="{{ route('home') }}#contacto" onclick="closeMenu()">Contacto</a></li>
+    <li><a href="{{ route('home') }}#contacto" onclick="closeMenu()">Contacto</a></li>}
+    <li><a href="{{ route('home') }}/carrito">Carrito</a></li>
     @auth
         @if(auth()->user()->hasRole('admin'))
             <li><a href="{{ route('admin.dashboard') }}" class="btn-login-mobile">⚡ Panel Admin</a></li>
         @else
-            <li><a href="{{ route('customer.compras') }}" onclick="closeMenu()">Mis Compras</a></li>
+            <li><a href="{{ route('/customer.compras') }}" onclick="closeMenu()">Mis Compras</a></li>
             <li><a href="{{ route('profile.edit') }}" onclick="closeMenu()">Mi Perfil</a></li>
             <li>
                 <form method="POST" action="{{ route('logout') }}">

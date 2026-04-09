@@ -490,6 +490,10 @@
                 <span>🏢</span>
                 <span>Mi Empresa</span>
             </a>
+            <a href="{{ route('profile.edit') }}" class="{{ request()->routeIs('profile.edit') ? 'active' : '' }}">
+                <span>👤</span>
+                <span>Mi Perfil</span>
+            </a>
         </nav>
 
         <div class="sidebar-footer mt-auto">
@@ -561,14 +565,13 @@
                 <span>💳</span>
                 <span>Transacciones</span>
             </a>
+            <a href="{{ route('profile.edit') }}" class="{{ request()->routeIs('profile.edit') ? 'active' : '' }}">
+                <span>👤</span>
+                <span>Mi Perfil</span>
+            </a>
         </nav>
 
         <div class="bottom-sheet-footer">
-            <a href="{{ route('admin.empresa.edit') }}"
-                class="{{ request()->routeIs('admin.empresa.*') ? 'active' : '' }}">
-                <span>🏢</span>
-                <span>Mi Empresa</span>
-            </a>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit">

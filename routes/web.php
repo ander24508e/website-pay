@@ -66,8 +66,8 @@ Route::middleware('auth')->group(function () {
 // ══════════════════════════════════════════
 
 Route::middleware(['auth', 'role:cliente'])
-    ->prefix('customer')
-    ->name('customer.')
+    ->prefix('/customer')
+    ->name('/customer.')
     ->group(function () {
         Route::get('/compras', [ClienteController::class, 'compras'])->name('compras');
     });
@@ -90,11 +90,11 @@ Route::middleware(['auth', 'role:admin'])
         Route::delete('/empresa/logo', [EmpresaController::class, 'deleteLogo'])->name('empresa.deleteLogo');
 
         // CRUD resources
-        Route::resource('categories',   CategoryController::class);
-        Route::resource('products',     ProductController::class);
-        Route::resource('services',     ServiceController::class);
-        Route::resource('orders',       OrderController::class)->only(['index', 'show']);
-        Route::resource('transactions', TransactionController::class)->only(['index', 'show']);
+        Route::resource('/categories',   CategoryController::class);
+        Route::resource('/products',     ProductController::class);
+        Route::resource('/services',     ServiceController::class);
+        Route::resource('/orders',       OrderController::class)->only(['index', 'show']);
+        Route::resource('/transactions', TransactionController::class)->only(['index', 'show']);
     });
 
 // ══════════════════════════════════════════
