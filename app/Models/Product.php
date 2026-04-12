@@ -26,6 +26,6 @@ class Product extends Model
 
     public function orderItems()
     {
-        return $this->morphMany(OrderItems::class, 'itemable');
+        return $this->morphMany(OrderItem::class, 'itemable');
     }
 }

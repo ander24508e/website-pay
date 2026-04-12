@@ -1,0 +1,433 @@
+:root {
+    --red: #d82128;
+    --red-dark: #b41b21;
+    --gold: #f0b429;
+    --dark: #1e1e1e;
+    --dark-2: #141414;
+    --dark-3: #0a0a0a;
+    --muted: #666666;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body.auth-login,
+body.auth-register {
+    font-family: 'Montserrat', sans-serif;
+    background: var(--dark-3);
+    color: white;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+body.auth-register {
+    padding: 2rem 1rem;
+}
+
+.bg-layer {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+}
+
+body.auth-login .bg-layer {
+    background:
+        radial-gradient(ellipse 60% 60% at 70% 50%, rgba(216, 33, 40, 0.1) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 40% at 20% 80%, rgba(240, 180, 41, 0.05) 0%, transparent 60%);
+}
+
+body.auth-register .bg-layer {
+    background:
+        radial-gradient(ellipse 60% 60% at 30% 50%, rgba(216, 33, 40, 0.1) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 40% at 80% 20%, rgba(240, 180, 41, 0.05) 0%, transparent 60%);
+}
+
+.bg-layer::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 40px,
+        rgba(255, 255, 255, 0.01) 40px,
+        rgba(255, 255, 255, 0.01) 41px
+    );
+}
+
+body.auth-login .bg-layer::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(to bottom, transparent, var(--red), transparent);
+}
+
+body.auth-register .bg-layer::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(to bottom, transparent, var(--red), transparent);
+}
+
+.btn-back {
+    position: fixed;
+    top: 1.5rem;
+    left: 1.5rem;
+    color: rgba(255, 255, 255, 0.5);
+    text-decoration: none;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: color 0.2s;
+    z-index: 10;
+}
+
+.btn-back:hover {
+    color: var(--gold);
+}
+
+.card {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 16px;
+    padding: 2.5rem;
+    backdrop-filter: blur(20px);
+    animation: authFadeUp 0.5s ease both;
+}
+
+body.auth-login .card {
+    max-width: 420px;
+}
+
+body.auth-register .card {
+    max-width: 460px;
+}
+
+@keyframes authFadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(24px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.logo-wrap {
+    text-align: center;
+}
+
+body.auth-login .logo-wrap {
+    margin-bottom: 2rem;
+}
+
+body.auth-register .logo-wrap {
+    margin-bottom: 1.75rem;
+}
+
+.logo-img {
+    border-radius: 50%;
+    object-fit: contain;
+    border: 2px solid rgba(216, 33, 40, 0.4);
+}
+
+body.auth-login .logo-img {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 0.75rem;
+}
+
+body.auth-register .logo-img {
+    width: 70px;
+    height: 70px;
+    margin-bottom: 0.65rem;
+}
+
+.brand {
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 0.06em;
+    color: white;
+    line-height: 1;
+}
+
+body.auth-login .brand {
+    font-size: 1.6rem;
+}
+
+body.auth-register .brand {
+    font-size: 1.5rem;
+}
+
+.brand span {
+    color: var(--red);
+}
+
+.brand-sub {
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+}
+
+body.auth-login .brand-sub {
+    font-size: 0.72rem;
+    margin-top: 0.25rem;
+}
+
+body.auth-register .brand-sub {
+    font-size: 0.7rem;
+    margin-top: 0.2rem;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+body.auth-login .form-group {
+    margin-bottom: 1.1rem;
+}
+
+.form-label {
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.35rem;
+}
+
+body.auth-login .form-label {
+    margin-bottom: 0.4rem;
+}
+
+.form-input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    transition: border-color 0.2s;
+}
+
+body.auth-login .form-input {
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+}
+
+body.auth-register .form-input {
+    padding: 0.72rem 1rem;
+    font-size: 0.84rem;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: rgba(216, 33, 40, 0.6);
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.form-input::placeholder {
+    color: rgba(255, 255, 255, 0.2);
+}
+
+.input-wrap {
+    position: relative;
+}
+
+.input-wrap .form-input {
+    padding-right: 2.8rem;
+}
+
+.eye-btn {
+    position: absolute;
+    right: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 1rem;
+    transition: color 0.2s;
+}
+
+.eye-btn:hover {
+    color: white;
+}
+
+.field-error {
+    color: #ff6b6b;
+    font-size: 0.7rem;
+    margin-top: 0.3rem;
+    display: block;
+}
+
+.row-flex {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    margin-top: 0.25rem;
+}
+
+.remember {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+}
+
+.remember input {
+    accent-color: var(--red);
+}
+
+.forgot {
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.forgot:hover {
+    color: var(--gold);
+}
+
+.btn-submit {
+    width: 100%;
+    background: var(--red);
+    color: white;
+    border: none;
+    padding: 0.9rem;
+    border-radius: 8px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 0.85rem;
+}
+
+body.auth-register .btn-submit {
+    margin-top: 0.5rem;
+}
+
+.btn-submit:hover {
+    background: var(--red-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(216, 33, 40, 0.35);
+}
+
+.btn-register,
+.btn-login {
+    width: 100%;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 0.9rem;
+    border-radius: 8px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 0.82rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: block;
+    text-align: center;
+}
+
+.btn-register:hover,
+.btn-login:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0.85rem 0;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.divider span {
+    font-size: 0.68rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.terms {
+    font-size: 0.7rem;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 1rem;
+    line-height: 1.6;
+}
+
+.strength-bar {
+    height: 3px;
+    border-radius: 2px;
+    margin-top: 0.4rem;
+    transition: all 0.3s;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.strength-bar.weak {
+    background: var(--red);
+    width: 33%;
+}
+
+.strength-bar.medium {
+    background: var(--gold);
+    width: 66%;
+}
+
+.strength-bar.strong {
+    background: #28a745;
+    width: 100%;
+}
+
+.strength-text {
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-top: 0.2rem;
+}

@@ -24,8 +24,8 @@ class CarritoController extends Controller
         ]);
 
         $item = $request->type === 'product'
-            ? Product::findOrFail($request->id)
-            : Service::findOrFail($request->id);
+            ? Product::where('active', true)->findOrFail($request->id)
+            : Service::where('active', true)->findOrFail($request->id);
 
         $carrito = session()->get('carrito', []);
         $key = $request->type . '_' . $request->id;

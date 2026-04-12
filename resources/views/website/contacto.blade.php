@@ -1,21 +1,3 @@
-<style>
-.contact-grid { display:grid; grid-template-columns:1fr 1fr; gap:3rem; max-width:1100px; margin:0 auto; }
-.contact-item { display:flex; gap:1rem; margin-bottom:2rem; align-items:flex-start; }
-.contact-icon { width:48px; height:48px; border-radius:8px; background:rgba(216,33,40,0.12); border:1px solid rgba(216,33,40,0.25); display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0; }
-.contact-text h4 { font-size:0.7rem; font-weight:700; letter-spacing:0.15em; text-transform:uppercase; color:var(--muted); margin-bottom:0.3rem; }
-.contact-text p { font-size:0.95rem; color:white; font-weight:500; }
-.map-container { border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,0.06); height:350px; }
-.map-container iframe { width:100%; height:100%; border:none; }
-
-@media (max-width: 768px) {
-    .contact-grid {
-        grid-template-columns: 1fr;
-        gap: 2rem;
-    }
-    .map-container { height: 260px; }
-    .contact-text p { font-size:0.85rem; }
-}
-</style>
 
 <section class="section section-dark" id="contacto">
     <div class="section-header fade-up">

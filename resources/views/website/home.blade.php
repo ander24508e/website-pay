@@ -7,74 +7,13 @@
     <title>{{ $empresa->nombre ?? 'Lavadora y Lubricadora Endara' }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <style>
-        :root {
-            --red:      #d82128;
-            --red-dark: #b41b21;
-            --gold:     #f0b429;
-            --dark:     #1e1e1e;
-            --dark-2:   #141414;
-            --dark-3:   #0a0a0a;
-            --muted:    #666666;
-        }
-        * { margin:0; padding:0; box-sizing:border-box; }
-        html { scroll-behavior: smooth; }
-        body { font-family:'Montserrat',sans-serif; background:var(--dark-3); color:white; overflow-x:hidden; }
-        h1,h2,h3 { font-family:'Bebas Neue',sans-serif; letter-spacing:0.05em; }
-
-        /* ── GLOBALES ── */
-        .section { padding:6rem 2rem; }
-        .section-dark   { background:var(--dark-2); }
-        .section-darker { background:var(--dark-3); }
-        .section-header { text-align:center; margin-bottom:3.5rem; }
-        .section-tag    { display:inline-block; background:rgba(216,33,40,0.12); border:1px solid rgba(216,33,40,0.3); color:var(--red); font-size:0.65rem; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; padding:0.35rem 1rem; border-radius:2px; margin-bottom:1rem; }
-        .section-title  { font-size:clamp(2rem,5vw,3.5rem); color:white; line-height:1.1; }
-        .section-title span { color:var(--red); }
-        .section-sub    { font-size:0.9rem; color:var(--muted); margin-top:0.75rem; max-width:450px; margin-left:auto; margin-right:auto; line-height:1.7; }
-        .divider        { width:60px; height:3px; background:var(--red); margin:0.75rem auto 0; border-radius:2px; }
-        .fade-up        { opacity:0; transform:translateY(32px); transition:opacity 0.6s ease, transform 0.6s ease; }
-        .fade-up.visible{ opacity:1; transform:translateY(0); }
-
-        /* ── CARRUSEL / CARDS ── */
-        .carousel-wrapper { position:relative; max-width:1200px; margin:0 auto; overflow:hidden; }
-        .carousel-track   { display:flex; gap:1.5rem; transition:transform 0.4s cubic-bezier(0.25,0.46,0.45,0.94); }
-        .card             { flex:0 0 calc(33.333% - 1rem); background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:8px; overflow:hidden; transition:all 0.3s; }
-        .card:hover       { border-color:rgba(216,33,40,0.4); transform:translateY(-4px); box-shadow:0 12px 32px rgba(0,0,0,0.4); }
-        .card-placeholder { width:100%; height:200px; background:linear-gradient(135deg,rgba(216,33,40,0.1),rgba(240,180,41,0.05)); display:flex; align-items:center; justify-content:center; font-size:3rem; }
-        .card-image       { width:100%; height:200px; object-fit:cover; }
-        .card-body        { padding:1.5rem; }
-        .card-category    { font-size:0.65rem; font-weight:700; letter-spacing:0.15em; text-transform:uppercase; color:var(--gold); margin-bottom:0.5rem; }
-        .card-name        { font-family:'Bebas Neue',sans-serif; font-size:1.4rem; letter-spacing:0.04em; color:white; margin-bottom:0.5rem; }
-        .card-desc        { font-size:0.8rem; color:var(--muted); line-height:1.6; margin-bottom:1.25rem; }
-        .card-footer      { display:flex; align-items:center; justify-content:space-between; }
-        .card-price       { font-family:'Bebas Neue',sans-serif; font-size:1.8rem; color:var(--red); letter-spacing:0.04em; }
-        .card-price span  { font-size:1rem; color:var(--muted); font-family:'Montserrat',sans-serif; }
-        .btn-card         { background:var(--red); color:white; border:none; padding:0.6rem 1.2rem; border-radius:4px; font-size:0.75rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; transition:all 0.2s; }
-        .btn-card:hover   { background:var(--red-dark); transform:translateY(-1px); }
-        .carousel-controls{ display:flex; justify-content:center; gap:0.75rem; margin-top:2rem; }
-        .carousel-btn     { width:44px; height:44px; border-radius:50%; border:2px solid rgba(255,255,255,0.15); background:transparent; color:white; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; justify-content:center; font-size:1rem; }
-        .carousel-btn:hover{ border-color:var(--red); background:var(--red); }
-
-        @keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
-
-        /* ── RESPONSIVE GLOBAL ── */
-        @media (max-width: 768px) {
-            .section { padding:4rem 1.25rem; }
-            .card { flex:0 0 calc(85vw); }
-            .section-header { margin-bottom:2.5rem; }
-        }
-        @media (max-width: 480px) {
-            .card { flex:0 0 calc(92vw); }
-        }
-    </style>
+    @vite(['resources/css/app.css', 'resources/scss/website.scss', 'resources/js/app.js'])
 </head>
 <body>
 
 @include('website.navbar')
 @include('website.hero')
-@include('website.servicios')
-@include('website.productos')
+@include('website.catalogo')
 @include('website.contacto')
 @include('website.footer')
 

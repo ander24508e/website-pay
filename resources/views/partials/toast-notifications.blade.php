@@ -12,7 +12,7 @@
                         </svg>
                     </div>
                     <div class="flex-1">
-                        <p class="text-sm font-semibold text-green-800">¡Éxito!</p>
+                        <p class="text-sm font-semibold text-green-800">Â¡Ã‰xito!</p>
                         <p class="text-sm text-green-700">{{ session('success') }}</p>
                     </div>
                     <button class="close-toast text-green-400 hover:text-green-600">
@@ -35,7 +35,7 @@
                         </svg>
                     </div>
                     <div class="flex-1">
-                        <p class="text-sm font-semibold text-red-800">¡Error!</p>
+                        <p class="text-sm font-semibold text-red-800">Â¡Error!</p>
                         <p class="text-sm text-red-700">{{ session('error') }}</p>
                     </div>
                     <button class="close-toast text-red-400 hover:text-red-600">
@@ -58,7 +58,7 @@
                         </svg>
                     </div>
                     <div class="flex-1">
-                        <p class="text-sm font-semibold text-yellow-800">¡Atención!</p>
+                        <p class="text-sm font-semibold text-yellow-800">Â¡AtenciÃ³n!</p>
                         <p class="text-sm text-yellow-700">{{ session('warning') }}</p>
                     </div>
                     <button class="close-toast text-yellow-400 hover:text-yellow-600">
@@ -81,7 +81,7 @@
                         </svg>
                     </div>
                     <div class="flex-1">
-                        <p class="text-sm font-semibold text-blue-800">Información</p>
+                        <p class="text-sm font-semibold text-blue-800">InformaciÃ³n</p>
                         <p class="text-sm text-blue-700">{{ session('info') }}</p>
                     </div>
                     <button class="close-toast text-blue-400 hover:text-blue-600">
@@ -94,31 +94,7 @@
         @endif
 
     </div>
-
-    <style>
-        .toast-notification {
-            animation: slideInRight 0.3s ease-out;
-        }
-        
-        .toast-notification.fade-out {
-            opacity: 0;
-            transform: translateX(100%);
-            transition: all 0.3s ease-out;
-        }
-
-        @keyframes slideInRight {
-            from {
-                opacity: 0;
-                transform: translateX(100%);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-    </style>
-
-    <script>
+<script>
         document.addEventListener('DOMContentLoaded', function() {
             const toasts = document.querySelectorAll('.toast-notification');
             
