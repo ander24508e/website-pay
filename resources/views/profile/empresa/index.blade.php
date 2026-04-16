@@ -7,7 +7,10 @@
 {{-- Header --}}
 <div class="flex items-center justify-between mb-8">
     <div>
-        <h2 class="text-2xl font-bold text-gray-800">🏢 Mi Empresa</h2>
+        <div class="flex items-center gap-2">
+            <x-heroicon-o-building-office class="w-8 h-8 text-gray-800" />
+            <h2 class="text-2xl font-bold text-gray-800">Mi Empresa</h2>
+        </div>
         <p class="text-gray-500 text-sm mt-1">Configura el nombre, logo e información de contacto</p>
     </div>
 </div>
@@ -15,7 +18,10 @@
 {{-- Alerta éxito --}}
 @if(session('status') === 'empresa-updated')
     <div class="mb-6 bg-green-100 border border-green-400 text-green-800 px-4 py-3 rounded-lg flex items-center justify-between">
-        <span>✅ Información actualizada correctamente.</span>
+        <div class="flex items-center gap-2">
+            <x-heroicon-o-check-circle class="w-5 h-5" />
+            <span>Información actualizada correctamente.</span>
+        </div>
         <button onclick="this.parentElement.remove()" class="text-green-600 hover:text-green-800 font-bold text-lg leading-none">×</button>
     </div>
 @endif
@@ -47,7 +53,8 @@
                 <button type="button"
                         onclick="document.getElementById('logo').click()"
                         class="w-full bg-gray-900 text-white py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-sm flex items-center justify-center gap-2">
-                    ☁️ Cambiar Logo
+                    <x-heroicon-o-cloud-arrow-up class="w-4 h-4" />
+                    Cambiar Logo
                 </button>
 
                 <p id="file-name" class="text-xs text-gray-400 text-center mt-2">
@@ -67,8 +74,9 @@
                               onsubmit="return confirm('¿Eliminar el logo actual?')">
                             @csrf
                             @method('DELETE')
-                            <button class="w-full text-red-500 hover:text-red-700 text-xs font-medium py-2 rounded-lg hover:bg-red-50 transition">
-                                🗑 Eliminar logo actual
+                            <button class="w-full text-red-500 hover:text-red-700 text-xs font-medium py-2 rounded-lg hover:bg-red-50 transition flex items-center justify-center gap-2">
+                                <x-heroicon-o-trash class="w-4 h-4" />
+                                Eliminar logo actual
                             </button>
                         </form>
                     </div>
@@ -119,7 +127,8 @@
                 {{-- Botón guardar --}}
                 <div class="flex gap-3">
                     <button type="submit"
-                            class="bg-gray-900 text-white px-6 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-sm">
+                            class="bg-gray-900 text-white px-6 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-sm flex items-center gap-2">
+                        <x-heroicon-o-check class="w-4 h-4" />
                         Guardar Cambios
                     </button>
                     <a href="{{ route('admin.dashboard') }}"

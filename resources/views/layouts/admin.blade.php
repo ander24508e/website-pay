@@ -24,44 +24,50 @@
         </div>
 
         <nav class="sidebar-nav flex-1">
+            <a href="{{ route('home') }}"
+                class="{{ request()->routeIs('home') ? 'active' : '' }}">
+                <span><x-heroicon-o-chart-bar class="w-5 h-5" /></span>
+                <span>Pagina web</span>
+            </a>
             <a href="{{ route('admin.dashboard') }}"
                 class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-                <span>📊</span>
+                <span><x-heroicon-o-chart-bar class="w-5 h-5" /></span>
                 <span>Dashboard</span>
             </a>
+
             <a href="{{ route('admin.categories.index') }}"
                 class="{{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
-                <span>🏷️</span>
+                <span><x-heroicon-o-tag class="w-5 h-5" /></span>
                 <span>Categorías</span>
             </a>
             <a href="{{ route('admin.products.index') }}"
                 class="{{ request()->routeIs('admin.products.*') ? 'active' : '' }}">
-                <span>📦</span>
+                <span><x-heroicon-o-cube class="w-5 h-5" /></span>
                 <span>Productos</span>
             </a>
             <a href="{{ route('admin.services.index') }}"
                 class="{{ request()->routeIs('admin.services.*') ? 'active' : '' }}">
-                <span>🛠️</span>
+                <span><x-heroicon-o-wrench class="w-5 h-5" /></span>
                 <span>Servicios</span>
             </a>
             <a href="{{ route('admin.orders.index') }}"
                 class="{{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
-                <span>🧾</span>
+                <span><x-heroicon-o-shopping-bag class="w-5 h-5" /></span>
                 <span>Órdenes</span>
             </a>
             <a href="{{ route('admin.transactions.index') }}"
                 class="{{ request()->routeIs('admin.transactions.*') ? 'active' : '' }}">
-                <span>💳</span>
+                <span><x-heroicon-o-credit-card class="w-5 h-5" /></span>
                 <span>Transacciones</span>
             </a>
             <!-- Mi Empresa dentro del nav, justo antes del footer -->
             <a href="{{ route('admin.empresa.edit') }}"
                 class="{{ request()->routeIs('admin.empresa.*') ? 'active' : '' }}">
-                <span>🏢</span>
+                <span><x-heroicon-o-building-office class="w-5 h-5" /></span>
                 <span>Mi Empresa</span>
             </a>
             <a href="{{ route('profile.edit') }}" class="{{ request()->routeIs('profile.edit') ? 'active' : '' }}">
-                <span>👤</span>
+                <span><x-heroicon-o-user class="w-5 h-5" /></span>
                 <span>Mi Perfil</span>
             </a>
         </nav>
@@ -71,7 +77,7 @@
                 @csrf
                 <button type="submit"
                     class="w-full text-left px-4 py-2 rounded-lg hover:bg-red-700 transition flex items-center gap-3 text-red-400">
-                    <span>🚪</span>
+                    <span><x-heroicon-o-arrow-right-start-on-rectangle class="w-5 h-5" /></span>
                     <span>Cerrar sesión</span>
                 </button>
             </form>
@@ -102,41 +108,41 @@
         <nav class="bottom-sheet-nav">
             <a href="{{ route('admin.dashboard') }}"
                 class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-                <span>📊</span>
+                <span><x-heroicon-o-chart-bar class="w-5 h-5" /></span>
                 <span>Dashboard</span>
             </a>
             <a href="{{ route('admin.categories.index') }}"
                 class="{{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
-                <span>🏷️</span>
+                <span><x-heroicon-o-tag class="w-5 h-5" /></span>
                 <span>Categorías</span>
             </a>
             <a href="{{ route('admin.products.index') }}"
                 class="{{ request()->routeIs('admin.products.*') ? 'active' : '' }}">
-                <span>📦</span>
+                <span><x-heroicon-o-cube class="w-5 h-5" /></span>
                 <span>Productos</span>
             </a>
             <a href="{{ route('admin.services.index') }}"
                 class="{{ request()->routeIs('admin.services.*') ? 'active' : '' }}">
-                <span>🛠️</span>
+                <span><x-heroicon-o-wrench class="w-5 h-5" /></span>
                 <span>Servicios</span>
             </a>
             <a href="{{ route('admin.orders.index') }}"
                 class="{{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
-                <span>🧾</span>
+                <span><x-heroicon-o-shopping-bag class="w-5 h-5" /></span>
                 <span>Órdenes</span>
             </a>
             <a href="{{ route('admin.empresa.edit') }}"
                 class="{{ request()->routeIs('admin.empresa.*') ? 'active' : '' }}">
-                <span>🏢</span>
+                <span><x-heroicon-o-building-office class="w-5 h-5" /></span>
                 <span>Mi Empresa</span>
             </a>
             <a href="{{ route('admin.transactions.index') }}"
                 class="{{ request()->routeIs('admin.transactions.*') ? 'active' : '' }}">
-                <span>💳</span>
+                <span><x-heroicon-o-credit-card class="w-5 h-5" /></span>
                 <span>Transacciones</span>
             </a>
             <a href="{{ route('profile.edit') }}" class="{{ request()->routeIs('profile.edit') ? 'active' : '' }}">
-                <span>👤</span>
+                <span><x-heroicon-o-user class="w-5 h-5" /></span>
                 <span>Mi Perfil</span>
             </a>
         </nav>
@@ -144,8 +150,8 @@
         <div class="bottom-sheet-footer">
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <button type="submit">
-                    <span>🚪</span>
+                <button type="submit" class="flex items-center gap-3 w-full">
+                    <span><x-heroicon-o-arrow-right-start-on-rectangle class="w-5 h-5" /></span>
                     <span>Cerrar sesión</span>
                 </button>
             </form>

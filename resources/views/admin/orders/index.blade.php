@@ -8,16 +8,21 @@
     {{-- HEADER --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-            <h2 class="text-xl sm:text-2xl font-bold text-gray-800">🧾 Órdenes</h2>
-            <p class="text-gray-500 text-sm">Historial de todas las órdenes realizadas</p>
+            <div class="flex items-center gap-2">
+                <x-heroicon-o-shopping-bag class="w-8 h-8 text-gray-800" />
+                <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Órdenes</h2>
+            </div>
+            <p class="text-gray-500 text-sm mt-1">Historial de todas las órdenes realizadas</p>
         </div>
         {{-- Contador rápido --}}
         <div class="flex gap-3">
-            <span class="bg-yellow-100 text-yellow-700 px-3 py-1.5 rounded-lg text-xs font-semibold">
-                ⏳ Pendientes: {{ $orders->where('status', 'pending')->count() }}
+            <span class="bg-yellow-100 text-yellow-700 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1">
+                <x-heroicon-o-clock class="w-3 h-3" />
+                Pendientes: {{ $orders->where('status', 'pending')->count() }}
             </span>
-            <span class="bg-green-100 text-green-700 px-3 py-1.5 rounded-lg text-xs font-semibold">
-                ✅ Pagadas: {{ $orders->where('status', 'paid')->count() }}
+            <span class="bg-green-100 text-green-700 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1">
+                <x-heroicon-o-check-circle class="w-3 h-3" />
+                Pagadas: {{ $orders->where('status', 'paid')->count() }}
             </span>
         </div>
     </div>
@@ -68,14 +73,21 @@
                                         'failed'    => 'bg-red-100 text-red-700',
                                         'cancelled' => 'bg-gray-100 text-gray-600',
                                     ];
+                                    $icons = [
+                                        'pending'   => '<x-heroicon-o-clock class="w-3 h-3 inline mr-1" />',
+                                        'paid'      => '<x-heroicon-o-check-circle class="w-3 h-3 inline mr-1" />',
+                                        'failed'    => '<x-heroicon-o-x-circle class="w-3 h-3 inline mr-1" />',
+                                        'cancelled' => '<x-heroicon-o-ban class="w-3 h-3 inline mr-1" />',
+                                    ];
                                     $labels = [
-                                        'pending'   => '⏳ Pendiente',
-                                        'paid'      => '✅ Pagada',
-                                        'failed'    => '❌ Fallida',
-                                        'cancelled' => '🚫 Cancelada',
+                                        'pending'   => 'Pendiente',
+                                        'paid'      => 'Pagada',
+                                        'failed'    => 'Fallida',
+                                        'cancelled' => 'Cancelada',
                                     ];
                                 @endphp
-                                <span class="px-2.5 py-1 rounded-full text-xs font-medium {{ $badges[$order->status] ?? 'bg-gray-100 text-gray-600' }}">
+                                <span class="px-2.5 py-1 rounded-full text-xs font-medium {{ $badges[$order->status] ?? 'bg-gray-100 text-gray-600' }} flex items-center gap-1 w-fit">
+                                    {!! $icons[$order->status] ?? '<x-heroicon-o-question-mark-circle class="w-3 h-3 inline mr-1" />' !!}
                                     {{ $labels[$order->status] ?? $order->status }}
                                 </span>
                             </td>
@@ -88,7 +100,8 @@
                             {{-- Acciones --}}
                             <td class="px-4 sm:px-6 py-3 sm:py-4">
                                 <a href="{{ route('admin.orders.show', $order) }}"
-                                   class="text-blue-600 hover:text-blue-800 text-sm font-medium px-2 py-1">
+                                   class="text-blue-600 hover:text-blue-800 text-sm font-medium px-2 py-1 flex items-center gap-1">
+                                    <x-heroicon-o-eye class="w-4 h-4" />
                                     Ver detalle
                                 </a>
                             </td>
@@ -97,7 +110,7 @@
                     @empty
                         <tr>
                             <td colspan="6" class="text-center py-12 text-gray-400">
-                                <p class="text-2xl mb-2">🧾</p>
+                                <x-heroicon-o-shopping-bag class="w-12 h-12 mx-auto mb-3 opacity-50" />
                                 No hay órdenes registradas aún
                             </td>
                         </tr>

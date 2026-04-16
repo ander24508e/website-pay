@@ -8,8 +8,11 @@
     {{-- HEADER --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-            <h2 class="text-xl sm:text-2xl font-bold text-gray-800">🏷️ Categorías</h2>
-            <p class="text-gray-500 text-sm">Organiza productos y servicios por categoría</p>
+            <div class="flex items-center gap-2">
+                <x-heroicon-o-tag class="w-8 h-8 text-gray-800" />
+                <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Categorías</h2>
+            </div>
+            <p class="text-gray-500 text-sm mt-1">Organiza productos y servicios por categoría</p>
         </div>
 
         <a href="{{ route('admin.categories.create') }}"
@@ -18,17 +21,20 @@
         </a>
     </div>
 
-    {{-- GRID DE 2 COLUMNAS (Responsive: 1 columna en móvil, 2 en tablet/desktop) --}}
+    {{-- GRID DE 2 COLUMNAS --}}
     <div class="flex flex-col lg:flex-row gap-6">
 
         {{-- Categorías de Servicios --}}
         <div class="w-full lg:w-1/2 bg-white rounded-xl shadow-sm overflow-hidden flex flex-col">
 
             <div class="px-4 sm:px-6 py-4 border-b bg-gray-50 flex-shrink-0">
-                <h3 class="font-semibold text-gray-700">🛠️ Categorías de Servicios</h3>
+                <div class="flex items-center gap-2">
+                    <x-heroicon-o-wrench class="w-5 h-5 text-gray-600" />
+                    <h3 class="font-semibold text-gray-700">Categorías de Servicios</h3>
+                </div>
             </div>
 
-            {{-- SCROLL VERTICAL EXCLUSIVO (sin horizontal) --}}
+            {{-- SCROLL VERTICAL EXCLUSIVO --}}
             <div class="overflow-y-auto max-h-[50vh]">
                 <table class="w-full text-sm text-left">
                     <thead class="bg-gray-50 border-b sticky top-0 z-10">
@@ -82,10 +88,13 @@
         <div class="w-full lg:w-1/2 bg-white rounded-xl shadow-sm overflow-hidden flex flex-col">
 
             <div class="px-4 sm:px-6 py-4 border-b bg-gray-50 flex-shrink-0">
-                <h3 class="font-semibold text-gray-700">📦 Categorías de Productos</h3>
+                <div class="flex items-center gap-2">
+                    <x-heroicon-o-cube class="w-5 h-5 text-gray-600" />
+                    <h3 class="font-semibold text-gray-700">Categorías de Productos</h3>
+                </div>
             </div>
 
-            {{-- SCROLL VERTICAL EXCLUSIVO (sin horizontal) --}}
+            {{-- SCROLL VERTICAL EXCLUSIVO --}}
             <div class="overflow-y-auto max-h-[50vh]">
                 <table class="w-full text-sm text-left">
                     <thead class="bg-gray-50 border-b sticky top-0 z-10">

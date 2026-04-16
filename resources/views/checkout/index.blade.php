@@ -37,7 +37,9 @@
                 <div class="card-header"><h3>Datos del cliente</h3></div>
                 <div class="card-body">
                     <div class="cliente-row">
-                        <div class="cliente-avatar">👤</div>
+                        <div class="cliente-avatar">
+                            <x-heroicon-o-user class="w-8 h-8 text-gray-500" />
+                        </div>
                         <div>
                             <div class="cliente-name">{{ auth()->user()->name }}</div>
                             <div class="cliente-email">{{ auth()->user()->email }}</div>
@@ -55,7 +57,11 @@
                     @foreach($carrito as $item)
                     <div class="item-row">
                         <div class="item-emoji">
-                            {{ $item['type'] === 'product' ? '📦' : '🛠️' }}
+                            @if($item['type'] === 'product')
+                                <x-heroicon-o-cube class="w-6 h-6 text-gray-500" />
+                            @else
+                                <x-heroicon-o-wrench class="w-6 h-6 text-gray-500" />
+                            @endif
                         </div>
                         <div class="item-info">
                             <div class="item-name">{{ $item['name'] }}</div>
@@ -91,7 +97,7 @@
 
             {{-- Badge Payphone --}}
             <div class="payphone-badge">
-                <span>💳</span>
+                <x-heroicon-o-credit-card class="w-6 h-6 text-gray-500" />
                 <div>
                     <strong>Pago seguro con Payphone</strong><br>
                     <span>Tarjeta de crédito o débito</span>
@@ -103,13 +109,20 @@
                 @csrf
                 <button type="submit" class="btn-pay" id="pay-btn"
                         onclick="this.disabled=true; this.textContent='Procesando...'; this.form.submit();">
-                    💳 Pagar ${{ number_format($total, 2) }}
+                    <x-heroicon-o-credit-card class="w-5 h-5 inline mr-2" />
+                    Pagar ${{ number_format($total, 2) }}
                 </button>
             </form>
 
-            <a href="{{ route('carrito.index') }}" class="btn-back">← Volver al carrito</a>
+            <a href="{{ route('carrito.index') }}" class="btn-back flex items-center justify-center gap-1">
+                <x-heroicon-o-arrow-left class="w-4 h-4" />
+                Volver al carrito
+            </a>
 
-            <p class="secure-note">🔒 Pago 100% seguro procesado por Payphone</p>
+            <p class="secure-note">
+                <x-heroicon-o-lock-closed class="w-4 h-4 inline mr-1" />
+                Pago 100% seguro procesado por Payphone
+            </p>
         </div>
 
     </div>

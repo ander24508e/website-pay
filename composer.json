@@ -8,6 +8,7 @@
     "require": {
         "php": "^8.2",
         "andreiio/blade-remix-icon": "^3.9",
+        "blade-ui-kit/blade-heroicons": "^2.7",
         "blade-ui-kit/blade-icons": "^1.9",
         "daljo25/blade-pixelicon-icons": "^1.0",
         "davidhsianturi/blade-bootstrap-icons": "^2.2",

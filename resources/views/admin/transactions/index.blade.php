@@ -8,8 +8,11 @@
     {{-- HEADER --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-            <h2 class="text-xl sm:text-2xl font-bold text-gray-800">💳 Transacciones</h2>
-            <p class="text-gray-500 text-sm">Registro de todos los pagos procesados con Payphone</p>
+            <div class="flex items-center gap-2">
+                <x-heroicon-o-credit-card class="w-8 h-8 text-gray-800" />
+                <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Transacciones</h2>
+            </div>
+            <p class="text-gray-500 text-sm mt-1">Registro de todos los pagos procesados con Payphone</p>
         </div>
         {{-- Ingreso total --}}
         <div class="bg-green-50 border border-green-200 px-4 py-2.5 rounded-lg">
@@ -57,7 +60,8 @@
                             {{-- Orden --}}
                             <td class="px-4 sm:px-6 py-3 sm:py-4">
                                 <a href="{{ route('admin.orders.show', $transaction->order) }}"
-                                   class="text-blue-600 hover:underline text-xs font-mono">
+                                   class="text-blue-600 hover:underline text-xs font-mono flex items-center gap-1">
+                                    <x-heroicon-o-document-text class="w-3 h-3" />
                                     #{{ $transaction->order_id }}
                                 </a>
                             </td>
@@ -76,14 +80,21 @@
                                         'cancelled' => 'bg-gray-100 text-gray-600',
                                         'pending'   => 'bg-yellow-100 text-yellow-700',
                                     ];
+                                    $icons = [
+                                        'approved'  => '<x-heroicon-o-check-circle class="w-3 h-3 inline mr-1" />',
+                                        'rejected'  => '<x-heroicon-o-x-circle class="w-3 h-3 inline mr-1" />',
+                                        'cancelled' => '<x-heroicon-o-ban class="w-3 h-3 inline mr-1" />',
+                                        'pending'   => '<x-heroicon-o-clock class="w-3 h-3 inline mr-1" />',
+                                    ];
                                     $labels = [
-                                        'approved'  => '✅ Aprobada',
-                                        'rejected'  => '❌ Rechazada',
-                                        'cancelled' => '🚫 Cancelada',
-                                        'pending'   => '⏳ Pendiente',
+                                        'approved'  => 'Aprobada',
+                                        'rejected'  => 'Rechazada',
+                                        'cancelled' => 'Cancelada',
+                                        'pending'   => 'Pendiente',
                                     ];
                                 @endphp
-                                <span class="px-2.5 py-1 rounded-full text-xs font-medium {{ $badges[$transaction->status] ?? 'bg-gray-100 text-gray-600' }}">
+                                <span class="px-2.5 py-1 rounded-full text-xs font-medium {{ $badges[$transaction->status] ?? 'bg-gray-100 text-gray-600' }} flex items-center gap-1 w-fit">
+                                    {!! $icons[$transaction->status] ?? '<x-heroicon-o-question-mark-circle class="w-3 h-3 inline mr-1" />' !!}
                                     {{ $labels[$transaction->status] ?? $transaction->status }}
                                 </span>
                             </td>
@@ -101,7 +112,8 @@
                             {{-- Acciones --}}
                             <td class="px-4 sm:px-6 py-3 sm:py-4">
                                 <a href="{{ route('admin.transactions.show', $transaction) }}"
-                                   class="text-blue-600 hover:text-blue-800 text-sm font-medium px-2 py-1">
+                                   class="text-blue-600 hover:text-blue-800 text-sm font-medium px-2 py-1 flex items-center gap-1">
+                                    <x-heroicon-o-eye class="w-4 h-4" />
                                     Ver detalle
                                 </a>
                             </td>
@@ -110,7 +122,7 @@
                     @empty
                         <tr>
                             <td colspan="8" class="text-center py-12 text-gray-400">
-                                <p class="text-2xl mb-2">💳</p>
+                                <x-heroicon-o-credit-card class="w-12 h-12 mx-auto mb-3 opacity-50" />
                                 No hay transacciones registradas aún
                             </td>
                         </tr>

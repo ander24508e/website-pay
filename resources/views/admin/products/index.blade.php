@@ -10,7 +10,7 @@
 
             <div>
                 <div class="flex items-center gap-2">
-                    <x-pixelicon-product-management class="w-8 h-8 text-gray-800" />
+                    <x-heroicon-o-cube class="w-8 h-8 text-gray-800" />
                     <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Productos</h2>
                 </div>
                 <p class="text-gray-500 text-sm mt-1">Gestiona el inventario</p>
@@ -49,8 +49,8 @@
                                         <img src="{{ Storage::url($product->image) }}"
                                             class="w-10 h-10 rounded object-cover">
                                     @else
-                                        <div class="w-10 h-10 bg-gray-100 rounded flex items-center justify-center text-xl">
-                                            <x-bi-image />
+                                        <div class="w-10 h-10 bg-gray-100 rounded flex items-center justify-center">
+                                            <x-heroicon-o-photo class="w-5 h-5 text-gray-400" />
                                         </div>
                                     @endif
                                 </td>
@@ -90,7 +90,7 @@
                                     @endif
                                 </td>
 
-                                {{-- Acciones (botones más grandes para dedos) --}}
+                                {{-- Acciones --}}
                                 <td class="px-4 sm:px-6 py-3 sm:py-4">
                                     <div class="flex flex-wrap gap-2">
                                         <a href="{{ route('admin.products.show', $product) }}"

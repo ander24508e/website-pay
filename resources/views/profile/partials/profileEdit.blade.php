@@ -9,7 +9,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;500;600;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     @vite(['resources/css/app.css', 'resources/scss/profile/profile-edit.scss', 'resources/js/app.js'])
 </head>
 
@@ -21,16 +20,31 @@
     <header class="topbar">
         <a href="{{ route('home') }}" class="topbar-brand">ENDARA <span>CARWASH</span></a>
         <nav class="topbar-nav">
-            <a href="{{ route('home') }}">Inicio</a>
+            <a href="{{ route('home') }}" class="flex items-center gap-1">
+                <x-heroicon-o-home class="w-4 h-4" />
+                Inicio
+            </a>
             @if (auth()->user()->hasRole('admin'))
-                <a href="{{ route('admin.dashboard') }}">Panel Admin</a>
+                <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-1">
+                    <x-heroicon-o-chart-bar class="w-4 h-4" />
+                    Panel Admin
+                </a>
             @else
-                <a href="{{ route('customer.compras') }}">Mis Compras</a>
-                <a href="{{ route('profile.edit') }}" class="active">Mi Perfil</a>
+                <a href="{{ route('customer.compras') }}" class="flex items-center gap-1">
+                    <x-heroicon-o-shopping-bag class="w-4 h-4" />
+                    Mis Compras
+                </a>
+                <a href="{{ route('profile.edit') }}" class="active flex items-center gap-1">
+                    <x-heroicon-o-user class="w-4 h-4" />
+                    Mi Perfil
+                </a>
             @endif
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <button class="btn-logout">Salir</button>
+                <button class="btn-logout flex items-center gap-1">
+                    <x-heroicon-o-arrow-right-start-on-rectangle class="w-4 h-4" />
+                    Salir
+                </button>
             </form>
         </nav>
     </header>
@@ -39,11 +53,11 @@
     @if (session('success'))
         <div class="notification success" id="notif">
             <div class="notification-content">
-                <i class="bi bi-check-circle-fill"></i>
+                <x-heroicon-o-check-circle class="w-5 h-5" />
                 <span>{{ session('success') }}</span>
             </div>
             <button class="notification-close" onclick="this.parentElement.remove()">
-                <i class="bi bi-x-lg"></i>
+                <x-heroicon-o-x-mark class="w-4 h-4" />
             </button>
         </div>
     @endif
@@ -62,7 +76,8 @@
                 {{-- ── FOTO DE PERFIL ── --}}
                 <div class="card-section">
                     <div class="section-label">
-                        <i class="bi bi-image"></i> Foto de Perfil
+                        <x-heroicon-o-photo class="w-4 h-4" />
+                        Foto de Perfil
                     </div>
                     <div class="avatar-row">
                         <img src="{{ $user->foto_perfil_url }}" id="avatar-preview" alt="Foto de perfil"
@@ -75,9 +90,9 @@
                             </div>
                             <input type="file" id="foto_perfil" name="foto_perfil" accept="image/*"
                                 style="display:none;" onchange="previewAvatar(this)">
-                            <button type="button" class="btn-upload"
-                                onclick="document.getElementById('foto_perfil').click()">
-                                <i class="bi bi-cloud-arrow-up"></i> Cambiar Foto
+                            <button type="button" class="btn-upload" onclick="document.getElementById('foto_perfil').click()">
+                                <x-heroicon-o-cloud-arrow-up class="w-4 h-4" />
+                                Cambiar Foto
                             </button>
                             <p class="upload-hint">JPG, PNG — Máximo 4MB</p>
                             @error('foto_perfil')
@@ -90,7 +105,8 @@
                 {{-- ── INFORMACIÓN PERSONAL ── --}}
                 <div class="card-section">
                     <div class="section-label">
-                        <i class="bi bi-person-vcard"></i> Información Personal
+                        <x-heroicon-o-user class="w-4 h-4" />
+                        Información Personal
                     </div>
                     <div class="fields-grid">
                         <div class="form-group">
@@ -115,7 +131,8 @@
                 {{-- ── CAMBIAR CONTRASEÑA ── --}}
                 <div class="card-section">
                     <div class="section-label">
-                        <i class="bi bi-shield-lock"></i> Cambiar Contraseña
+                        <x-heroicon-o-shield-check class="w-4 h-4" />
+                        Cambiar Contraseña
                         <span
                             style="font-family:'Montserrat',sans-serif;font-size:0.62rem;color:var(--muted);text-transform:none;letter-spacing:0;font-weight:500;">—
                             Opcional</span>
@@ -127,7 +144,7 @@
                                 <input type="password" id="cur_pass" name="current_password" class="form-input"
                                     placeholder="Contraseña actual">
                                 <button type="button" class="eye-btn" onclick="togglePass('cur_pass','eye1')">
-                                    <i id="eye1" class="bi bi-eye-slash"></i>
+                                    <x-heroicon-o-eye-slash class="w-4 h-4" id="eye1" />
                                 </button>
                             </div>
                             @error('current_password')
@@ -140,7 +157,7 @@
                                 <input type="password" id="new_pass" name="password" class="form-input"
                                     placeholder="Mínimo 8 caracteres">
                                 <button type="button" class="eye-btn" onclick="togglePass('new_pass','eye2')">
-                                    <i id="eye2" class="bi bi-eye-slash"></i>
+                                    <x-heroicon-o-eye-slash class="w-4 h-4" id="eye2" />
                                 </button>
                             </div>
                             @error('password')
@@ -153,7 +170,7 @@
                                 <input type="password" id="conf_pass" name="password_confirmation"
                                     class="form-input" placeholder="Repite la nueva contraseña">
                                 <button type="button" class="eye-btn" onclick="togglePass('conf_pass','eye3')">
-                                    <i id="eye3" class="bi bi-eye-slash"></i>
+                                    <x-heroicon-o-eye-slash class="w-4 h-4" id="eye3" />
                                 </button>
                             </div>
                         </div>
@@ -163,7 +180,8 @@
                 {{-- ── GUARDAR ── --}}
                 <div class="save-row">
                     <button type="submit" class="btn-save">
-                        <i class="bi bi-check-lg"></i> Guardar Cambios
+                        <x-heroicon-o-check class="w-4 h-4" />
+                        Guardar Cambios
                     </button>
                 </div>
 
@@ -195,9 +213,14 @@
         function togglePass(inputId, iconId) {
             const input = document.getElementById(inputId);
             const icon = document.getElementById(iconId);
-            input.type = input.type === 'password' ? 'text' : 'password';
-            icon.classList.toggle('bi-eye-slash');
-            icon.classList.toggle('bi-eye');
+            const isPassword = input.type === 'password';
+            input.type = isPassword ? 'text' : 'password';
+            
+            if (isPassword) {
+                icon.outerHTML = `<x-heroicon-o-eye class="w-4 h-4" id="${iconId}" />`;
+            } else {
+                icon.outerHTML = `<x-heroicon-o-eye-slash class="w-4 h-4" id="${iconId}" />`;
+            }
         }
 
         // Auto-ocultar notificación
