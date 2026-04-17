@@ -2,94 +2,101 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Empresa;
 use App\Models\Product;
 use App\Models\Service;
-use App\Models\Empresa;
 use Illuminate\Http\Request;
 
 class CatalogoController extends Controller
 {
     /**
-     * Obtiene los items del catálogo (productos + servicios) con filtros y paginación
+     * Obtiene los items del catalogo (productos + servicios) con filtros y paginacion.
      */
-    private function getCatalogItems($tipo = 'todos', $search = '', $page = 1, $perPage = 12)
+    private function getCatalogItems(string $tipo = 'todos', string $search = '', int $page = 1, int $perPage = 12): array
     {
-        // Consultas base
-        $productosQuery = Product::with('category')->where('active', true);
-        $serviciosQuery = Service::with('category')->where('active', true);
+        $tipo = in_array($tipo, ['todos', 'productos', 'servicios'], true) ? $tipo : 'todos';
+        $search = trim($search);
+        $page = max(1, $page);
+        $perPage = max(1, $perPage);
 
-        // Aplicar búsqueda por nombre
-        if (!empty($search)) {
-            $productosQuery->where('name', 'LIKE', "%{$search}%");
-            $serviciosQuery->where('name', 'LIKE', "%{$search}%");
-        }
+        $productosQuery = Product::query()
+            ->with('category')
+            ->where('active', true)
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'LIKE', "%{$search}%")
+                        ->orWhere('description', 'LIKE', "%{$search}%")
+                        ->orWhereHas('category', fn($cq) => $cq->where('name', 'LIKE', "%{$search}%"));
+                });
+            });
 
-        // Filtrar por tipo
-        if ($tipo === 'productos') {
-            $productos = $productosQuery->latest()->get();
-            $servicios = collect();
-        } elseif ($tipo === 'servicios') {
-            $productos = collect();
-            $servicios = $serviciosQuery->latest()->get();
-        } else {
-            $productos = $productosQuery->latest()->get();
-            $servicios = $serviciosQuery->latest()->get();
-        }
+        $serviciosQuery = Service::query()
+            ->with('category')
+            ->where('active', true)
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'LIKE', "%{$search}%")
+                        ->orWhere('description', 'LIKE', "%{$search}%")
+                        ->orWhereHas('category', fn($cq) => $cq->where('name', 'LIKE', "%{$search}%"));
+                });
+            });
 
-        // Unificar en una colección con formato consistente
-        $catalogo = collect();
+        $productos = $tipo === 'servicios' ? collect() : $productosQuery->latest()->get();
+        $servicios = $tipo === 'productos' ? collect() : $serviciosQuery->latest()->get();
 
-        foreach ($productos as $producto) {
-            $catalogo->push([
+        $catalogoProductos = $productos->map(function ($producto) {
+            return [
                 'id'          => $producto->id,
                 'nombre'      => $producto->name,
                 'descripcion' => $producto->description,
                 'precio'      => $producto->price,
                 'imagen'      => $producto->image,
                 'categoria'   => $producto->category->name ?? 'Producto',
-                'tipo'        => 'producto',
-            ]);
-        }
+                'tipo'        => 'product',
+            ];
+        });
 
-        foreach ($servicios as $servicio) {
-            $catalogo->push([
+        $catalogoServicios = $servicios->map(function ($servicio) {
+            return [
                 'id'          => $servicio->id,
                 'nombre'      => $servicio->name,
                 'descripcion' => $servicio->description,
                 'precio'      => $servicio->price,
                 'imagen'      => $servicio->image,
                 'categoria'   => $servicio->category->name ?? 'Servicio',
-                'tipo'        => 'servicio',
-            ]);
-        }
+                'tipo'        => 'service',
+            ];
+        });
 
-        // Ordenar alfabéticamente (puedes cambiar a precio o fecha)
-        $catalogo = $catalogo->sortBy('nombre')->values();
+        $catalogo = $catalogoProductos
+            ->concat($catalogoServicios)
+            ->sortBy('nombre', SORT_NATURAL | SORT_FLAG_CASE)
+            ->values();
 
-        // Paginación manual (eficiente para conjuntos de hasta miles de registros)
         $total = $catalogo->count();
-        $items = $catalogo->forPage($page, $perPage);
-        $lastPage = ceil($total / $perPage);
+        $lastPage = max(1, (int) ceil($total / $perPage));
+        $page = min($page, $lastPage);
+        $items = $catalogo->forPage($page, $perPage)->values();
 
         return [
-            'items'      => $items,
+            'items' => $items,
             'pagination' => [
                 'current_page' => (int) $page,
                 'last_page'    => (int) $lastPage,
                 'per_page'     => (int) $perPage,
                 'total'        => (int) $total,
-            ]
+            ],
         ];
     }
 
     /**
-     * Muestra la página principal del catálogo (carga inicial)
+     * Muestra la pagina principal del catalogo (carga inicial).
      */
     public function index(Request $request)
     {
-        $tipo = $request->get('tipo', 'todos');
-        $search = $request->get('search', '');
-        $page = $request->get('page', 1);
+        $tipo = (string) $request->get('tipo', 'todos');
+        $search = (string) $request->get('search', '');
+        $page = (int) $request->get('page', 1);
 
         $data = $this->getCatalogItems($tipo, $search, $page);
         $empresa = Empresa::first();
@@ -104,13 +111,13 @@ class CatalogoController extends Controller
     }
 
     /**
-     * Endpoint AJAX para búsqueda y filtrado (devuelve JSON)
+     * Endpoint AJAX para busqueda y filtrado (devuelve JSON).
      */
     public function buscar(Request $request)
     {
-        $tipo = $request->get('tipo', 'todos');
-        $search = $request->get('search', '');
-        $page = $request->get('page', 1);
+        $tipo = (string) $request->get('tipo', 'todos');
+        $search = (string) $request->get('search', '');
+        $page = (int) $request->get('page', 1);
 
         $data = $this->getCatalogItems($tipo, $search, $page);
 
@@ -118,11 +125,15 @@ class CatalogoController extends Controller
             return response()->json($data);
         }
 
-        return redirect()->route('home');
+        return redirect()->route('home', [
+            'tipo' => $tipo,
+            'search' => $search,
+            'page' => $page,
+        ]);
     }
 
     /**
-     * Muestra detalle de un producto individual
+     * Muestra detalle de un producto individual.
      */
     public function showProduct(Product $product)
     {
@@ -131,7 +142,7 @@ class CatalogoController extends Controller
     }
 
     /**
-     * Muestra detalle de un servicio individual
+     * Muestra detalle de un servicio individual.
      */
     public function showService(Service $service)
     {

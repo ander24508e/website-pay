@@ -132,7 +132,6 @@
         });
     });
 
-    // Búsqueda con debounce
     let debounceTimeout;
     searchInput.addEventListener('input', () => {
         clearTimeout(debounceTimeout);
