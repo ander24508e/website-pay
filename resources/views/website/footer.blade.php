@@ -1,19 +1,18 @@
-
 <footer class="footer">
     <div class="footer-grid">
         <div>
             <div class="footer-brand">
                 {{ strtoupper($empresa->nombre ?? 'Endara Carwash') }}
             </div>
-            <p class="footer-desc">Tu vehículo en las mejores manos. Servicio profesional, productos de calidad y atención personalizada en Cayambe.</p>
+            <p class="footer-desc">{{ $empresa->descripcion_footer_texto }}</p>
         </div>
         <div>
-            <div class="footer-title">Servicios</div>
+            <div class="footer-title">Contacto</div>
             <ul class="footer-links">
-                <li><a href="#servicios">Lavada Completa</a></li>
-                <li><a href="#servicios">Lavada Express</a></li>
-                <li><a href="#servicios">Lavada Premium</a></li>
-                <li><a href="#servicios">Lubricación de Motor</a></li>
+                <li><a href="tel:{{ $empresa->telefono_contacto }}">{{ $empresa->telefono_contacto }}</a></li>
+                <li><a href="mailto:{{ $empresa->correo_contacto }}">{{ $empresa->correo_contacto }}</a></li>
+                <li><a href="#contacto">{{ $empresa->ciudad_texto }}</a></li>
+                <li><a href="#contacto">{{ $empresa->horario_texto }}</a></li>
             </ul>
         </div>
         <div>
@@ -31,6 +30,6 @@
     </div>
     <div class="footer-bottom">
         <p class="footer-copy">© {{ date('Y') }} <span>{{ $empresa->nombre ?? 'Lavadora y Lubricadora Endara' }}</span>. Todos los derechos reservados.</p>
-        <p class="footer-copy">Hecho con ❤️ en Cayambe, Ecuador</p>
+        <p class="footer-copy">{{ $empresa->servicios_resumen_texto }}</p>
     </div>
 </footer>

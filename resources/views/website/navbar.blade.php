@@ -2,13 +2,9 @@
 <nav class="navbar">
     {{-- Brand --}}
     <a href="{{ route('home') }}" class="navbar-brand">
-        @if($empresa && $empresa->logo)
-            <img src="{{ $empresa->logo_url }}" alt="{{ $empresa->nombre ?? 'Logo' }}" class="navbar-logo">
-        @else
-            <img src="{{ asset('images/default-avatar.png') }}" alt="Logo" class="navbar-logo">
-        @endif
+        <img src="{{ $empresa->logo_url }}" alt="{{ $empresa->nombre ?? 'Logo' }}" class="navbar-logo">
         @php
-            $nombreEmpresa = strtoupper($empresa->nombre ?? 'Endara Carwash');
+            $nombreEmpresa = strtoupper($empresa->nombre_corto ?? 'Endara Carwash');
             $partes = explode(' ', $nombreEmpresa);
             $primera = array_shift($partes);
             $resto = implode(' ', $partes);
@@ -53,7 +49,7 @@
     <li><a href="{{ route('home') }}#inicio" onclick="closeMenu()">Inicio</a></li>
     <li><a href="{{ route('home') }}#servicios" onclick="closeMenu()">Servicios</a></li>
     <li><a href="{{ route('home') }}#productos" onclick="closeMenu()">Productos</a></li>
-    <li><a href="{{ route('home') }}#contacto" onclick="closeMenu()">Contacto</a></li>}
+    <li><a href="{{ route('home') }}#contacto" onclick="closeMenu()">Contacto</a></li>
     <li><a href="{{ route('home') }}/carrito">Carrito</a></li>
     @auth
         @if(auth()->user()->hasRole('admin'))

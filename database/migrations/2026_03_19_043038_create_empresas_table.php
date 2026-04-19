@@ -13,6 +13,14 @@ return new class extends Migration
             $table->string('nombre');
             $table->string('direccion')->nullable();
             $table->string('telefono', 20)->nullable();
+            $table->string('correo')->nullable();
+            $table->string('eslogan')->nullable();
+            $table->text('descripcion_corta')->nullable();
+            $table->text('descripcion_footer')->nullable();
+            $table->string('horario')->nullable();
+            $table->string('servicios_resumen')->nullable();
+            $table->text('ubicacion_embed')->nullable();
+            $table->string('ciudad')->nullable();
             $table->string('logo')->nullable();
             $table->timestamps();
         });

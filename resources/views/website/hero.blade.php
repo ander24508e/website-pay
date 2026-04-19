@@ -1,30 +1,27 @@
-
 <section class="hero" id="inicio">
     <div class="hero-bg"></div>
     <div class="hero-content">
-        <div class="hero-eyebrow">🚗 Servicio profesional de lavado y lubricación</div>
+        <div class="hero-eyebrow">🚗 {{ $empresa->eslogan_texto }}</div>
         <h1 class="hero-title">
-            LAVADORA Y<br>
-            <span class="accent">LUBRICADORA</span><br>
-            <span class="gold">ENDARA</span>
+            {{ strtoupper($empresa->nombre ?? 'Lavadora y Lubricadora') }}
         </h1>
-        <p class="hero-sub">Tu vehículo merece el mejor cuidado. Lavado completo, express, premium y servicios de lubricación profesional en un solo lugar.</p>
+        <p class="hero-sub">{{ $empresa->descripcion_corta_texto }}</p>
         <div class="hero-actions">
-            <a href="#servicios" class="btn-primary">Ver Servicios</a>
-            <a href="#contacto"  class="btn-outline">Contáctanos</a>
+            <a href="#catalogo" class="btn-primary">Ver Catalogo</a>
+            <a href="#contacto" class="btn-outline">Contactanos</a>
         </div>
         <div class="hero-stats">
             <div class="stat-item">
-                <div class="stat-number">7+</div>
-                <div class="stat-label">Servicios disponibles</div>
+                <div class="stat-number">{{ $empresa->correo_contacto }}</div>
+                <div class="stat-label">Correo</div>
             </div>
             <div class="stat-item">
-                <div class="stat-number">100%</div>
-                <div class="stat-label">Satisfacción garantizada</div>
+                <div class="stat-number">{{ $empresa->ciudad_texto }}</div>
+                <div class="stat-label">Ciudad</div>
             </div>
             <div class="stat-item">
-                <div class="stat-number">{{ $empresa->telefono ?? '—' }}</div>
-                <div class="stat-label">Llámanos</div>
+                <div class="stat-number">{{ $empresa->telefono_contacto }}</div>
+                <div class="stat-label">Llamanos</div>
             </div>
         </div>
     </div>

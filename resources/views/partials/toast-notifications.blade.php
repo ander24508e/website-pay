@@ -12,7 +12,7 @@
                         </svg>
                     </div>
                     <div class="flex-1">
-                        <p class="text-sm font-semibold text-green-800">Â¡Ã‰xito!</p>
+                        <p class="text-sm font-semibold text-green-800">¡Exito!</p>
                         <p class="text-sm text-green-700">{{ session('success') }}</p>
                     </div>
                     <button class="close-toast text-green-400 hover:text-green-600">
@@ -35,7 +35,7 @@
                         </svg>
                     </div>
                     <div class="flex-1">
-                        <p class="text-sm font-semibold text-red-800">Â¡Error!</p>
+                        <p class="text-sm font-semibold text-red-800">¡Error!</p>
                         <p class="text-sm text-red-700">{{ session('error') }}</p>
                     </div>
                     <button class="close-toast text-red-400 hover:text-red-600">

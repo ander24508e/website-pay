@@ -1,5 +1,3 @@
-catalogo-ítems : 
-
 @forelse($items as $item)
 <div class="card item-catalogo">
     @if($item['imagen'])

@@ -11,16 +11,25 @@ class EmpresaController extends Controller
     public function edit()
     {
         $empresa = Empresa::first() ?? new Empresa();
+
         return view('profile.empresa.index', compact('empresa'));
     }
 
     public function update(Request $request)
     {
         $request->validate([
-            'nombre'    => 'required|string|max:255',
+            'nombre' => 'required|string|max:255',
             'direccion' => 'nullable|string|max:500',
-            'telefono'  => 'nullable|string|max:20',
-            'logo'      => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:4096'
+            'telefono' => 'nullable|string|max:50',
+            'correo' => 'nullable|email|max:255',
+            'eslogan' => 'nullable|string|max:255',
+            'descripcion_corta' => 'nullable|string|max:1000',
+            'descripcion_footer' => 'nullable|string|max:1000',
+            'horario' => 'nullable|string|max:255',
+            'servicios_resumen' => 'nullable|string|max:255',
+            'ubicacion_embed' => 'nullable|string|max:5000',
+            'ciudad' => 'nullable|string|max:255',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:4096',
         ]);
 
         $empresa = Empresa::first() ?? new Empresa();
@@ -29,13 +38,22 @@ class EmpresaController extends Controller
             if ($empresa->logo && Storage::disk('public')->exists($empresa->logo)) {
                 Storage::disk('public')->delete($empresa->logo);
             }
+
             $fileName = 'logo-empresa-' . time() . '.' . $request->logo->getClientOriginalExtension();
             $empresa->logo = $request->logo->storeAs('logos_empresa', $fileName, 'public');
         }
 
-        $empresa->nombre    = $request->nombre;
-        $empresa->direccion = $request->direccion ?? '';
-        $empresa->telefono  = $request->telefono ?? '';
+        $empresa->nombre = $this->cleanInput($request->nombre);
+        $empresa->direccion = $this->cleanInput($request->direccion);
+        $empresa->telefono = $this->cleanInput($request->telefono);
+        $empresa->correo = $this->cleanInput($request->correo);
+        $empresa->ciudad = $this->cleanInput($request->ciudad);
+        $empresa->eslogan = $this->cleanInput($request->eslogan);
+        $empresa->descripcion_corta = $this->cleanInput($request->descripcion_corta);
+        $empresa->descripcion_footer = $this->cleanInput($request->descripcion_footer);
+        $empresa->servicios_resumen = $this->cleanInput($request->servicios_resumen);
+        $empresa->horario = $this->cleanInput($request->horario);
+        $empresa->ubicacion_embed = $this->normalizeMapInput($request->input('ubicacion_embed'));
         $empresa->save();
 
         return redirect()->route('admin.empresa.edit')
@@ -50,11 +68,37 @@ class EmpresaController extends Controller
             if (Storage::disk('public')->exists($empresa->logo)) {
                 Storage::disk('public')->delete($empresa->logo);
             }
+
             $empresa->logo = null;
             $empresa->save();
+
             return back()->with('success', 'Logo eliminado correctamente.');
         }
 
         return back()->with('error', 'No hay logo para eliminar.');
+    }
+
+    private function cleanInput(?string $value): ?string
+    {
+        $value = trim((string) $value);
+
+        return $value === '' ? null : $value;
+    }
+
+    private function normalizeMapInput(?string $value): ?string
+    {
+        $value = trim((string) $value);
+
+        if ($value === '') {
+            return null;
+        }
+
+        $decoded = html_entity_decode($value, ENT_QUOTES, 'UTF-8');
+
+        if (preg_match('/src=["\']([^"\']+)["\']/i', $decoded, $matches)) {
+            return $matches[1];
+        }
+
+        return $decoded;
     }
 }
