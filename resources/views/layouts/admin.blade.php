@@ -26,7 +26,7 @@
         <nav class="sidebar-nav flex-1">
             <a href="{{ route('home') }}"
                 class="{{ request()->routeIs('home') ? 'active' : '' }}">
-                <span><x-heroicon-o-chart-bar class="w-5 h-5" /></span>
+                <span><x-heroicon-o-globe-alt class="w-5 h-5" /></span>
                 <span>Pagina web</span>
             </a>
             <a href="{{ route('admin.dashboard') }}"

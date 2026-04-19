@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Auth;
 Route::get('/', [CatalogoController::class, 'index'])->name('home');
 Route::redirect('/catalogo', '/');
 Route::get('/catalogo/producto/{product}', [CatalogoController::class, 'showProduct'])->name('catalogo.product');
-Route::get('/catalogo/buscar', [CategoryController::class, 'buscar'])->name('catalogo.buscar');
+Route::get('/catalogo/buscar', [CatalogoController::class, 'buscar'])->name('catalogo.buscar');
 Route::get('/catalogo/servicio/{service}',  [CatalogoController::class, 'showService'])->name('catalogo.service');
 
 // Carrito — sesión pública

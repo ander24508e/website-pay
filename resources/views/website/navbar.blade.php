@@ -15,8 +15,7 @@
     {{-- Desktop links --}}
     <ul class="navbar-links">
         <li><a href="{{ route('home') }}#inicio">Inicio</a></li>
-        <li><a href="{{ route('home') }}#servicios">Servicios</a></li>
-        <li><a href="{{ route('home') }}#productos">Productos</a></li>
+        <li><a href="{{ route('home') }}#catalogo">Catalogo</a></li>
         <li><a href="{{ route('home') }}#contacto">Contacto</a></li>
         <li><a href="{{ route('home') }}/carrito">Carrito</a></li>
 
@@ -47,8 +46,7 @@
 {{-- Mobile menu --}}
 <ul class="mobile-menu" id="mobile-menu">
     <li><a href="{{ route('home') }}#inicio" onclick="closeMenu()">Inicio</a></li>
-    <li><a href="{{ route('home') }}#servicios" onclick="closeMenu()">Servicios</a></li>
-    <li><a href="{{ route('home') }}#productos" onclick="closeMenu()">Productos</a></li>
+    <li><a href="{{ route('home') }}#catalogo" onclick="closeMenu()">Catalogo</a></li>
     <li><a href="{{ route('home') }}#contacto" onclick="closeMenu()">Contacto</a></li>
     <li><a href="{{ route('home') }}/carrito">Carrito</a></li>
     @auth
