@@ -23,6 +23,11 @@ class Empresa extends Model
         'logo',
     ];
 
+    public function landingBanners()
+    {
+        return $this->hasMany(LandingBanner::class)->orderBy('orden')->orderByDesc('created_at');
+    }
+
     public function getLogoUrlAttribute(): string
     {
         if ($this->logo && Storage::disk('public')->exists($this->logo)) {

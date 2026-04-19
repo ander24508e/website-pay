@@ -283,6 +283,202 @@
     </div>
 </form>
 
+<section class="mt-10 space-y-6">
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div>
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-[0.2em]">Landing Page</p>
+                <h3 class="text-2xl font-bold text-gray-800 mt-1">Banners del carrusel</h3>
+                <p class="text-sm text-gray-500 mt-1">Sube promociones para la portada. Cada banner puede tener imagen, titulo, texto y un boton opcional.</p>
+            </div>
+            <div class="rounded-xl bg-gray-100 px-4 py-3 text-sm text-gray-600">
+                {{ $empresa->landingBanners->count() }} banner(s) creados
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+        <div class="xl:col-span-5">
+            <form method="POST" action="{{ route('admin.empresa.banners.store') }}" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-5">
+                @csrf
+
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-800">Agregar nuevo banner</h4>
+                    <p class="text-sm text-gray-500 mt-1">Este formulario crea una nueva diapositiva en el landing page.</p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Imagen del banner *</label>
+                    <input type="file" name="imagen" accept="image/*"
+                           class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm @error('imagen') border-red-400 @enderror">
+                    @error('imagen')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Titulo</label>
+                    <input type="text" name="titulo"
+                           value="{{ old('titulo') }}"
+                           class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm"
+                           placeholder="Ej: Lavado Premium esta semana">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Texto</label>
+                    <textarea name="texto" rows="4"
+                              class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm resize-none"
+                              placeholder="Agrega una frase corta para explicar la promocion o el servicio.">{{ old('texto') }}</textarea>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Texto del boton</label>
+                        <input type="text" name="boton_texto"
+                               value="{{ old('boton_texto') }}"
+                               class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm"
+                               placeholder="Ej: Ver catalogo">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Link del boton</label>
+                        <input type="text" name="boton_link"
+                               value="{{ old('boton_link') }}"
+                               class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm"
+                               placeholder="Ej: #catalogo o https://...">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Orden</label>
+                        <input type="number" name="orden"
+                               value="{{ old('orden', $empresa->landingBanners->count()) }}"
+                               min="0"
+                               class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm">
+                    </div>
+
+                    <div class="flex items-end">
+                        <label class="flex items-center gap-3 px-4 py-3 rounded-xl border border-gray-200 w-full">
+                            <input type="hidden" name="activo" value="0">
+                            <input type="checkbox" name="activo" value="1" checked class="rounded border-gray-300 text-red-600 focus:ring-red-500">
+                            <span class="text-sm text-gray-700 font-medium">Mostrar banner al publico</span>
+                        </label>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-gray-900 text-white py-3 rounded-xl hover:bg-gray-700 transition font-medium text-sm">
+                    Crear Banner
+                </button>
+            </form>
+        </div>
+
+        <div class="xl:col-span-7 space-y-4">
+            @forelse($empresa->landingBanners as $banner)
+                <details class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden group" {{ $loop->first ? 'open' : '' }}>
+                    <summary class="list-none cursor-pointer p-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                        <div class="flex items-center gap-4 min-w-0">
+                            <img src="{{ $banner->imagen_url }}"
+                                 alt="{{ $banner->titulo ?: 'Banner' }}"
+                                 class="w-28 h-20 rounded-xl object-cover border border-gray-200 shadow-sm">
+                            <div class="min-w-0">
+                                <h4 class="text-base font-semibold text-gray-800 truncate">{{ $banner->titulo ?: 'Banner sin titulo' }}</h4>
+                                <p class="text-sm text-gray-500 line-clamp-2">{{ $banner->texto ?: 'Sin texto adicional.' }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 text-xs">
+                            <span class="px-3 py-1 rounded-full {{ $banner->activo ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600' }}">
+                                {{ $banner->activo ? 'Activo' : 'Oculto' }}
+                            </span>
+                            <span class="px-3 py-1 rounded-full bg-gray-100 text-gray-600">Orden {{ $banner->orden }}</span>
+                        </div>
+                    </summary>
+
+                    <div class="px-5 pb-5 border-t border-gray-100">
+                        <form method="POST" action="{{ route('admin.empresa.banners.update', $banner) }}" enctype="multipart/form-data" class="grid grid-cols-1 gap-4 pt-5">
+                            @csrf
+                            @method('PUT')
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Titulo</label>
+                                    <input type="text" name="titulo"
+                                           value="{{ old('titulo', $banner->titulo) }}"
+                                           class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Reemplazar imagen</label>
+                                    <input type="file" name="imagen" accept="image/*"
+                                           class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Texto</label>
+                                <textarea name="texto" rows="3"
+                                          class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm resize-none">{{ old('texto', $banner->texto) }}</textarea>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Texto del boton</label>
+                                    <input type="text" name="boton_texto"
+                                           value="{{ old('boton_texto', $banner->boton_texto) }}"
+                                           class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Link del boton</label>
+                                    <input type="text" name="boton_link"
+                                           value="{{ old('boton_link', $banner->boton_link) }}"
+                                           class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Orden</label>
+                                    <input type="number" name="orden"
+                                           value="{{ old('orden', $banner->orden) }}"
+                                           min="0"
+                                           class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm">
+                                </div>
+                                <div class="flex items-end">
+                                    <label class="flex items-center gap-3 px-4 py-3 rounded-xl border border-gray-200 w-full">
+                                        <input type="hidden" name="activo" value="0">
+                                        <input type="checkbox" name="activo" value="1" {{ old('activo', $banner->activo) ? 'checked' : '' }} class="rounded border-gray-300 text-red-600 focus:ring-red-500">
+                                        <span class="text-sm text-gray-700 font-medium">Banner visible</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                                <button type="submit" class="bg-gray-900 text-white px-5 py-2.5 rounded-xl hover:bg-gray-700 transition font-medium text-sm">
+                                    Guardar banner
+                                </button>
+                                <button type="submit"
+                                        form="delete-banner-{{ $banner->id }}"
+                                        class="text-red-500 hover:text-red-700 text-sm font-medium">
+                                    Eliminar banner
+                                </button>
+                            </div>
+                        </form>
+
+                        <form id="delete-banner-{{ $banner->id }}" method="POST" action="{{ route('admin.empresa.banners.destroy', $banner) }}" class="hidden">
+                            @csrf
+                            @method('DELETE')
+                        </form>
+                    </div>
+                </details>
+            @empty
+                <div class="bg-white rounded-2xl shadow-sm border border-dashed border-gray-200 p-8 text-center">
+                    <p class="text-gray-700 font-medium">Todavia no tienes banners creados.</p>
+                    <p class="text-sm text-gray-500 mt-2">Cuando subas el primero, aparecera aqui y tambien en el carrusel del landing page.</p>
+                </div>
+            @endforelse
+        </div>
+    </div>
+</section>
+
 @if($empresa->logo)
     <form id="delete-logo-form" action="{{ route('admin.empresa.deleteLogo') }}" method="POST" class="hidden">
         @csrf

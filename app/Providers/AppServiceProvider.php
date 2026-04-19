@@ -29,9 +29,17 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Order::class, OrderPolicy::class);
 
         try {
-            $empresa = Schema::hasTable('empresas')
-                ? (Empresa::first() ?? new Empresa())
-                : new Empresa();
+            if (Schema::hasTable('empresas')) {
+                $query = Empresa::query();
+
+                if (Schema::hasTable('landing_banners')) {
+                    $query->with('landingBanners');
+                }
+
+                $empresa = $query->first() ?? new Empresa();
+            } else {
+                $empresa = new Empresa();
+            }
         } catch (Throwable) {
             $empresa = new Empresa();
         }

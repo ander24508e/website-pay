@@ -6,6 +6,7 @@ use App\Models\Empresa;
 use App\Models\Product;
 use App\Models\Service;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 
 class CatalogoController extends Controller
 {
@@ -99,7 +100,13 @@ class CatalogoController extends Controller
         $page = (int) $request->get('page', 1);
 
         $data = $this->getCatalogItems($tipo, $search, $page);
-        $empresa = Empresa::first();
+        $empresaQuery = Empresa::query();
+
+        if (Schema::hasTable('landing_banners')) {
+            $empresaQuery->with('landingBanners');
+        }
+
+        $empresa = $empresaQuery->first() ?? new Empresa();
 
         return view('website.home', [
             'empresa'    => $empresa,

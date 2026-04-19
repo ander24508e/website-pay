@@ -9,6 +9,105 @@
     padding-top: 70px;
 }
 
+.hero-carousel {
+    padding-top: 82px;
+}
+
+.hero-carousel-track {
+    position: relative;
+    width: 100%;
+    min-height: calc(100vh - 82px);
+}
+
+.hero-slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.65s ease;
+    background-position: center;
+    background-size: cover;
+    display: flex;
+    align-items: center;
+}
+
+.hero-slide.is-active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.hero-slide-content {
+    position: relative;
+    z-index: 2;
+    width: min(100%, 1180px);
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5.5rem;
+}
+
+.hero-title-banner {
+    max-width: 700px;
+}
+
+.hero-sub-banner {
+    margin-left: 0;
+    max-width: 560px;
+}
+
+.hero-control {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 52px;
+    height: 52px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(10, 10, 10, 0.45);
+    color: white;
+    font-size: 2rem;
+    line-height: 1;
+    cursor: pointer;
+    z-index: 3;
+    transition: all 0.25s ease;
+}
+
+.hero-control:hover {
+    background: rgba(216, 33, 40, 0.9);
+    border-color: rgba(216, 33, 40, 1);
+}
+
+.hero-control-prev {
+    left: 1.25rem;
+}
+
+.hero-control-next {
+    right: 1.25rem;
+}
+
+.hero-dots {
+    position: absolute;
+    left: 50%;
+    bottom: 1.75rem;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 0.65rem;
+    z-index: 3;
+}
+
+.hero-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 999px;
+    border: none;
+    background: rgba(255, 255, 255, 0.35);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.hero-dot.is-active {
+    background: var(--red);
+    transform: scale(1.15);
+}
+
 .hero-bg {
     position: absolute;
     inset: 0;
@@ -180,6 +279,35 @@
     .hero-actions {
         flex-direction: column;
         align-items: center;
+    }
+
+    .hero-slide-content {
+        padding: 2.25rem 1.25rem 5.25rem;
+        text-align: center;
+    }
+
+    .hero-title-banner,
+    .hero-sub-banner {
+        max-width: 100%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .hero-control {
+        width: 42px;
+        height: 42px;
+        font-size: 1.5rem;
+        top: auto;
+        bottom: 4.5rem;
+        transform: none;
+    }
+
+    .hero-control-prev {
+        left: 1rem;
+    }
+
+    .hero-control-next {
+        right: 1rem;
     }
 
     .btn-primary,

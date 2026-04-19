@@ -3,14 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Models\Empresa;
+use App\Models\LandingBanner;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
 class EmpresaController extends Controller
 {
     public function edit()
     {
-        $empresa = Empresa::first() ?? new Empresa();
+        $empresaQuery = Empresa::query();
+
+        if (Schema::hasTable('landing_banners')) {
+            $empresaQuery->with('landingBanners');
+        }
+
+        $empresa = $empresaQuery->first() ?? new Empresa();
 
         return view('profile.empresa.index', compact('empresa'));
     }
@@ -78,6 +86,77 @@ class EmpresaController extends Controller
         return back()->with('error', 'No hay logo para eliminar.');
     }
 
+    public function storeBanner(Request $request)
+    {
+        $data = $request->validate([
+            'titulo' => 'nullable|string|max:120',
+            'texto' => 'nullable|string|max:400',
+            'imagen' => 'required|image|mimes:jpeg,png,jpg,webp|max:6144',
+            'boton_texto' => 'nullable|string|max:60',
+            'boton_link' => 'nullable|string|max:1000',
+            'orden' => 'nullable|integer|min:0|max:9999',
+            'activo' => 'nullable|boolean',
+        ]);
+
+        $empresa = $this->getOrCreateEmpresa();
+
+        $banner = new LandingBanner();
+        $banner->empresa_id = $empresa->id;
+        $banner->titulo = $this->cleanInput($data['titulo'] ?? null);
+        $banner->texto = $this->cleanInput($data['texto'] ?? null);
+        $banner->boton_texto = $this->cleanInput($data['boton_texto'] ?? null);
+        $banner->boton_link = $this->cleanInput($data['boton_link'] ?? null);
+        $banner->orden = (int) ($data['orden'] ?? 0);
+        $banner->activo = (bool) ($data['activo'] ?? true);
+        $banner->imagen = $request->file('imagen')->store('landing_banners', 'public');
+        $banner->save();
+
+        return redirect()->route('admin.empresa.edit')->with('success', 'Banner creado correctamente.');
+    }
+
+    public function updateBanner(Request $request, LandingBanner $banner)
+    {
+        $data = $request->validate([
+            'titulo' => 'nullable|string|max:120',
+            'texto' => 'nullable|string|max:400',
+            'imagen' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:6144',
+            'boton_texto' => 'nullable|string|max:60',
+            'boton_link' => 'nullable|string|max:1000',
+            'orden' => 'nullable|integer|min:0|max:9999',
+            'activo' => 'nullable|boolean',
+        ]);
+
+        $banner->titulo = $this->cleanInput($data['titulo'] ?? null);
+        $banner->texto = $this->cleanInput($data['texto'] ?? null);
+        $banner->boton_texto = $this->cleanInput($data['boton_texto'] ?? null);
+        $banner->boton_link = $this->cleanInput($data['boton_link'] ?? null);
+        $banner->orden = (int) ($data['orden'] ?? 0);
+        $banner->activo = (bool) ($data['activo'] ?? false);
+
+        if ($request->hasFile('imagen') && $request->file('imagen')->isValid()) {
+            if ($banner->imagen && Storage::disk('public')->exists($banner->imagen)) {
+                Storage::disk('public')->delete($banner->imagen);
+            }
+
+            $banner->imagen = $request->file('imagen')->store('landing_banners', 'public');
+        }
+
+        $banner->save();
+
+        return redirect()->route('admin.empresa.edit')->with('success', 'Banner actualizado correctamente.');
+    }
+
+    public function destroyBanner(LandingBanner $banner)
+    {
+        if ($banner->imagen && Storage::disk('public')->exists($banner->imagen)) {
+            Storage::disk('public')->delete($banner->imagen);
+        }
+
+        $banner->delete();
+
+        return redirect()->route('admin.empresa.edit')->with('success', 'Banner eliminado correctamente.');
+    }
+
     private function cleanInput(?string $value): ?string
     {
         $value = trim((string) $value);
@@ -100,5 +179,12 @@ class EmpresaController extends Controller
         }
 
         return $decoded;
+    }
+
+    private function getOrCreateEmpresa(): Empresa
+    {
+        return Empresa::query()->first() ?? Empresa::create([
+            'nombre' => 'Mi negocio',
+        ]);
     }
 }
