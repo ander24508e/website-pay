@@ -1,144 +1,181 @@
 <section class="section section-darker" id="catalogo">
     <div class="section-header fade-up">
         <div class="section-tag">Todo en un solo lugar</div>
-        <h2 class="section-title">NUESTRO <span>CATÁLOGO</span></h2>
+        <h2 class="section-title">NUESTRO <span>CATALOGO</span></h2>
         <div class="divider"></div>
-        <p class="section-sub">Productos y servicios para el cuidado de tu vehículo</p>
+        <p class="section-sub">Productos y servicios para el cuidado de tu vehiculo</p>
     </div>
 
-    {{-- Filtros y búsqueda --}}
-    <div class="filtros-container fade-up" style="max-width: 1000px; margin: 0 auto 2rem auto; display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem;">
-        <div class="filtros-tipo" style="display: flex; gap: 0.5rem; background: rgba(0,0,0,0.3); padding: 0.3rem; border-radius: 50px;">
-            <button data-tipo="todos" class="filtro-btn {{ $tipo == 'todos' ? 'active' : '' }}" style="background: {{ $tipo == 'todos' ? 'var(--red)' : 'transparent' }}; border: none; padding: 0.5rem 1.2rem; border-radius: 40px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s;">Todos</button>
-            <button data-tipo="productos" class="filtro-btn {{ $tipo == 'productos' ? 'active' : '' }}" style="background: {{ $tipo == 'productos' ? 'var(--red)' : 'transparent' }}; border: none; padding: 0.5rem 1.2rem; border-radius: 40px; color: rgba(255,255,255,0.7); font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.5rem;">
+    <div class="filtros-container fade-up">
+        <div class="filtros-tipo" role="tablist" aria-label="Filtrar catalogo por tipo">
+            <button type="button" data-tipo="todos" class="filtro-btn {{ $tipo === 'todos' ? 'active' : '' }}">Todos</button>
+            <button type="button" data-tipo="productos" class="filtro-btn {{ $tipo === 'productos' ? 'active' : '' }}">
                 <x-heroicon-o-cube class="w-4 h-4" />
                 Productos
             </button>
-            <button data-tipo="servicios" class="filtro-btn {{ $tipo == 'servicios' ? 'active' : '' }}" style="background: {{ $tipo == 'servicios' ? 'var(--red)' : 'transparent' }}; border: none; padding: 0.5rem 1.2rem; border-radius: 40px; color: rgba(255,255,255,0.7); font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.5rem;">
+            <button type="button" data-tipo="servicios" class="filtro-btn {{ $tipo === 'servicios' ? 'active' : '' }}">
                 <x-heroicon-o-wrench class="w-4 h-4" />
                 Servicios
             </button>
         </div>
-        <div class="buscador" style="flex: 1; max-width: 300px;">
-            <input type="text" id="search-catalogo" placeholder="🔍 Buscar..." value="{{ $search }}" 
-                   style="width: 100%; padding: 0.5rem 1rem; border-radius: 50px; border: none; background: rgba(255,255,255,0.1); color: white; font-size: 0.85rem; outline: none;">
+
+        <div class="buscador">
+            <label for="search-catalogo" class="sr-only">Buscar en catalogo</label>
+            <input
+                type="text"
+                id="search-catalogo"
+                placeholder="Buscar por nombre, descripcion o categoria"
+                value="{{ $search }}"
+            >
         </div>
     </div>
 
-    {{-- Grid de resultados --}}
-    <div id="catalogo-grid" class="catalogo-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; max-width: 1200px; margin: 0 auto;">
+    <div id="catalogo-grid" class="catalogo-grid" aria-live="polite">
         @include('website.catalogo-items', ['items' => $catalogo])
     </div>
 
-    {{-- Paginación --}}
-    <div id="catalogo-pagination" class="pagination-wrapper" style="display: flex; justify-content: center; margin-top: 2rem; gap: 0.5rem;">
+    <div id="catalogo-pagination" class="pagination-wrapper">
         @include('website.catalogo-pagination', ['pagination' => $pagination])
     </div>
 </section>
 
 @push('scripts')
 <script>
-    let currentTipo = '{{ $tipo }}';
-    let currentSearch = '{{ $search }}';
-    let currentPage = 1;
+(() => {
+    let currentTipo = @json($tipo ?? 'todos');
+    let currentSearch = @json($search ?? '');
+    let currentPage = Number(@json(($pagination['current_page'] ?? 1))) || 1;
 
     const gridContainer = document.getElementById('catalogo-grid');
     const paginationContainer = document.getElementById('catalogo-pagination');
     const searchInput = document.getElementById('search-catalogo');
-    const filtroBtns = document.querySelectorAll('.filtro-btn');
+    const filtroBtns = Array.from(document.querySelectorAll('.filtro-btn'));
+    const searchRoute = @json(route('catalogo.buscar'));
 
-    // Función para generar SVG de Heroicons (versión outline) para usar en JS
-    function getHeroicon(name, className = 'w-8 h-8') {
-        const icons = {
-            cube: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="${className}"><path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m9 5.25L21 7.5M12 21.75L3 14.25V7.5m18 0v6.75l-9 5.25M12 12.75L21 7.5m-9 5.25L3 7.5" /></svg>`,
-            wrench: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="${className}"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75a4.5 4.5 0 0 1-4.5 4.5h-3a4.5 4.5 0 0 1-4.5-4.5V3.75h12v3Z M3.75 9.75v6.75a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5V9.75M6 15.75h12" /></svg>`
-        };
-        return icons[name] || '';
+    if (!gridContainer || !paginationContainer || !searchInput || !filtroBtns.length) {
+        return;
     }
 
-    function loadCatalog() {
-        const url = `{{ route('catalogo.buscar') }}?tipo=${currentTipo}&search=${encodeURIComponent(currentSearch)}&page=${currentPage}`;
-        fetch(url, {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(response => response.json())
-        .then(data => {
-            gridContainer.innerHTML = '';
-            if (data.items.length === 0) {
-                gridContainer.innerHTML = '<p style="text-align:center; width:100%; color:var(--muted);">No se encontraron resultados.</p>';
-                paginationContainer.innerHTML = '';
-                return;
-            }
-            data.items.forEach(item => {
-                const card = createCard(item);
-                gridContainer.appendChild(card);
-            });
-            paginationContainer.innerHTML = renderPagination(data.pagination);
-            attachPaginationEvents();
-        })
-        .catch(err => console.error('Error al cargar catálogo:', err));
+    function updateActiveTipoButtons() {
+        filtroBtns.forEach((btn) => {
+            const isActive = btn.dataset.tipo === currentTipo;
+            btn.classList.toggle('active', isActive);
+            btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
+    }
+
+    function escapeHtml(str) {
+        return String(str || '').replace(/[&<>"']/g, (m) => {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            if (m === '"') return '&quot;';
+            return '&#039;';
+        });
     }
 
     function createCard(item) {
-        const div = document.createElement('div');
-        div.className = 'card item-catalogo';
+        const card = document.createElement('div');
+        card.className = 'card item-catalogo';
 
-        let imageHtml = '';
-        if (item.imagen) {
-            imageHtml = `<img src="/storage/${item.imagen}" alt="${escapeHtml(item.nombre)}" class="card-image">`;
-        } else {
-            const iconSvg = item.tipo === 'producto' ? getHeroicon('cube', 'w-10 h-10 text-gray-400') : getHeroicon('wrench', 'w-10 h-10 text-gray-400');
-            imageHtml = `<div class="card-placeholder flex items-center justify-center">${iconSvg}</div>`;
-        }
+        const tipo = item.tipo === 'product' ? 'product' : 'service';
+        const unidad = tipo === 'product' ? 'unidad' : 'servicio';
+        const placeholder = tipo === 'product' ? 'PRD' : 'SRV';
 
-        const descripcionCorta = item.descripcion ? (item.descripcion.length > 80 ? item.descripcion.substring(0, 80) + '...' : item.descripcion) : '';
+        const imageHtml = item.imagen
+            ? `<img src="/storage/${item.imagen}" alt="${escapeHtml(item.nombre)}" class="card-image">`
+            : `<div class="card-placeholder">${placeholder}</div>`;
 
-        div.innerHTML = `
+        const descripcion = item.descripcion ? String(item.descripcion) : '';
+        const shortDescription = descripcion.length > 80 ? `${descripcion.substring(0, 80)}...` : descripcion;
+
+        card.innerHTML = `
             ${imageHtml}
             <div class="card-body">
                 <div class="card-category">${escapeHtml(item.categoria)}</div>
                 <div class="card-name">${escapeHtml(item.nombre)}</div>
-                <p class="card-desc">${escapeHtml(descripcionCorta)}</p>
+                <p class="card-desc">${escapeHtml(shortDescription)}</p>
                 <div class="card-footer">
-                    <div class="card-price">$${parseFloat(item.precio).toFixed(2)}<span>/ ${item.tipo === 'producto' ? 'unidad' : 'servicio'}</span></div>
-                    <button class="btn-card" onclick="addToCart(${item.id}, '${item.tipo}')">Agregar</button>
+                    <div class="card-price">$${Number(item.precio).toFixed(2)}<span>/ ${unidad}</span></div>
+                    <button class="btn-card" onclick="addToCart(${Number(item.id)}, '${tipo}')">Agregar</button>
                 </div>
             </div>
         `;
-        return div;
+
+        return card;
     }
 
     function renderPagination(pagination) {
-        if (pagination.last_page <= 1) return '';
-        let html = '';
-        for (let i = 1; i <= pagination.last_page; i++) {
-            const activeClass = i === pagination.current_page ? 'active' : '';
-            html += `<button data-page="${i}" class="paginacion-btn ${activeClass}" style="background: ${i === pagination.current_page ? 'var(--red)' : 'rgba(255,255,255,0.1)'}; border: none; color: white; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer;">${i}</button>`;
+        if (!pagination || Number(pagination.last_page) <= 1) {
+            return '';
         }
+
+        let html = '';
+        for (let i = 1; i <= Number(pagination.last_page); i += 1) {
+            const activeClass = i === Number(pagination.current_page) ? 'active' : '';
+            html += `<button type="button" data-page="${i}" class="paginacion-btn ${activeClass}">${i}</button>`;
+        }
+
         return html;
     }
 
     function attachPaginationEvents() {
-        document.querySelectorAll('.paginacion-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                currentPage = parseInt(btn.getAttribute('data-page'));
+        document.querySelectorAll('.paginacion-btn').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                currentPage = Number(btn.getAttribute('data-page')) || 1;
                 loadCatalog();
             });
         });
     }
 
-    filtroBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            filtroBtns.forEach(b => {
-                b.classList.remove('active');
-                b.style.background = 'transparent';
-                b.style.color = 'rgba(255,255,255,0.7)';
+    async function loadCatalog() {
+        const params = new URLSearchParams({
+            tipo: currentTipo,
+            search: currentSearch,
+            page: String(currentPage),
+        });
+
+        try {
+            const response = await fetch(`${searchRoute}?${params.toString()}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
             });
-            btn.classList.add('active');
-            btn.style.background = 'var(--red)';
-            btn.style.color = 'white';
-            currentTipo = btn.getAttribute('data-tipo');
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const data = await response.json();
+            const items = Array.isArray(data.items) ? data.items : [];
+
+            gridContainer.innerHTML = '';
+
+            if (!items.length) {
+                gridContainer.innerHTML = '<p class="catalogo-empty">No se encontraron resultados.</p>';
+                paginationContainer.innerHTML = '';
+                return;
+            }
+
+            items.forEach((item) => {
+                gridContainer.appendChild(createCard(item));
+            });
+
+            paginationContainer.innerHTML = renderPagination(data.pagination);
+            attachPaginationEvents();
+        } catch (error) {
+            console.error('Error al cargar catalogo:', error);
+            gridContainer.innerHTML = '<p class="catalogo-empty">No se pudo cargar el catalogo. Intenta nuevamente.</p>';
+            paginationContainer.innerHTML = '';
+        }
+    }
+
+    updateActiveTipoButtons();
+    attachPaginationEvents();
+
+    filtroBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+            currentTipo = btn.dataset.tipo || 'todos';
             currentPage = 1;
+            updateActiveTipoButtons();
             loadCatalog();
         });
     });
@@ -147,20 +184,11 @@
     searchInput.addEventListener('input', () => {
         clearTimeout(debounceTimeout);
         debounceTimeout = setTimeout(() => {
-            currentSearch = searchInput.value;
+            currentSearch = searchInput.value.trim();
             currentPage = 1;
             loadCatalog();
-        }, 400);
+        }, 320);
     });
-
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
-    }
+})();
 </script>
 @endpush

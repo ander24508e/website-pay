@@ -19,8 +19,7 @@
             <div class="footer-title">Accesos</div>
             <ul class="footer-links">
                 <li><a href="#inicio">Inicio</a></li>
-                <li><a href="#servicios">Servicios</a></li>
-                <li><a href="#productos">Productos</a></li>
+                <li><a href="#catalogo">Catalogo</a></li>
                 <li><a href="#contacto">Contacto</a></li>
                 @guest
                     <li><a href="{{ route('login') }}">Administrador</a></li>

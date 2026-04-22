@@ -7,7 +7,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 2.5rem;
+    padding: 0 clamp(1rem, 3vw, 2.5rem);
     height: 70px;
     background: rgba(10, 10, 10, 0.95);
     backdrop-filter: blur(12px);
@@ -26,8 +26,7 @@
     width: 58px;
     height: 58px;
     border-radius: 50%;
-    object-fit: contain;
-    border: 1px solid rgba(216, 33, 40, 0.3);
+    object-fit: contain;    
 }
 
 .navbar-brand-text {
@@ -36,6 +35,10 @@
     color: white;
     letter-spacing: 0.08em;
     line-height: 1;
+    max-width: 48vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .navbar-brand-text span {
@@ -45,7 +48,7 @@
 .navbar-links {
     display: flex;
     align-items: center;
-    gap: 2rem;
+    gap: clamp(1rem, 2vw, 2rem);
     list-style: none;
 }
 
@@ -136,11 +139,12 @@
     backdrop-filter: blur(20px);
     z-index: 999;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    align-items: stretch;
+    justify-content: flex-start;
     gap: 0;
-    padding: 2rem;
+    padding: 1.25rem;
     border-top: 1px solid rgba(216, 33, 40, 0.2);
+    overflow-y: auto;
 }
 
 .mobile-menu.open {
@@ -150,7 +154,7 @@
 .mobile-menu li {
     list-style: none;
     width: 100%;
-    text-align: center;
+    text-align: left;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
@@ -162,7 +166,7 @@
 .mobile-menu button {
     display: block;
     width: 100%;
-    padding: 1.1rem 0;
+    padding: 1rem 0.25rem;
     color: rgba(255, 255, 255, 0.75);
     text-decoration: none;
     font-size: 0.9rem;
@@ -182,7 +186,7 @@
 }
 
 .mobile-menu .btn-login-mobile {
-    margin-top: 1.5rem;
+    margin-top: 1rem;
     background: var(--red);
     color: white;
     padding: 0.9rem 2rem;
@@ -191,9 +195,10 @@
     letter-spacing: 0.1em;
     text-transform: uppercase;
     text-decoration: none;
-    display: inline-block;
+    display: block;
     transition: background 0.2s;
-    width: auto;
+    width: 100%;
+    text-align: center;
 }
 
 .mobile-menu .btn-login-mobile:hover {
@@ -201,9 +206,25 @@
     color: white;
 }
 
+.btn-logout-mobile {
+    color: rgba(216, 33, 40, 0.9) !important;
+    font-weight: 700 !important;
+}
+
+@media (max-width: 992px) {
+    .navbar-brand-text {
+        font-size: 1.2rem;
+    }
+
+    .navbar-links a {
+        font-size: 0.75rem;
+    }
+}
+
 @media (max-width: 768px) {
     .navbar {
-        padding: 0 1.25rem;
+        padding: 0 1rem;
+        height: 64px;
     }
 
     .navbar-links {
@@ -215,11 +236,16 @@
     }
 
     .navbar-brand-text {
-        font-size: 1.1rem;
+        font-size: 0.95rem;
+        max-width: 62vw;
     }
 
     .navbar-logo {
-        width: 44px;
-        height: 44px;
+        width: 38px;
+        height: 38px;
+    }
+
+    .mobile-menu {
+        top: 64px;
     }
 }

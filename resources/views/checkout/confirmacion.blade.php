@@ -71,9 +71,15 @@
 
     {{-- Acciones --}}
     <div class="actions">
-        <a href="{{ route('customer.compras') }}" class="btn-primary">
-            📋 Ver mis compras
-        </a>
+        @auth
+            <a href="{{ route('customer.compras') }}" class="btn-primary">
+                📋 Ver mis compras
+            </a>
+        @else
+            <a href="{{ route('carrito.index') }}" class="btn-primary">
+                🛒 Volver al carrito
+            </a>
+        @endauth
         <a href="{{ route('home') }}" class="btn-outline">
             ← Volver al inicio
         </a>

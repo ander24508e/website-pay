@@ -8,7 +8,6 @@
         <x-heroicon-o-building-office class="w-8 h-8 text-gray-800" />
         <div>
             <h2 class="text-2xl font-bold text-gray-800">Mi Empresa</h2>
-            <p class="text-gray-500 text-sm">Edita contacto, textos del sitio y Google Maps sin perderte entre demasiados campos.</p>
         </div>
     </div>
 </div>

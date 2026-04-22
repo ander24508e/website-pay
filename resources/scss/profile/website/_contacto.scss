@@ -4,6 +4,7 @@
     gap: 3rem;
     max-width: 1100px;
     margin: 0 auto;
+    align-items: stretch;
 }
 
 .contact-item {
@@ -11,6 +12,7 @@
     gap: 1rem;
     margin-bottom: 2rem;
     align-items: flex-start;
+    padding: 0.65rem 0;
 }
 
 .contact-icon {
@@ -60,11 +62,31 @@
         gap: 2rem;
     }
 
+    .contact-item {
+        margin-bottom: 1rem;
+    }
+
     .map-container {
         height: 260px;
     }
 
     .contact-text p {
         font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .contact-item {
+        gap: 0.75rem;
+    }
+
+    .contact-icon {
+        width: 42px;
+        height: 42px;
+        font-size: 1rem;
+    }
+
+    .map-container {
+        height: 220px;
     }
 }

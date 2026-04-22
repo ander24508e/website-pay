@@ -41,8 +41,13 @@
                             <x-heroicon-o-user class="w-8 h-8 text-gray-500" />
                         </div>
                         <div>
-                            <div class="cliente-name">{{ auth()->user()->name }}</div>
-                            <div class="cliente-email">{{ auth()->user()->email }}</div>
+                            @auth
+                                <div class="cliente-name">{{ auth()->user()->name }}</div>
+                                <div class="cliente-email">{{ auth()->user()->email }}</div>
+                            @else
+                                <div class="cliente-name">Cliente Invitado</div>
+                                <div class="cliente-email">Compra sin iniciar sesion</div>
+                            @endauth
                         </div>
                     </div>
                 </div>
@@ -115,7 +120,7 @@
             </form>
 
             <a href="{{ route('carrito.index') }}" class="btn-back flex items-center justify-center gap-1">
-                <x-heroicon-o-arrow-left class="w-4 h-4" />
+                <x-heroicon-o-arrow-left class="w-4 h-4 inline mr-1"/>
                 Volver al carrito
             </a>
 
