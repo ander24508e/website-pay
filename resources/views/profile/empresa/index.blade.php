@@ -198,6 +198,40 @@
                 </div>
 
                 <div class="grid grid-cols-1 gap-5">
+                    <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                        <h4 class="text-sm font-semibold text-gray-700 mb-3">Paleta de marca (3 colores)</h4>
+                        <p class="text-xs text-gray-500 mb-4">
+                            Jerarquia automatica: Primario para botones y llamadas a la accion, Secundario para destacados y categorias,
+                            Terciario para detalles de apoyo visual.
+                        </p>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Color primario</label>
+                                <input type="color" name="color_primario" value="{{ old('color_primario', $empresa->color_primario_hex) }}"
+                                       class="h-12 w-full border border-gray-300 rounded-xl bg-white p-1 cursor-pointer @error('color_primario') border-red-400 @enderror">
+                                @error('color_primario')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Color secundario</label>
+                                <input type="color" name="color_secundario" value="{{ old('color_secundario', $empresa->color_secundario_hex) }}"
+                                       class="h-12 w-full border border-gray-300 rounded-xl bg-white p-1 cursor-pointer @error('color_secundario') border-red-400 @enderror">
+                                @error('color_secundario')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Color terciario</label>
+                                <input type="color" name="color_terciario" value="{{ old('color_terciario', $empresa->color_terciario_hex) }}"
+                                       class="h-12 w-full border border-gray-300 rounded-xl bg-white p-1 cursor-pointer @error('color_terciario') border-red-400 @enderror">
+                                @error('color_terciario')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Eslogan</label>
                         <input type="text" name="eslogan" id="eslogan"

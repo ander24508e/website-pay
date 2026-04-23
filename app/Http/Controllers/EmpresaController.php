@@ -38,6 +38,9 @@ class EmpresaController extends Controller
             'ubicacion_embed' => 'nullable|string|max:5000',
             'ciudad' => 'nullable|string|max:255',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:4096',
+            'color_primario' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'color_secundario' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'color_terciario' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
         ]);
 
         $empresa = Empresa::first() ?? new Empresa();
@@ -62,6 +65,9 @@ class EmpresaController extends Controller
         $empresa->servicios_resumen = $this->cleanInput($request->servicios_resumen);
         $empresa->horario = $this->cleanInput($request->horario);
         $empresa->ubicacion_embed = $this->normalizeMapInput($request->input('ubicacion_embed'));
+        $empresa->color_primario = $this->normalizeColorInput($request->input('color_primario'));
+        $empresa->color_secundario = $this->normalizeColorInput($request->input('color_secundario'));
+        $empresa->color_terciario = $this->normalizeColorInput($request->input('color_terciario'));
         $empresa->save();
 
         return redirect()->route('admin.empresa.edit')
@@ -179,6 +185,17 @@ class EmpresaController extends Controller
         }
 
         return $decoded;
+    }
+
+    private function normalizeColorInput(?string $value): ?string
+    {
+        $value = strtoupper(trim((string) $value));
+
+        if ($value === '') {
+            return null;
+        }
+
+        return preg_match('/^#[0-9A-F]{6}$/', $value) ? $value : null;
     }
 
     private function getOrCreateEmpresa(): Empresa

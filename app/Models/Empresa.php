@@ -21,6 +21,9 @@ class Empresa extends Model
         'ubicacion_embed',
         'ciudad',
         'logo',
+        'color_primario',
+        'color_secundario',
+        'color_terciario',
     ];
 
     public function landingBanners()
@@ -103,6 +106,21 @@ class Empresa extends Model
         return $this->ubicacion_mapa_url;
     }
 
+    public function getColorPrimarioHexAttribute(): string
+    {
+        return $this->normalizeHexColor($this->color_primario, '#D82128');
+    }
+
+    public function getColorSecundarioHexAttribute(): string
+    {
+        return $this->normalizeHexColor($this->color_secundario, '#F0B429');
+    }
+
+    public function getColorTerciarioHexAttribute(): string
+    {
+        return $this->normalizeHexColor($this->color_terciario, '#FFFFFF');
+    }
+
     private function extractMapSrc(string $value): string
     {
         $decoded = html_entity_decode(trim($value), ENT_QUOTES, 'UTF-8');
@@ -116,5 +134,16 @@ class Empresa extends Model
         }
 
         return 'https://www.google.com/maps?q=' . urlencode($decoded) . '&output=embed';
+    }
+
+    private function normalizeHexColor(?string $value, string $fallback): string
+    {
+        $value = strtoupper(trim((string) $value));
+
+        if (preg_match('/^#[0-9A-F]{6}$/', $value)) {
+            return $value;
+        }
+
+        return $fallback;
     }
 }

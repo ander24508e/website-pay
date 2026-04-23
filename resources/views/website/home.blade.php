@@ -4,11 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $empresa->nombre ?? 'Lavadora y Lubricadora Endara' }}</title>
+    @php
+        $primary = $empresa->color_primario_hex;
+        $secondary = $empresa->color_secundario_hex;
+        $tertiary = $empresa->color_terciario_hex;
+
+        $darkenHex = function (string $hex, int $steps = 26): string {
+            $hex = ltrim($hex, '#');
+            $r = max(0, hexdec(substr($hex, 0, 2)) - $steps);
+            $g = max(0, hexdec(substr($hex, 2, 2)) - $steps);
+            $b = max(0, hexdec(substr($hex, 4, 2)) - $steps);
+            return sprintf('#%02X%02X%02X', $r, $g, $b);
+        };
+    @endphp
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/scss/website.scss', 'resources/js/app.js'])
 </head>
-<body>
+<body style="
+    --brand-primary: {{ $primary }};
+    --brand-primary-dark: {{ $darkenHex($primary) }};
+    --brand-secondary: {{ $secondary }};
+    --brand-tertiary: {{ $tertiary }};
+    --red: var(--brand-primary);
+    --red-dark: var(--brand-primary-dark);
+    --gold: var(--brand-secondary);
+">
 
 @include('website.navbar')
 @include('website.hero')

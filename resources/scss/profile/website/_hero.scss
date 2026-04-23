@@ -177,7 +177,7 @@
 }
 
 .hero-title .gold {
-    color: var(--gold);
+    color: var(--brand-tertiary);
 }
 
 .hero-sub {
@@ -232,8 +232,8 @@
 }
 
 .btn-outline:hover {
-    border-color: var(--gold);
-    color: var(--gold);
+    border-color: var(--brand-tertiary);
+    color: var(--brand-tertiary);
 }
 
 .hero-stats {

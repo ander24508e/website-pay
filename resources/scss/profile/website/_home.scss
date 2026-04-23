@@ -1,7 +1,12 @@
 :root {
-    --red: #d82128;
-    --red-dark: #b41b21;
-    --gold: #f0b429;
+    --brand-primary: #d82128;
+    --brand-primary-dark: #b41b21;
+    --brand-secondary: #f0b429;
+    --brand-tertiary: #ffffff;
+
+    --red: var(--brand-primary);
+    --red-dark: var(--brand-primary-dark);
+    --gold: var(--brand-secondary);
     --dark: #1e1e1e;
     --dark-2: #141414;
     --dark-3: #0a0a0a;
