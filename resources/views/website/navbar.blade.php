@@ -69,6 +69,7 @@
 <script>
 const hamburger = document.getElementById('hamburger');
 const mobileMenu = document.getElementById('mobile-menu');
+const navSectionIds = ['inicio', 'catalogo', 'contacto'];
 
 if (hamburger && mobileMenu) {
     hamburger.addEventListener('click', () => {
@@ -83,4 +84,36 @@ function closeMenu() {
     if (mobileMenu) mobileMenu.classList.remove('open');
     document.body.style.overflow = '';
 }
+
+function setActiveNav(sectionId) {
+    document.querySelectorAll('.navbar-links a, .mobile-menu a').forEach((link) => {
+        const hash = link.hash ? link.hash.replace('#', '') : '';
+        if (!hash) return;
+        link.classList.toggle('is-active', hash === sectionId);
+    });
+}
+
+function detectActiveSection() {
+    const midpoint = window.scrollY + (window.innerHeight * 0.35);
+    let current = 'inicio';
+
+    navSectionIds.forEach((id) => {
+        const section = document.getElementById(id);
+        if (!section) return;
+        if (midpoint >= section.offsetTop) current = id;
+    });
+
+    setActiveNav(current);
+}
+
+window.addEventListener('scroll', detectActiveSection, { passive: true });
+window.addEventListener('hashchange', () => {
+    const currentHash = (window.location.hash || '#inicio').replace('#', '');
+    setActiveNav(currentHash);
+});
+window.addEventListener('load', () => {
+    const currentHash = (window.location.hash || '#inicio').replace('#', '');
+    setActiveNav(currentHash);
+    detectActiveSection();
+});
 </script>

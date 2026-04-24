@@ -72,8 +72,8 @@
 }
 
 .hero-control:hover {
-    background: rgba(216, 33, 40, 0.9);
-    border-color: rgba(216, 33, 40, 1);
+    background: color-mix(in srgb, var(--brand-secondary) 88%, transparent);
+    border-color: var(--brand-secondary);
 }
 
 .hero-control-prev {
@@ -113,8 +113,8 @@
     position: absolute;
     inset: 0;
     background:
-        radial-gradient(ellipse 60% 60% at 70% 50%, rgba(216, 33, 40, 0.12) 0%, transparent 70%),
-        radial-gradient(ellipse 40% 40% at 20% 80%, rgba(240, 180, 41, 0.06) 0%, transparent 60%);
+        radial-gradient(ellipse 60% 60% at 70% 50%, color-mix(in srgb, var(--brand-primary) 12%, transparent) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 40% at 20% 80%, color-mix(in srgb, var(--brand-secondary) 9%, transparent) 0%, transparent 60%);
 }
 
 .hero-bg::before {
@@ -151,9 +151,9 @@
 
 .hero-eyebrow {
     display: inline-block;
-    background: rgba(216, 33, 40, 0.15);
-    border: 1px solid rgba(216, 33, 40, 0.4);
-    color: var(--red);
+    background: color-mix(in srgb, var(--brand-secondary) 16%, transparent);
+    border: 1px solid color-mix(in srgb, var(--brand-secondary) 42%, transparent);
+    color: var(--brand-secondary);
     font-size: 0.7rem;
     font-weight: 700;
     letter-spacing: 0.2em;
@@ -177,12 +177,12 @@
 }
 
 .hero-title .gold {
-    color: var(--brand-tertiary);
+    color: var(--brand-secondary);
 }
 
 .hero-sub {
     font-size: 0.95rem;
-    color: rgba(255, 255, 255, 0.55);
+    color: color-mix(in srgb, var(--brand-tertiary) 62%, transparent);
     margin: 1.5rem auto 2.5rem;
     max-width: 500px;
     line-height: 1.7;
@@ -214,7 +214,7 @@
 .btn-primary:hover {
     background: var(--red-dark);
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(216, 33, 40, 0.4);
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--brand-primary) 42%, transparent);
 }
 
 .btn-outline {
@@ -232,8 +232,8 @@
 }
 
 .btn-outline:hover {
-    border-color: var(--brand-tertiary);
-    color: var(--brand-tertiary);
+    border-color: var(--brand-secondary);
+    color: var(--brand-secondary);
 }
 
 .hero-stats {
@@ -242,7 +242,7 @@
     gap: 3rem;
     margin-top: 4rem;
     padding-top: 2.5rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    border-top: 1px solid var(--line-tertiary);
     animation: fadeUp 0.6s 0.4s ease both;
     flex-wrap: wrap;
 }
@@ -255,7 +255,7 @@
 .stat-number {
     font-family: 'Bebas Neue', sans-serif;
     font-size: 2.2rem;
-    color: var(--gold);
+    color: var(--brand-secondary);
     line-height: 1;
 }
 

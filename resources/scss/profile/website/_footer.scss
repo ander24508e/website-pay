@@ -1,6 +1,6 @@
 .footer {
     background: var(--dark-3);
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    border-top: 1px solid var(--line-tertiary);
     padding: 3rem 2rem 2rem;
 }
 
@@ -55,14 +55,14 @@
 }
 
 .footer-links a:hover {
-    color: white;
+    color: var(--brand-secondary);
 }
 
 .footer-bottom {
     max-width: 1100px;
     margin: 2.5rem auto 0;
     padding-top: 1.5rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid var(--line-tertiary);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -72,11 +72,11 @@
 
 .footer-copy {
     font-size: 0.75rem;
-    color: var(--muted);
+    color: color-mix(in srgb, var(--brand-tertiary) 68%, transparent);
 }
 
 .footer-copy span {
-    color: var(--red);
+    color: var(--brand-primary);
 }
 
 @media (max-width: 768px) {

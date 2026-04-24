@@ -11,7 +11,7 @@
     height: 70px;
     background: rgba(10, 10, 10, 0.95);
     backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(216, 33, 40, 0.2);
+    border-bottom: 1px solid var(--line-tertiary);
 }
 
 .navbar-brand {
@@ -63,7 +63,11 @@
 }
 
 .navbar-links a:hover {
-    color: var(--gold);
+    color: var(--brand-secondary);
+}
+
+.navbar-links a.is-active {
+    color: var(--brand-primary);
 }
 
 .btn-login {
@@ -92,8 +96,8 @@
 }
 
 .btn-logout:hover {
-    border-color: var(--red);
-    color: var(--red) !important;
+    border-color: var(--brand-secondary);
+    color: var(--brand-secondary) !important;
 }
 
 .hamburger {
@@ -143,7 +147,7 @@
     justify-content: flex-start;
     gap: 0;
     padding: 1.25rem;
-    border-top: 1px solid rgba(216, 33, 40, 0.2);
+    border-top: 1px solid var(--line-tertiary);
     overflow-y: auto;
 }
 
@@ -182,7 +186,12 @@
 
 .mobile-menu a:hover,
 .mobile-menu button:hover {
-    color: var(--gold);
+    color: var(--brand-secondary);
+}
+
+.mobile-menu a.is-active,
+.mobile-menu button.is-active {
+    color: var(--brand-primary);
 }
 
 .mobile-menu .btn-login-mobile {
@@ -207,7 +216,7 @@
 }
 
 .btn-logout-mobile {
-    color: rgba(216, 33, 40, 0.9) !important;
+    color: var(--brand-secondary) !important;
     font-weight: 700 !important;
 }
 

@@ -3,6 +3,9 @@
     --brand-primary-dark: #b41b21;
     --brand-secondary: #f0b429;
     --brand-tertiary: #ffffff;
+    --soft-primary: color-mix(in srgb, var(--brand-primary) 14%, transparent);
+    --soft-secondary: color-mix(in srgb, var(--brand-secondary) 16%, transparent);
+    --line-tertiary: color-mix(in srgb, var(--brand-tertiary) 24%, transparent);
 
     --red: var(--brand-primary);
     --red-dark: var(--brand-primary-dark);
@@ -56,9 +59,9 @@ h3 {
 
 .section-tag {
     display: inline-block;
-    background: rgba(216, 33, 40, 0.12);
-    border: 1px solid rgba(216, 33, 40, 0.3);
-    color: var(--red);
+    background: var(--soft-secondary);
+    border: 1px solid color-mix(in srgb, var(--brand-secondary) 42%, transparent);
+    color: var(--brand-secondary);
     font-size: 0.65rem;
     font-weight: 700;
     letter-spacing: 0.2em;
@@ -91,7 +94,7 @@ h3 {
 .divider {
     width: 60px;
     height: 3px;
-    background: var(--red);
+    background: var(--brand-secondary);
     margin: 0.75rem auto 0;
     border-radius: 2px;
 }
@@ -130,7 +133,7 @@ h3 {
 }
 
 .card:hover {
-    border-color: rgba(216, 33, 40, 0.4);
+    border-color: color-mix(in srgb, var(--brand-primary) 44%, transparent);
     transform: translateY(-4px);
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
 }
@@ -138,7 +141,11 @@ h3 {
 .card-placeholder {
     width: 100%;
     height: 200px;
-    background: linear-gradient(135deg, rgba(216, 33, 40, 0.1), rgba(240, 180, 41, 0.05));
+    background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--brand-primary) 14%, transparent),
+        color-mix(in srgb, var(--brand-secondary) 10%, transparent)
+    );
     display: flex;
     align-items: center;
     justify-content: center;
@@ -160,7 +167,7 @@ h3 {
     font-weight: 700;
     letter-spacing: 0.15em;
     text-transform: uppercase;
-    color: var(--gold);
+    color: var(--brand-tertiary);
     margin-bottom: 0.5rem;
 }
 
@@ -194,7 +201,7 @@ h3 {
 
 .card-price span {
     font-size: 1rem;
-    color: var(--muted);
+    color: var(--brand-tertiary);
     font-family: 'Montserrat', sans-serif;
 }
 
@@ -240,8 +247,8 @@ h3 {
 }
 
 .carousel-btn:hover {
-    border-color: var(--red);
-    background: var(--red);
+    border-color: var(--brand-secondary);
+    background: var(--brand-secondary);
 }
 
 @keyframes fadeUp {
@@ -309,7 +316,7 @@ h3 {
 }
 
 .buscador input:focus {
-    border-color: rgba(216, 33, 40, 0.6);
+    border-color: color-mix(in srgb, var(--brand-primary) 62%, transparent);
 }
 
 /* ========== CATÁLOGO GRID (por defecto: escritorio) ========== */
@@ -513,8 +520,8 @@ h3 {
 }
 
 .buscador input:focus {
-    border-color: rgba(216, 33, 40, 0.6);
-    box-shadow: 0 0 0 3px rgba(216, 33, 40, 0.16);
+    border-color: color-mix(in srgb, var(--brand-primary) 62%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 18%, transparent);
 }
 
 .catalogo-grid {
@@ -558,7 +565,7 @@ h3 {
 .catalogo-empty {
     width: 100%;
     text-align: center;
-    color: var(--muted);
+    color: var(--brand-tertiary);
     padding: 1rem 0.5rem;
 }
 

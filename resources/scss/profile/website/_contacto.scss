@@ -19,8 +19,8 @@
     width: 48px;
     height: 48px;
     border-radius: 8px;
-    background: rgba(216, 33, 40, 0.12);
-    border: 1px solid rgba(216, 33, 40, 0.25);
+    background: var(--soft-primary);
+    border: 1px solid color-mix(in srgb, var(--brand-primary) 36%, transparent);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -33,7 +33,7 @@
     font-weight: 700;
     letter-spacing: 0.15em;
     text-transform: uppercase;
-    color: var(--muted);
+    color: color-mix(in srgb, var(--brand-tertiary) 56%, transparent);
     margin-bottom: 0.3rem;
 }
 
@@ -46,7 +46,7 @@
 .map-container {
     border-radius: 8px;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--line-tertiary);
     height: 350px;
 }
 
