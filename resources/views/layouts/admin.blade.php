@@ -24,17 +24,18 @@
         </div>
 
         <nav class="sidebar-nav flex-1">
-            <a href="{{ route('home') }}"
-                class="{{ request()->routeIs('home') ? 'active' : '' }}">
+            <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}">
                 <span><x-heroicon-o-globe-alt class="w-5 h-5" /></span>
                 <span>Pagina web</span>
             </a>
-            <a href="{{ route('admin.dashboard') }}"
-                class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+            <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                 <span><x-heroicon-o-chart-bar class="w-5 h-5" /></span>
                 <span>Dashboard</span>
             </a>
-
+            <a href="{{ route('admin.banners.index') }}" class="{{ request()->routeIs('admin.banners.*') ? 'active' : '' }}">
+                <span><x-heroicon-o-rectangle-group class="w-5 h-5" /></span>
+                <span>Landing Page</span>
+            </a>
             <a href="{{ route('admin.categories.index') }}"
                 class="{{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
                 <span><x-heroicon-o-tag class="w-5 h-5" /></span>
@@ -106,10 +107,18 @@
         </div>
 
         <nav class="bottom-sheet-nav">
+            <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}">
+                <span><x-heroicon-o-globe-alt class="w-5 h-5" /></span>
+                <span>Pagina web</span>
+            </a>
             <a href="{{ route('admin.dashboard') }}"
                 class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                 <span><x-heroicon-o-chart-bar class="w-5 h-5" /></span>
                 <span>Dashboard</span>
+            </a>
+            <a href="{{ route('admin.banners.index') }}" class="{{ request()->routeIs('admin.banners.*') ? 'active' : '' }}">
+                <span><x-heroicon-o-rectangle-group class="w-5 h-5" /></span>
+                <span>Landing Page</span>
             </a>
             <a href="{{ route('admin.categories.index') }}"
                 class="{{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">

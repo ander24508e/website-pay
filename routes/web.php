@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BannerController;
 use App\Http\Controllers\CarritoController;
 use App\Http\Controllers\CatalogoController;
 use App\Http\Controllers\CategoryController;
@@ -72,9 +73,9 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/empresa', [EmpresaController::class, 'edit'])->name('empresa.edit');
         Route::put('/empresa', [EmpresaController::class, 'update'])->name('empresa.update');
         Route::delete('/empresa/logo', [EmpresaController::class, 'deleteLogo'])->name('empresa.deleteLogo');
-        Route::post('/empresa/banners', [EmpresaController::class, 'storeBanner'])->name('empresa.banners.store');
-        Route::put('/empresa/banners/{banner}', [EmpresaController::class, 'updateBanner'])->name('empresa.banners.update');
-        Route::delete('/empresa/banners/{banner}', [EmpresaController::class, 'destroyBanner'])->name('empresa.banners.destroy');
+
+        // Landing Banners
+        Route::resource('/banners', BannerController::class);
 
         // CRUD
         Route::resource('/categories', CategoryController::class);

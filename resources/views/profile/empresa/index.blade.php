@@ -44,6 +44,7 @@
     </div>
 
     <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+        <!-- Columna izquierda: vista previa y resumen (sin cambios) -->
         <aside class="xl:col-span-4 space-y-6 xl:sticky xl:top-28">
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                 <p class="text-xs font-semibold text-gray-400 uppercase tracking-[0.2em] mb-4">Vista previa</p>
@@ -57,26 +58,18 @@
                 </div>
 
                 <input type="file" id="logo" name="logo" accept="image/*" class="hidden" onchange="previewLogo(this)">
-
-                <button type="button"
-                        onclick="document.getElementById('logo').click()"
-                        class="mt-5 w-full bg-gray-900 text-white py-2.5 rounded-xl hover:bg-gray-700 transition font-medium text-sm flex items-center justify-center gap-2">
+                <button type="button" onclick="document.getElementById('logo').click()" class="mt-5 w-full bg-gray-900 text-white py-2.5 rounded-xl hover:bg-gray-700 transition font-medium text-sm flex items-center justify-center gap-2">
                     <x-heroicon-o-cloud-arrow-up class="w-4 h-4" />
                     Cambiar Logo
                 </button>
-
                 <p id="file-name" class="text-xs text-gray-400 text-center mt-2">
                     {{ $empresa->logo ? basename($empresa->logo) : 'Ningun archivo seleccionado' }}
                 </p>
-
                 @error('logo')
                     <p class="text-red-500 text-xs mt-2 text-center">{{ $message }}</p>
                 @enderror
-
                 @if($empresa->logo)
-                    <button type="button"
-                            onclick="document.getElementById('delete-logo-form').submit()"
-                            class="mt-4 w-full text-red-500 hover:text-red-700 text-sm font-medium py-2.5 rounded-xl hover:bg-red-50 transition flex items-center justify-center gap-2">
+                    <button type="button" onclick="document.getElementById('delete-logo-form').submit()" class="mt-4 w-full text-red-500 hover:text-red-700 text-sm font-medium py-2.5 rounded-xl hover:bg-red-50 transition flex items-center justify-center gap-2">
                         <x-heroicon-o-trash class="w-4 h-4" />
                         Eliminar logo actual
                     </button>
@@ -102,415 +95,133 @@
             </div>
         </aside>
 
+        <!-- Columna derecha: pestañas (contacto, contenido, ubicación) -->
         <section class="xl:col-span-8 space-y-6">
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-3">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <button type="button" class="empresa-tab-btn rounded-xl px-4 py-3 text-sm font-semibold bg-gray-900 text-white" data-tab="contacto">
-                        1. Contacto
-                    </button>
-                    <button type="button" class="empresa-tab-btn rounded-xl px-4 py-3 text-sm font-semibold bg-gray-100 text-gray-600" data-tab="contenido">
-                        2. Contenido Web
-                    </button>
-                    <button type="button" class="empresa-tab-btn rounded-xl px-4 py-3 text-sm font-semibold bg-gray-100 text-gray-600" data-tab="ubicacion">
-                        3. Google Maps
-                    </button>
+                    <button type="button" class="empresa-tab-btn rounded-xl px-4 py-3 text-sm font-semibold bg-gray-900 text-white" data-tab="contacto">1. Contacto</button>
+                    <button type="button" class="empresa-tab-btn rounded-xl px-4 py-3 text-sm font-semibold bg-gray-100 text-gray-600" data-tab="contenido">2. Contenido Web</button>
+                    <button type="button" class="empresa-tab-btn rounded-xl px-4 py-3 text-sm font-semibold bg-gray-100 text-gray-600" data-tab="ubicacion">3. Google Maps</button>
                 </div>
             </div>
 
+            <!-- Panel Contacto -->
             <div class="empresa-panel bg-white rounded-2xl shadow-sm border border-gray-100 p-6" data-panel="contacto">
                 <div class="mb-6">
                     <h3 class="text-lg font-semibold text-gray-800">Datos principales</h3>
                     <p class="text-sm text-gray-500">Nombre, contacto y direccion del negocio.</p>
                 </div>
-
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Nombre de la empresa *</label>
-                        <input type="text" name="nombre" id="nombre"
-                               value="{{ old('nombre', $empresa->nombre) }}"
-                               class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm @error('nombre') border-red-400 @enderror"
-                               placeholder="Ej: Lavadora y Lubricadora Endara">
-                        @error('nombre')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
+                        <input type="text" name="nombre" id="nombre" value="{{ old('nombre', $empresa->nombre) }}" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm @error('nombre') border-red-400 @enderror" placeholder="Ej: Lavadora y Lubricadora Endara">
+                        @error('nombre')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
                     </div>
-
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Telefono</label>
-                        <input type="tel" name="telefono" id="telefono"
-                               value="{{ old('telefono', $empresa->telefono) }}"
-                               class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm @error('telefono') border-red-400 @enderror"
-                               placeholder="Ej: +593 99 999 9999">
-                        @error('telefono')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
+                        <input type="tel" name="telefono" id="telefono" value="{{ old('telefono', $empresa->telefono) }}" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm @error('telefono') border-red-400 @enderror" placeholder="Ej: +593 99 999 9999">
+                        @error('telefono')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
                     </div>
-
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Correo</label>
-                        <input type="email" name="correo" id="correo"
-                               value="{{ old('correo', $empresa->correo) }}"
-                               class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm @error('correo') border-red-400 @enderror"
-                               placeholder="Ej: contacto@negocio.com">
-                        @error('correo')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
+                        <input type="email" name="correo" id="correo" value="{{ old('correo', $empresa->correo) }}" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm @error('correo') border-red-400 @enderror" placeholder="Ej: contacto@negocio.com">
+                        @error('correo')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
                     </div>
-
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Ciudad o zona</label>
-                        <input type="text" name="ciudad" id="ciudad"
-                               value="{{ old('ciudad', $empresa->ciudad) }}"
-                               class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm @error('ciudad') border-red-400 @enderror"
-                               placeholder="Ej: Cayambe, Ecuador">
-                        @error('ciudad')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
+                        <input type="text" name="ciudad" id="ciudad" value="{{ old('ciudad', $empresa->ciudad) }}" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm @error('ciudad') border-red-400 @enderror" placeholder="Ej: Cayambe, Ecuador">
+                        @error('ciudad')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
                     </div>
-
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Horario</label>
-                        <input type="text" name="horario"
-                               value="{{ old('horario', $empresa->horario) }}"
-                               class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm @error('horario') border-red-400 @enderror"
-                               placeholder="Ej: Lunes a Sabado: 8:00 - 18:00">
-                        @error('horario')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
+                        <input type="text" name="horario" value="{{ old('horario', $empresa->horario) }}" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm @error('horario') border-red-400 @enderror" placeholder="Ej: Lunes a Sabado: 8:00 - 18:00">
+                        @error('horario')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
                     </div>
-
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Direccion</label>
-                        <textarea name="direccion" id="direccion" rows="4"
-                                  class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm resize-none @error('direccion') border-red-400 @enderror"
-                                  placeholder="Ej: Cayambe, Pichincha, Ecuador">{{ old('direccion', $empresa->direccion) }}</textarea>
-                        @error('direccion')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
+                        <textarea name="direccion" id="direccion" rows="4" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm resize-none @error('direccion') border-red-400 @enderror" placeholder="Ej: Cayambe, Pichincha, Ecuador">{{ old('direccion', $empresa->direccion) }}</textarea>
+                        @error('direccion')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
                     </div>
                 </div>
             </div>
 
+            <!-- Panel Contenido Web -->
             <div class="empresa-panel hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-6" data-panel="contenido">
                 <div class="mb-6">
                     <h3 class="text-lg font-semibold text-gray-800">Textos del sitio web</h3>
                     <p class="text-sm text-gray-500">Edita lo que aparece en portada, footer y resumen del negocio.</p>
                 </div>
-
                 <div class="grid grid-cols-1 gap-5">
                     <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
                         <h4 class="text-sm font-semibold text-gray-700 mb-3">Paleta de marca (3 colores)</h4>
-                        <p class="text-xs text-gray-500 mb-4">
-                            Jerarquia automatica: Primario para botones y llamadas a la accion, Secundario para destacados y categorias,
-                            Terciario para detalles de apoyo visual.
-                        </p>
+                        <p class="text-xs text-gray-500 mb-4">Jerarquia automatica: Primario para botones y llamadas a la accion, Secundario para destacados y categorias, Terciario para detalles de apoyo visual.</p>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Color primario</label>
-                                <input type="color" name="color_primario" value="{{ old('color_primario', $empresa->color_primario_hex) }}"
-                                       class="h-12 w-full border border-gray-300 rounded-xl bg-white p-1 cursor-pointer @error('color_primario') border-red-400 @enderror">
-                                @error('color_primario')
-                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                                @enderror
+                                <input type="color" name="color_primario" value="{{ old('color_primario', $empresa->color_primario_hex) }}" class="h-12 w-full border border-gray-300 rounded-xl bg-white p-1 cursor-pointer @error('color_primario') border-red-400 @enderror">
+                                @error('color_primario')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Color secundario</label>
-                                <input type="color" name="color_secundario" value="{{ old('color_secundario', $empresa->color_secundario_hex) }}"
-                                       class="h-12 w-full border border-gray-300 rounded-xl bg-white p-1 cursor-pointer @error('color_secundario') border-red-400 @enderror">
-                                @error('color_secundario')
-                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                                @enderror
+                                <input type="color" name="color_secundario" value="{{ old('color_secundario', $empresa->color_secundario_hex) }}" class="h-12 w-full border border-gray-300 rounded-xl bg-white p-1 cursor-pointer @error('color_secundario') border-red-400 @enderror">
+                                @error('color_secundario')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Color terciario</label>
-                                <input type="color" name="color_terciario" value="{{ old('color_terciario', $empresa->color_terciario_hex) }}"
-                                       class="h-12 w-full border border-gray-300 rounded-xl bg-white p-1 cursor-pointer @error('color_terciario') border-red-400 @enderror">
-                                @error('color_terciario')
-                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                                @enderror
+                                <input type="color" name="color_terciario" value="{{ old('color_terciario', $empresa->color_terciario_hex) }}" class="h-12 w-full border border-gray-300 rounded-xl bg-white p-1 cursor-pointer @error('color_terciario') border-red-400 @enderror">
+                                @error('color_terciario')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
                             </div>
                         </div>
                     </div>
-
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Eslogan</label>
-                        <input type="text" name="eslogan" id="eslogan"
-                               value="{{ old('eslogan', $empresa->eslogan) }}"
-                               class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm @error('eslogan') border-red-400 @enderror"
-                               placeholder="Ej: Servicio profesional de lavado y lubricacion">
-                        @error('eslogan')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
+                        <input type="text" name="eslogan" id="eslogan" value="{{ old('eslogan', $empresa->eslogan) }}" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm @error('eslogan') border-red-400 @enderror" placeholder="Ej: Servicio profesional de lavado y lubricacion">
+                        @error('eslogan')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
                     </div>
-
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Descripcion corta</label>
-                        <textarea name="descripcion_corta" rows="4"
-                                  class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm resize-none @error('descripcion_corta') border-red-400 @enderror"
-                                  placeholder="Texto principal que se mostrara en la portada">{{ old('descripcion_corta', $empresa->descripcion_corta) }}</textarea>
-                        @error('descripcion_corta')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
+                        <textarea name="descripcion_corta" rows="4" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm resize-none @error('descripcion_corta') border-red-400 @enderror" placeholder="Texto principal que se mostrara en la portada">{{ old('descripcion_corta', $empresa->descripcion_corta) }}</textarea>
+                        @error('descripcion_corta')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
                     </div>
-
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Descripcion del footer</label>
-                        <textarea name="descripcion_footer" rows="4"
-                                  class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm resize-none @error('descripcion_footer') border-red-400 @enderror"
-                                  placeholder="Texto corto para el pie de pagina">{{ old('descripcion_footer', $empresa->descripcion_footer) }}</textarea>
-                        @error('descripcion_footer')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
+                        <textarea name="descripcion_footer" rows="4" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm resize-none @error('descripcion_footer') border-red-400 @enderror" placeholder="Texto corto para el pie de pagina">{{ old('descripcion_footer', $empresa->descripcion_footer) }}</textarea>
+                        @error('descripcion_footer')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
                     </div>
-
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Resumen de servicios</label>
-                        <input type="text" name="servicios_resumen"
-                               value="{{ old('servicios_resumen', $empresa->servicios_resumen) }}"
-                               class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm @error('servicios_resumen') border-red-400 @enderror"
-                               placeholder="Ej: Lavado - Lubricacion - Mantenimiento">
-                        @error('servicios_resumen')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
+                        <input type="text" name="servicios_resumen" value="{{ old('servicios_resumen', $empresa->servicios_resumen) }}" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm @error('servicios_resumen') border-red-400 @enderror" placeholder="Ej: Lavado - Lubricacion - Mantenimiento">
+                        @error('servicios_resumen')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
                     </div>
                 </div>
             </div>
 
+            <!-- Panel Google Maps -->
             <div class="empresa-panel hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-6" data-panel="ubicacion">
                 <div class="mb-6">
                     <h3 class="text-lg font-semibold text-gray-800">Google Maps y vista previa</h3>
                     <p class="text-sm text-gray-500">Pega el iframe completo o solo la URL. Si lo dejas vacio, el mapa se genera con la direccion o la ciudad.</p>
                 </div>
-
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Iframe o URL de Google Maps</label>
-                        <textarea name="ubicacion_embed" id="ubicacion_embed" rows="10"
-                                  class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm resize-none @error('ubicacion_embed') border-red-400 @enderror"
-                                  placeholder='Ejemplo: <iframe src="..."></iframe> o https://www.google.com/maps/embed?...'>{{ old('ubicacion_embed', $empresa->ubicacion_embed) }}</textarea>
-                        @error('ubicacion_embed')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-
+                        <textarea name="ubicacion_embed" id="ubicacion_embed" rows="10" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm resize-none @error('ubicacion_embed') border-red-400 @enderror" placeholder='Ejemplo: <iframe src="..."></iframe> o https://www.google.com/maps/embed?...'>{{ old('ubicacion_embed', $empresa->ubicacion_embed) }}</textarea>
+                        @error('ubicacion_embed')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
                         <div class="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                             Consejo: si copias el bloque completo de Google Maps, el sistema sacara automaticamente el enlace util del mapa.
                         </div>
                     </div>
-
                     <div>
                         <div class="rounded-2xl overflow-hidden border border-gray-200 bg-gray-50 h-[360px]">
-                            <iframe id="map-preview"
-                                    src="{{ $empresa->ubicacion_mapa_url }}"
-                                    class="w-full h-full"
-                                    loading="lazy"
-                                    referrerpolicy="no-referrer-when-downgrade"
-                                    allowfullscreen></iframe>
+                            <iframe id="map-preview" src="{{ $empresa->ubicacion_mapa_url }}" class="w-full h-full" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
                         </div>
-                        <p class="text-xs text-gray-400 mt-3">
-                            La vista previa usa primero el campo del mapa. Si esta vacio, usa la direccion o la ciudad.
-                        </p>
+                        <p class="text-xs text-gray-400 mt-3">La vista previa usa primero el campo del mapa. Si esta vacio, usa la direccion o la ciudad.</p>
                     </div>
                 </div>
             </div>
         </section>
     </div>
 </form>
-
-<section class="mt-10 space-y-6">
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-        <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-            <div>
-                <p class="text-xs font-semibold text-gray-400 uppercase tracking-[0.2em]">Landing Page</p>
-                <h3 class="text-2xl font-bold text-gray-800 mt-1">Banners del carrusel</h3>
-                <p class="text-sm text-gray-500 mt-1">Sube promociones para la portada. Cada banner puede tener imagen, titulo, texto y un boton opcional.</p>
-            </div>
-            <div class="rounded-xl bg-gray-100 px-4 py-3 text-sm text-gray-600">
-                {{ $empresa->landingBanners->count() }} banner(s) creados
-            </div>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
-        <div class="xl:col-span-5">
-            <form method="POST" action="{{ route('admin.empresa.banners.store') }}" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-5">
-                @csrf
-
-                <div>
-                    <h4 class="text-lg font-semibold text-gray-800">Agregar nuevo banner</h4>
-                    <p class="text-sm text-gray-500 mt-1">Este formulario crea una nueva diapositiva en el landing page.</p>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Imagen del banner *</label>
-                    <input type="file" name="imagen" accept="image/*"
-                           class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm @error('imagen') border-red-400 @enderror">
-                    @error('imagen')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Titulo</label>
-                    <input type="text" name="titulo"
-                           value="{{ old('titulo') }}"
-                           class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm"
-                           placeholder="Ej: Lavado Premium esta semana">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Texto</label>
-                    <textarea name="texto" rows="4"
-                              class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm resize-none"
-                              placeholder="Agrega una frase corta para explicar la promocion o el servicio.">{{ old('texto') }}</textarea>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Texto del boton</label>
-                        <input type="text" name="boton_texto"
-                               value="{{ old('boton_texto') }}"
-                               class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm"
-                               placeholder="Ej: Ver catalogo">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Link del boton</label>
-                        <input type="text" name="boton_link"
-                               value="{{ old('boton_link') }}"
-                               class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm"
-                               placeholder="Ej: #catalogo o https://...">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Orden</label>
-                        <input type="number" name="orden"
-                               value="{{ old('orden', $empresa->landingBanners->count()) }}"
-                               min="0"
-                               class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm">
-                    </div>
-
-                    <div class="flex items-end">
-                        <label class="flex items-center gap-3 px-4 py-3 rounded-xl border border-gray-200 w-full">
-                            <input type="hidden" name="activo" value="0">
-                            <input type="checkbox" name="activo" value="1" checked class="rounded border-gray-300 text-red-600 focus:ring-red-500">
-                            <span class="text-sm text-gray-700 font-medium">Mostrar banner al publico</span>
-                        </label>
-                    </div>
-                </div>
-
-                <button type="submit" class="w-full bg-gray-900 text-white py-3 rounded-xl hover:bg-gray-700 transition font-medium text-sm">
-                    Crear Banner
-                </button>
-            </form>
-        </div>
-
-        <div class="xl:col-span-7 space-y-4">
-            @forelse($empresa->landingBanners as $banner)
-                <details class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden group" {{ $loop->first ? 'open' : '' }}>
-                    <summary class="list-none cursor-pointer p-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                        <div class="flex items-center gap-4 min-w-0">
-                            <img src="{{ $banner->imagen_url }}"
-                                 alt="{{ $banner->titulo ?: 'Banner' }}"
-                                 class="w-28 h-20 rounded-xl object-cover border border-gray-200 shadow-sm">
-                            <div class="min-w-0">
-                                <h4 class="text-base font-semibold text-gray-800 truncate">{{ $banner->titulo ?: 'Banner sin titulo' }}</h4>
-                                <p class="text-sm text-gray-500 line-clamp-2">{{ $banner->texto ?: 'Sin texto adicional.' }}</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2 text-xs">
-                            <span class="px-3 py-1 rounded-full {{ $banner->activo ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600' }}">
-                                {{ $banner->activo ? 'Activo' : 'Oculto' }}
-                            </span>
-                            <span class="px-3 py-1 rounded-full bg-gray-100 text-gray-600">Orden {{ $banner->orden }}</span>
-                        </div>
-                    </summary>
-
-                    <div class="px-5 pb-5 border-t border-gray-100">
-                        <form method="POST" action="{{ route('admin.empresa.banners.update', $banner) }}" enctype="multipart/form-data" class="grid grid-cols-1 gap-4 pt-5">
-                            @csrf
-                            @method('PUT')
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Titulo</label>
-                                    <input type="text" name="titulo"
-                                           value="{{ old('titulo', $banner->titulo) }}"
-                                           class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Reemplazar imagen</label>
-                                    <input type="file" name="imagen" accept="image/*"
-                                           class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm">
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Texto</label>
-                                <textarea name="texto" rows="3"
-                                          class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm resize-none">{{ old('texto', $banner->texto) }}</textarea>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Texto del boton</label>
-                                    <input type="text" name="boton_texto"
-                                           value="{{ old('boton_texto', $banner->boton_texto) }}"
-                                           class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Link del boton</label>
-                                    <input type="text" name="boton_link"
-                                           value="{{ old('boton_link', $banner->boton_link) }}"
-                                           class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm">
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Orden</label>
-                                    <input type="number" name="orden"
-                                           value="{{ old('orden', $banner->orden) }}"
-                                           min="0"
-                                           class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm">
-                                </div>
-                                <div class="flex items-end">
-                                    <label class="flex items-center gap-3 px-4 py-3 rounded-xl border border-gray-200 w-full">
-                                        <input type="hidden" name="activo" value="0">
-                                        <input type="checkbox" name="activo" value="1" {{ old('activo', $banner->activo) ? 'checked' : '' }} class="rounded border-gray-300 text-red-600 focus:ring-red-500">
-                                        <span class="text-sm text-gray-700 font-medium">Banner visible</span>
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                                <button type="submit" class="bg-gray-900 text-white px-5 py-2.5 rounded-xl hover:bg-gray-700 transition font-medium text-sm">
-                                    Guardar banner
-                                </button>
-                                <button type="submit"
-                                        form="delete-banner-{{ $banner->id }}"
-                                        class="text-red-500 hover:text-red-700 text-sm font-medium">
-                                    Eliminar banner
-                                </button>
-                            </div>
-                        </form>
-
-                        <form id="delete-banner-{{ $banner->id }}" method="POST" action="{{ route('admin.empresa.banners.destroy', $banner) }}" class="hidden">
-                            @csrf
-                            @method('DELETE')
-                        </form>
-                    </div>
-                </details>
-            @empty
-                <div class="bg-white rounded-2xl shadow-sm border border-dashed border-gray-200 p-8 text-center">
-                    <p class="text-gray-700 font-medium">Todavia no tienes banners creados.</p>
-                    <p class="text-sm text-gray-500 mt-2">Cuando subas el primero, aparecera aqui y tambien en el carrusel del landing page.</p>
-                </div>
-            @endforelse
-        </div>
-    </div>
-</section>
 
 @if($empresa->logo)
     <form id="delete-logo-form" action="{{ route('admin.empresa.deleteLogo') }}" method="POST" class="hidden">
@@ -525,35 +236,26 @@
 function previewLogo(input) {
     if (!input.files || !input.files[0]) return;
     const file = input.files[0];
-
     if (file.size > 4 * 1024 * 1024) {
         alert('La imagen es muy grande. Maximo 4MB.');
         input.value = '';
         return;
     }
-
     const reader = new FileReader();
     reader.onload = e => {
         document.getElementById('logo-preview').src = e.target.result;
     };
     reader.readAsDataURL(file);
-
     document.getElementById('file-name').textContent = file.name;
 }
 
 function extractMapSrc(value) {
     if (!value) return '';
-
     const raw = value.trim();
     if (!raw) return '';
-
     const iframeMatch = raw.match(/src=["']([^"']+)["']/i);
     if (iframeMatch) return iframeMatch[1];
-
-    if (raw.includes('google.com/maps/embed') || raw.includes('output=embed') || raw.includes('google.com/maps?q=')) {
-        return raw;
-    }
-
+    if (raw.includes('google.com/maps/embed') || raw.includes('output=embed') || raw.includes('google.com/maps?q=')) return raw;
     return `https://www.google.com/maps?q=${encodeURIComponent(raw)}&output=embed`;
 }
 
@@ -563,21 +265,17 @@ function updateMapPreview() {
     const ciudad = document.getElementById('ciudad').value;
     const fallback = direccion.trim() || ciudad.trim() || 'Cayambe, Ecuador';
     const finalSrc = extractMapSrc(mapInput) || `https://www.google.com/maps?q=${encodeURIComponent(fallback)}&output=embed`;
-
     document.getElementById('map-preview').src = finalSrc;
 }
 
 function wirePreview(id, targetId, fallback = '') {
     const input = document.getElementById(id);
     const target = document.getElementById(targetId);
-
     if (!input || !target) return;
-
     const apply = () => {
         const value = input.value.trim();
         target.textContent = value || fallback;
     };
-
     input.addEventListener('input', apply);
     apply();
 }
@@ -591,10 +289,8 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => alert.remove(), 400);
         }, 4000);
     }
-
     const tabButtons = document.querySelectorAll('.empresa-tab-btn');
     const panels = document.querySelectorAll('.empresa-panel');
-
     function activateTab(tab) {
         tabButtons.forEach(btn => {
             const active = btn.dataset.tab === tab;
@@ -603,18 +299,14 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.classList.toggle('bg-gray-100', !active);
             btn.classList.toggle('text-gray-600', !active);
         });
-
         panels.forEach(panel => {
             panel.classList.toggle('hidden', panel.dataset.panel !== tab);
         });
     }
-
     tabButtons.forEach(btn => {
         btn.addEventListener('click', () => activateTab(btn.dataset.tab));
     });
-
     activateTab('contacto');
-
     wirePreview('nombre', 'preview-name', 'Mi negocio');
     wirePreview('eslogan', 'preview-slogan', 'Servicio profesional para el cuidado de tu vehiculo');
     wirePreview('correo', 'preview-email', 'contacto@negocio.com');
@@ -625,7 +317,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const field = document.getElementById(id);
         if (field) field.addEventListener('input', updateMapPreview);
     });
-
     updateMapPreview();
 });
 </script>
