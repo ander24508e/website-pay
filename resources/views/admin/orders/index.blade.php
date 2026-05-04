@@ -102,7 +102,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center py-12 text-gray-400">No hay ordenes registradas a�n</td>
+                            <td colspan="7" class="text-center py-12 text-gray-400">No hay ordenes registradas</td>
                         </tr>
                     @endforelse
                 </tbody>

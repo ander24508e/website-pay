@@ -50,6 +50,6 @@
     <br>
     <a href="{{ route('home') }}" class="btn-secondary">← Volver al inicio</a>
 </div>
-
+@include('website.whatsapp-float')
 </body>
 </html>

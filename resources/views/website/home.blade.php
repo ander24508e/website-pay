@@ -40,6 +40,7 @@
     @include('website.catalogo')
     @include('website.contacto')
     @include('website.footer')
+    @include('website.whatsapp-float')
 
     {{-- Toast global --}}
     <div id="toast"

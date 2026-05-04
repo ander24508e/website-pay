@@ -162,6 +162,8 @@
         @endif
 
     </div>
+
+    @include('website.whatsapp-float')
 </body>
 
 </html>

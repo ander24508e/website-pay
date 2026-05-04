@@ -10,9 +10,28 @@ use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 class OrderController extends Controller
 {
+    private function buildOrderData(float $total, ?int $userId, bool $isReservation = false): array
+    {
+        $data = [
+            'user_id' => $userId,
+            'total' => $total,
+            'status' => $isReservation ? 'reserved' : 'pending',
+        ];
+
+        if (Schema::hasColumn('orders', 'order_type')) {
+            $data['order_type'] = $isReservation ? 'reservation' : 'purchase';
+        } else {
+            // Compatibilidad con esquemas antiguos sin estado "reserved"
+            $data['status'] = 'pending';
+        }
+
+        return $data;
+    }
+
     // ══════════════════════════════════════════
     // PÚBLICO — Vista checkout (resumen)
     // ══════════════════════════════════════════
@@ -36,12 +55,7 @@ class OrderController extends Controller
         $total = collect($carrito)->sum(fn($item) => $item['price'] * $item['quantity']);
 
         // 1. Crear la orden en BD
-        $order = Order::create([
-            'user_id' => auth()->id(),
-            'total'   => $total,
-            'status'  => 'pending',
-            'order_type' => 'purchase',
-        ]);
+        $order = Order::create($this->buildOrderData((float) $total, auth()->id(), false));
 
         // 2. Crear los items de la orden
         foreach ($carrito as $item) {
@@ -170,12 +184,7 @@ class OrderController extends Controller
             return response()->json(['message' => 'Solo se pueden reservar servicios de lavada.'], 422);
         }
 
-        $order = Order::create([
-            'user_id' => auth()->id(),
-            'total' => $service->price,
-            'status' => 'reserved',
-            'order_type' => 'reservation',
-        ]);
+        $order = Order::create($this->buildOrderData((float) $service->price, auth()->id(), true));
 
         OrderItem::create([
             'order_id'      => $order->id,
