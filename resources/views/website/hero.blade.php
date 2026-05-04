@@ -7,10 +7,11 @@
         <div class="hero-carousel-track" id="hero-carousel-track">
             @foreach($landingBanners as $index => $banner)
                 <article class="hero-slide {{ $index === 0 ? 'is-active' : '' }}"
-                         data-slide="{{ $index }}"
-                         style="background-image:
-                            linear-gradient(90deg, rgba(8, 8, 8, 0.82) 0%, rgba(8, 8, 8, 0.55) 45%, rgba(8, 8, 8, 0.25) 100%),
-                            url('{{ $banner->imagen_url }}');">
+                         data-slide="{{ $index }}">
+                    <img class="hero-slide-media"
+                         src="{{ $banner->imagen_url }}"
+                         alt="{{ $banner->titulo ?: 'Banner promocional' }}">
+                    <div class="hero-slide-overlay"></div>
                     <div class="hero-slide-content">
                         @if($banner->titulo)
                             <div class="hero-eyebrow">Promocion destacada</div>

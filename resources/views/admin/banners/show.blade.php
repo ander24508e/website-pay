@@ -23,7 +23,7 @@
                 <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">Imagen</p>
                 <div class="flex flex-col items-center">
                     <img src="{{ $banner->imagen_url }}" alt="{{ $banner->titulo ?: 'Banner' }}"
-                         class="w-56 h-40 rounded-xl object-cover border border-gray-200 shadow-sm">
+                         class="w-56 h-40 rounded-xl object-contain bg-gray-50 border border-gray-200 shadow-sm">
                 </div>
             </div>
 

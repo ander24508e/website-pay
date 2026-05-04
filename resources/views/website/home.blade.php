@@ -77,6 +77,28 @@
             }).then(() => showToast('✅ Agregado al carrito'));
         }
 
+        function reserveService(serviceId) {
+            fetch(`/reservas/servicio/${serviceId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({})
+            })
+                .then(async (response) => {
+                    const data = await response.json().catch(() => ({}));
+                    if (!response.ok) {
+                        throw new Error(data.message || 'No se pudo crear la reserva.');
+                    }
+                    showToast('✅ Reserva creada. Revisa tu orden.');
+                })
+                .catch((error) => {
+                    showToast(`⚠ ${error.message}`);
+                });
+        }
+
         function showToast(msg) {
             const t = document.getElementById('toast');
             t.textContent = msg;

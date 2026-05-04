@@ -13,7 +13,27 @@
         <p class="card-desc">{{ Str::limit($item['descripcion'], 80) }}</p>
         <div class="card-footer">
             <div class="card-price">${{ number_format($item['precio'], 2) }}<span>/ {{ $item['tipo'] === 'product' ? 'unidad' : 'servicio' }}</span></div>
-            <button class="btn-card" onclick="addToCart({{ $item['id'] }}, '{{ $item['tipo'] }}')">Agregar</button>
+            <div class="card-actions">
+                @if(($item['tipo'] ?? '') === 'service' && ($item['reservable'] ?? false))
+                    <button
+                        type="button"
+                        onclick="reserveService({{ $item['id'] }})"
+                        class="btn-reservar"
+                        title="Reservar servicio"
+                        aria-label="Reservar servicio de lavada"
+                    >
+                        Reservar
+                    </button>
+                @endif
+                <button
+                    class="btn-card-icon"
+                    onclick="addToCart({{ $item['id'] }}, '{{ $item['tipo'] }}')"
+                    title="Agregar al carrito"
+                    aria-label="Agregar al carrito"
+                >
+                    <x-heroicon-s-shopping-cart class="w-5 h-5" />
+                </button>
+            </div>
         </div>
     </div>
 </div>

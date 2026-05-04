@@ -39,7 +39,7 @@
                     @forelse($banners as $banner)
                         <tr class="hover:bg-gray-50">
                             <td class="px-4 sm:px-6 py-3 sm:py-4">
-                                <img src="{{ $banner->imagen_url }}" alt="{{ $banner->titulo ?: 'Banner' }}" class="w-16 h-10 rounded object-cover border border-gray-200">
+                                <img src="{{ $banner->imagen_url }}" alt="{{ $banner->titulo ?: 'Banner' }}" class="w-16 h-10 rounded object-contain bg-gray-50 border border-gray-200">
                             </td>
 
                             <td class="px-4 sm:px-6 py-3 sm:py-4">

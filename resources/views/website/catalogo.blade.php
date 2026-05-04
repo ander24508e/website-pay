@@ -51,6 +51,11 @@
     const searchInput = document.getElementById('search-catalogo');
     const filtroBtns = Array.from(document.querySelectorAll('.filtro-btn'));
     const searchRoute = @json(route('catalogo.buscar'));
+    const cartIconSvg = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+            <path d="M1 1.75A.75.75 0 0 1 1.75 1h1.5a.75.75 0 0 1 .728.57l.249 1.01h11.55a.75.75 0 0 1 .734.904l-1.5 7A.75.75 0 0 1 14.278 11H5.03l.273 1.109A1.75 1.75 0 0 0 7 13.5h7.25a.75.75 0 0 1 0 1.5H7a3.25 3.25 0 0 1-3.154-2.464L2.47 2.5H1.75A.75.75 0 0 1 1 1.75ZM6.5 18a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3ZM14 18a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z" />
+        </svg>
+    `;
 
     if (!gridContainer || !paginationContainer || !searchInput || !filtroBtns.length) {
         return;
@@ -81,6 +86,7 @@
         const tipo = item.tipo === 'product' ? 'product' : 'service';
         const unidad = tipo === 'product' ? 'unidad' : 'servicio';
         const placeholder = tipo === 'product' ? 'PRD' : 'SRV';
+        const reservable = Boolean(item.reservable) && tipo === 'service';
 
         const imageHtml = item.imagen
             ? `<img src="/storage/${item.imagen}" alt="${escapeHtml(item.nombre)}" class="card-image">`
@@ -88,6 +94,9 @@
 
         const descripcion = item.descripcion ? String(item.descripcion) : '';
         const shortDescription = descripcion.length > 80 ? `${descripcion.substring(0, 80)}...` : descripcion;
+        const reserveButton = reservable
+            ? `<button type="button" class="btn-reservar" onclick="reserveService(${Number(item.id)})" title="Reservar servicio" aria-label="Reservar servicio de lavada">Reservar</button>`
+            : '';
 
         card.innerHTML = `
             ${imageHtml}
@@ -97,7 +106,12 @@
                 <p class="card-desc">${escapeHtml(shortDescription)}</p>
                 <div class="card-footer">
                     <div class="card-price">$${Number(item.precio).toFixed(2)}<span>/ ${unidad}</span></div>
-                    <button class="btn-card" onclick="addToCart(${Number(item.id)}, '${tipo}')">Agregar</button>
+                    <div class="card-actions">
+                        ${reserveButton}
+                        <button class="btn-card-icon" onclick="addToCart(${Number(item.id)}, '${tipo}')" title="Agregar al carrito" aria-label="Agregar al carrito">
+                            ${cartIconSvg}
+                        </button>
+                    </div>
                 </div>
             </div>
         `;

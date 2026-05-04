@@ -10,6 +10,19 @@ use Illuminate\Support\Facades\Schema;
 
 class CatalogoController extends Controller
 {
+    private function isReservableService(Service $service): bool
+    {
+        $source = strtolower(
+            trim(
+                ($service->name ?? '') . ' ' .
+                ($service->description ?? '') . ' ' .
+                ($service->category->name ?? '')
+            )
+        );
+
+        return str_contains($source, 'lavad');
+    }
+
     /**
      * Obtiene los items del catalogo (productos + servicios) con filtros y paginacion.
      */
@@ -66,6 +79,7 @@ class CatalogoController extends Controller
                 'imagen'      => $servicio->image,
                 'categoria'   => $servicio->category->name ?? 'Servicio',
                 'tipo'        => 'service',
+                'reservable'  => $this->isReservableService($servicio),
             ];
         });
 

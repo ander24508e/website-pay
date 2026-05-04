@@ -25,7 +25,7 @@
                 <div class="flex flex-col items-center mb-4">
                     <div id="img-preview"
                          class="w-28 h-28 sm:w-32 sm:h-32 bg-gray-100 rounded-xl flex items-center justify-center text-4xl mb-3 overflow-hidden border-2 border-dashed border-gray-200">
-                        <img src="{{ $banner->imagen_url }}" class="w-full h-full object-cover">
+                        <img src="{{ $banner->imagen_url }}" class="w-full h-full object-contain bg-gray-50">
                     </div>
                     <p class="text-xs text-gray-400 text-center" id="img-name">{{ $banner->imagen ? basename($banner->imagen) : 'Sin imagen' }}</p>
                 </div>
@@ -163,7 +163,7 @@ function previewImage(input) {
     const reader = new FileReader();
     reader.onload = e => {
         const preview = document.getElementById('img-preview');
-        preview.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover">`;
+        preview.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-contain bg-gray-50">`;
     };
     reader.readAsDataURL(file);
     document.getElementById('img-name').textContent = file.name;

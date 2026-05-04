@@ -152,7 +152,7 @@ function previewImage(input) {
     const reader = new FileReader();
     reader.onload = e => {
         const preview = document.getElementById('img-preview');
-        preview.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover">`;
+        preview.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-contain bg-gray-50">`;
     };
     reader.readAsDataURL(file);
     document.getElementById('img-name').textContent = file.name;

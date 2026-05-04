@@ -9,7 +9,6 @@
 </head>
 
 <body>
-
     <!-- Tooltip flotante para feedback -->
     <div class="sidebar-tooltip" id="sidebarTooltip"></div>
 

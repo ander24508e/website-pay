@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\Service;
 use App\Models\OrderItem;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -39,6 +40,7 @@ class OrderController extends Controller
             'user_id' => auth()->id(),
             'total'   => $total,
             'status'  => 'pending',
+            'order_type' => 'purchase',
         ]);
 
         // 2. Crear los items de la orden
@@ -130,7 +132,12 @@ class OrderController extends Controller
     public function show(Order $order)
     {
         $this->authorize('view', $order);
-        $order->load('items.itemable', 'transaction');
+        $order->load('items.itemable', 'transaction', 'user');
+
+        if (request()->routeIs('admin.orders.show')) {
+            return view('admin.orders.show', compact('order'));
+        }
+
         return view('checkout.show', compact('order'));
     }
 
@@ -148,7 +155,66 @@ class OrderController extends Controller
     // ══════════════════════════════════════════
     public function index()
     {
-        $orders = Order::with('user')->latest()->paginate(15);
+        $orders = Order::with('user', 'items')->latest()->paginate(15);
         return view('admin.orders.index', compact('orders'));
+    }
+
+    public function reservarServicio(Request $request, Service $service)
+    {
+        if (!$service->active) {
+            return response()->json(['message' => 'Servicio no disponible para reserva.'], 422);
+        }
+
+        $source = strtolower(trim(($service->name ?? '') . ' ' . ($service->description ?? '') . ' ' . ($service->category->name ?? '')));
+        if (!str_contains($source, 'lavad')) {
+            return response()->json(['message' => 'Solo se pueden reservar servicios de lavada.'], 422);
+        }
+
+        $order = Order::create([
+            'user_id' => auth()->id(),
+            'total' => $service->price,
+            'status' => 'reserved',
+            'order_type' => 'reservation',
+        ]);
+
+        OrderItem::create([
+            'order_id'      => $order->id,
+            'itemable_type' => Service::class,
+            'itemable_id'   => $service->id,
+            'quantity'      => 1,
+            'unit_price'    => $service->price,
+        ]);
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Reserva creada exitosamente.',
+            'order_id' => $order->id,
+        ]);
+    }
+
+    public function marcarPagada(Order $order)
+    {
+        if ($order->status === 'paid') {
+            return redirect()->back()->with('success', 'La orden ya estaba marcada como pagada.');
+        }
+
+        $existingApproved = $order->transactions()->where('status', 'approved')->first();
+        if (!$existingApproved) {
+            Transaction::create([
+                'order_id' => $order->id,
+                'payphone_ref' => null,
+                'amount' => $order->total,
+                'status' => 'approved',
+                'response_payload' => [
+                    'source' => 'manual_admin',
+                    'note' => 'Pago confirmado manualmente desde panel admin.',
+                ],
+                'client_transaction_id' => 'manual-order-' . $order->id . '-' . now()->timestamp,
+            ]);
+        }
+
+        $order->update(['status' => 'paid']);
+
+        return redirect()->back()->with('success', 'Orden marcada como pagada y transacción registrada.');
     }
 }
