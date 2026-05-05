@@ -10,7 +10,7 @@ class EmpresaController extends Controller
 {
     public function edit()
     {
-        $empresa = Empresa::first() ?? new Empresa();
+        $empresa = Empresa::query()->first() ?? new Empresa();
         return view('profile.empresa.index', compact('empresa'));
     }
 
@@ -34,14 +34,27 @@ class EmpresaController extends Controller
             'color_terciario' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
         ]);
 
-        $empresa = Empresa::first() ?? new Empresa();
+        $empresa = Empresa::query()->first() ?? new Empresa();
 
         if ($request->hasFile('logo') && $request->file('logo')->isValid()) {
+            $logo = $request->file('logo');
+            $realPath = $logo->getRealPath();
+
+            if (!$realPath) {
+                return back()
+                    ->withInput()
+                    ->withErrors([
+                        'logo' => 'No se pudo procesar el archivo subido. Intenta seleccionar la imagen nuevamente.',
+                    ]);
+            }
+
             if ($empresa->logo && Storage::disk('public')->exists($empresa->logo)) {
                 Storage::disk('public')->delete($empresa->logo);
             }
-            $fileName = 'logo-empresa-' . time() . '.' . $request->logo->getClientOriginalExtension();
-            $empresa->logo = $request->logo->storeAs('logos_empresa', $fileName, 'public');
+
+            $extension = $logo->extension() ?: 'png';
+            $fileName = 'logo-empresa-' . time() . '.' . $extension;
+            $empresa->logo = $logo->storeAs('logos_empresa', $fileName, 'public');
         }
 
         $empresa->nombre = $this->cleanInput($request->nombre);
@@ -66,7 +79,7 @@ class EmpresaController extends Controller
 
     public function deleteLogo()
     {
-        $empresa = Empresa::first();
+        $empresa = Empresa::query()->first();
 
         if ($empresa && $empresa->logo) {
             if (Storage::disk('public')->exists($empresa->logo)) {
