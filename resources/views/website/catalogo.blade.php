@@ -84,34 +84,29 @@
         card.className = 'card item-catalogo';
 
         const tipo = item.tipo === 'product' ? 'product' : 'service';
-        const unidad = tipo === 'product' ? 'unidad' : 'servicio';
         const placeholder = tipo === 'product' ? 'PRD' : 'SRV';
-        const reservable = Boolean(item.reservable) && tipo === 'service';
-
         const imageHtml = item.imagen
-            ? `<img src="/storage/${item.imagen}" alt="${escapeHtml(item.nombre)}" class="card-image">`
-            : `<div class="card-placeholder">${placeholder}</div>`;
+            ? `<div class="card-image-wrap"><img src="/storage/${item.imagen}" alt="${escapeHtml(item.nombre)}" class="card-image"></div>`
+            : `<div class="card-image-wrap"><div class="card-placeholder">${placeholder}</div></div>`;
 
         const descripcion = item.descripcion ? String(item.descripcion) : '';
         const shortDescription = descripcion.length > 80 ? `${descripcion.substring(0, 80)}...` : descripcion;
-        const reserveButton = reservable
-            ? `<button type="button" class="btn-reservar" onclick="reserveService(${Number(item.id)})" title="Reservar servicio" aria-label="Reservar servicio de lavada">Reservar</button>`
-            : '';
 
         card.innerHTML = `
             ${imageHtml}
             <div class="card-body">
                 <div class="card-category">${escapeHtml(item.categoria)}</div>
-                <div class="card-name">${escapeHtml(item.nombre)}</div>
-                <p class="card-desc">${escapeHtml(shortDescription)}</p>
-                <div class="card-footer">
-                    <div class="card-price">$${Number(item.precio).toFixed(2)}<span>/ ${unidad}</span></div>
-                    <div class="card-actions">
-                        ${reserveButton}
-                        <button class="btn-card-icon" onclick="addToCart(${Number(item.id)}, '${tipo}')" title="Agregar al carrito" aria-label="Agregar al carrito">
+                <div class="card-top">
+                    <div class="card-name-row">
+                        <div class="card-name">${escapeHtml(item.nombre)}</div>
+                        <button class="card-name-cart-btn" onclick="addToCart(${Number(item.id)}, '${tipo}')" title="Agregar al carrito" aria-label="Agregar al carrito">
                             ${cartIconSvg}
                         </button>
                     </div>
+                </div>
+                <p class="card-desc">${escapeHtml(shortDescription)}</p>
+                <div class="card-footer">
+                    <button type="button" class="btn-reservar btn-reservar-main" onclick="reserveItem(${Number(item.id)}, '${tipo}')" title="Reservar" aria-label="Reservar">Reservar</button>
                 </div>
             </div>
         `;

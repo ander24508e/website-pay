@@ -41,17 +41,12 @@
     @include('website.contacto')
     @include('website.footer')
     @include('website.whatsapp-float')
-
-    {{-- Toast global --}}
-    <div id="toast"
-        style="position:fixed;bottom:1.5rem;right:1rem;left:1rem;max-width:320px;margin:0 auto;background:#1e1e1e;border:1px solid color-mix(in srgb, var(--brand-tertiary) 30%, transparent);color:var(--brand-tertiary);padding:0.85rem 1.25rem;border-radius:8px;font-size:0.82rem;font-weight:600;display:none;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,0.4);">
-        ✅ Agregado al carrito
-    </div>
+    @include('partials.website-notifications')
 
     <script>
         function slide(trackId, direction) {
             const track = document.getElementById(trackId);
-            const card = track.querySelector('.card');
+            const card = track?.querySelector('.card');
             if (!card) return;
             const cardWidth = card.offsetWidth + 24;
             const current = parseInt(track.dataset.offset || 0);
@@ -70,12 +65,8 @@
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
-                body: JSON.stringify({
-                    id,
-                    type,
-                    quantity: 1
-                })
-            }).then(() => showToast('✅ Agregado al carrito'));
+                body: JSON.stringify({ id, type, quantity: 1 })
+            }).then(() => window.websiteNotify?.('success', 'Agregado al carrito'));
         }
 
         function reserveService(serviceId) {
@@ -90,24 +81,27 @@
             })
                 .then(async (response) => {
                     const data = await response.json().catch(() => ({}));
-                    if (!response.ok) {
-                        throw new Error(data.message || 'No se pudo crear la reserva.');
-                    }
-                    showToast('✅ Reserva creada. Revisa tu orden.');
+                    if (!response.ok) throw new Error(data.message || 'No se pudo crear la reserva.');
+                    window.websiteNotify?.('success', 'Reserva creada. Revisa tu orden.');
                 })
                 .catch((error) => {
-                    showToast(`⚠ ${error.message}`);
+                    window.websiteNotify?.('error', error.message || 'No se pudo crear la reserva.');
                 });
         }
 
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.textContent = msg;
-            t.style.display = 'block';
-            setTimeout(() => t.style.display = 'none', 3000);
+        function reserveItem(id, type) {
+            if (type === 'service') {
+                reserveService(id);
+                return;
+            }
+
+            const contactoSection = document.getElementById('contacto');
+            if (contactoSection) {
+                contactoSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            window.websiteNotify?.('info', 'Puedes reservar este producto desde Contacto o WhatsApp.');
         }
 
-        // Reset carrusel al cambiar tamaño de pantalla
         window.addEventListener('resize', () => {
             ['servicios-track', 'productos-track'].forEach(id => {
                 const track = document.getElementById(id);
@@ -122,9 +116,7 @@
             entries.forEach(e => {
                 if (e.isIntersecting) e.target.classList.add('visible');
             });
-        }, {
-            threshold: 0.1
-        });
+        }, { threshold: 0.1 });
         document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
     </script>
     @stack('scripts')

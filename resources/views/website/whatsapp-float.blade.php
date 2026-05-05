@@ -3,7 +3,7 @@
     $waPhone = preg_replace('/\D+/', '', $rawPhone);
     $waMessage = urlencode('¡Hola me gustaria obtener mas infromacion!');
     $waUrl = $waPhone ? "https://wa.me/{$waPhone}?text={$waMessage}" : null;
-    $waBg = $empresa->color_secundario_hex ?? '#25D366';
+    $waBg = '#25D366';
     $waBadge = $empresa->color_primario_hex ?? '#D82128';
 @endphp
 

@@ -85,7 +85,7 @@
     </aside>
     <main class="main-content" id="mainContent">
         {{-- Toast Notifications - Aparecen y desaparecen automáticamente --}}
-        @include('partials.toast-notifications')
+        @include('partials.admin-notifications')
 
         @yield('content')
     </main>

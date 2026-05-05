@@ -67,7 +67,7 @@
         </aside>
 
         <section class="contact-form-card">
-            <h3>Envíanos un Mensaje</h3>
+            <h3>Envï¿½anos un Mensaje</h3>
 
             <form id="contact-booking-form" class="contact-form-grid" novalidate>
                 <div>
@@ -115,9 +115,6 @@
                     <p class="field-hint">Escribenos tu mensaje describiendo todo lo que necesites.</p>
                 </div>
 
-                <div id="contact-error" class="contact-alert error hidden"></div>
-                <div id="contact-success" class="contact-alert success hidden"></div>
-
                 <button type="button" id="contact-submit" class="contact-submit-btn">Reservar Ahora</button>
             </form>
         </section>
@@ -129,8 +126,6 @@
 (() => {
     const form = document.getElementById('contact-booking-form');
     const btn = document.getElementById('contact-submit');
-    const errorBox = document.getElementById('contact-error');
-    const successBox = document.getElementById('contact-success');
     const fechaInput = document.getElementById('contact-fecha');
 
     if (!form || !btn || !fechaInput) return;
@@ -149,15 +144,11 @@
     fechaInput.setAttribute('min', `${yyyy}-${mm}-${dd}`);
 
     function showError(message) {
-        errorBox.textContent = message;
-        errorBox.classList.remove('hidden');
-        successBox.classList.add('hidden');
+        window.websiteNotify?.('error', message);
     }
 
     function showSuccess(message) {
-        successBox.textContent = message;
-        successBox.classList.remove('hidden');
-        errorBox.classList.add('hidden');
+        window.websiteNotify?.('success', message);
     }
 
     function isSunday(dateText) {
