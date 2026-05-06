@@ -42,7 +42,7 @@
 }
 
 .navbar-brand-text span {
-    color: var(--brand-tertiary);
+    color: var(--brand-primary);
 }
 
 .navbar-links {
@@ -63,7 +63,7 @@
 }
 
 .navbar-links a:hover {
-    color: var(--brand-secondary);
+    color: var(--brand-tertiary);
 }
 
 .navbar-links a.is-active {
@@ -96,8 +96,8 @@
 }
 
 .btn-logout:hover {
-    border-color: var(--brand-secondary);
-    color: var(--brand-secondary) !important;
+    border-color: var(--brand-primary);
+    color: var(--brand-primary) !important;
 }
 
 .hamburger {
@@ -186,7 +186,7 @@
 
 .mobile-menu a:hover,
 .mobile-menu button:hover {
-    color: var(--brand-secondary);
+    color: var(--brand-tertiary);
 }
 
 .mobile-menu a.is-active,
@@ -216,7 +216,7 @@
 }
 
 .btn-logout-mobile {
-    color: var(--brand-secondary) !important;
+    color: var(--brand-primary) !important;
     font-weight: 700 !important;
 }
 

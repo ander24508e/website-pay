@@ -3,9 +3,15 @@
     --brand-primary-dark: #b41b21;
     --brand-secondary: #f0b429;
     --brand-tertiary: #ffffff;
+    --brand-action: var(--brand-primary);
+    --brand-highlight: var(--brand-secondary);
+    --brand-support: var(--brand-tertiary);
     --soft-primary: color-mix(in srgb, var(--brand-primary) 14%, transparent);
-    --soft-secondary: color-mix(in srgb, var(--brand-secondary) 16%, transparent);
-    --line-tertiary: color-mix(in srgb, var(--brand-tertiary) 24%, transparent);
+    --soft-highlight: color-mix(in srgb, var(--brand-secondary) 12%, transparent);
+    --soft-support: color-mix(in srgb, var(--brand-tertiary) 14%, transparent);
+    --line-support: color-mix(in srgb, var(--brand-tertiary) 24%, transparent);
+    --soft-secondary: var(--soft-highlight);
+    --line-tertiary: var(--line-support);
 
     --red: var(--brand-primary);
     --red-dark: var(--brand-primary-dark);
@@ -59,9 +65,9 @@ h3 {
 
 .section-tag {
     display: inline-block;
-    background: var(--soft-secondary);
-    border: 1px solid color-mix(in srgb, var(--brand-secondary) 42%, transparent);
-    color: var(--brand-secondary);
+    background: var(--soft-highlight);
+    border: 1px solid color-mix(in srgb, var(--brand-secondary) 32%, transparent);
+    color: color-mix(in srgb, var(--brand-secondary) 84%, white 16%);
     font-size: 0.65rem;
     font-weight: 700;
     letter-spacing: 0.2em;
@@ -94,7 +100,7 @@ h3 {
 .divider {
     inline-size: 60px;
     block-size: 3px;
-    background: var(--brand-secondary);
+    background: color-mix(in srgb, var(--brand-secondary) 74%, var(--brand-primary) 26%);
     margin: 0.75rem auto 0;
     border-radius: 2px;
 }
@@ -143,7 +149,7 @@ h3 {
     block-size: 200px;
     background: linear-gradient(135deg,
             color-mix(in srgb, var(--brand-primary) 14%, transparent),
-            color-mix(in srgb, var(--brand-secondary) 10%, transparent));
+            color-mix(in srgb, var(--brand-tertiary) 10%, transparent));
     display: flex;
     align-items: center;
     justify-content: center;
@@ -159,7 +165,7 @@ h3 {
 .card-image-wrap {
     background: linear-gradient(135deg,
             color-mix(in srgb, var(--brand-primary) 16%, #ffffff 84%),
-            color-mix(in srgb, var(--brand-secondary) 18%, #ffffff 82%));
+            color-mix(in srgb, var(--brand-tertiary) 18%, #ffffff 82%));
 }
 
 .card-image-wrap .card-image {
@@ -175,7 +181,7 @@ h3 {
     font-weight: 700;
     letter-spacing: 0.15em;
     text-transform: uppercase;
-    color: var(--brand-tertiary);
+    color: color-mix(in srgb, var(--brand-secondary) 78%, white 22%);
     margin-block-end: 0.5rem;
 }
 
@@ -301,8 +307,8 @@ h3 {
 }
 
 .btn-reservar:hover {
-    border-color: var(--brand-secondary);
-    color: var(--brand-secondary);
+    border-color: var(--brand-primary);
+    color: var(--brand-primary);
 }
 
 .btn-reservar-block {
@@ -335,8 +341,8 @@ h3 {
 }
 
 .carousel-btn:hover {
-    border-color: var(--brand-secondary);
-    background: var(--brand-secondary);
+    border-color: var(--brand-primary);
+    background: var(--brand-primary);
 }
 
 @keyframes fadeUp {

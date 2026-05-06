@@ -5,10 +5,15 @@
         @php
             $nombreEmpresa = strtoupper($empresa->nombre_corto ?? 'CARWASH');
             $partes = explode(' ', $nombreEmpresa);
-            $primera = array_shift($partes);
-            $resto = implode(' ', $partes);
+            $inicio = implode(' ', array_slice($partes, 0, 2));
+            $destacado = implode(' ', array_slice($partes, 2));
         @endphp
-        <span class="navbar-brand-text">{{ $primera }} <span>{{ $resto }}</span></span>
+        <span class="navbar-brand-text">
+            {{ $inicio ?: $nombreEmpresa }}
+            @if($destacado)
+                <span>{{ $destacado }}</span>
+            @endif
+        </span>
     </a>
 
     {{-- Desktop links --}}

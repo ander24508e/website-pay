@@ -154,7 +154,7 @@
                 <div class="grid grid-cols-1 gap-5">
                     <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
                         <h4 class="text-sm font-semibold text-gray-700 mb-3">Paleta de marca (3 colores)</h4>
-                        <p class="text-xs text-gray-500 mb-4">Jerarquia automatica: Primario para botones y llamadas a la accion, Secundario para destacados y categorias, Terciario para detalles de apoyo visual.</p>
+                        <p class="text-xs text-gray-500 mb-4">Jerarquia automatica: Color 1 manda en botones y acciones, Color 2 solo destaca etiquetas y pequenos acentos, Color 3 ayuda con contraste, lineas y apoyo visual.</p>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Color primario</label>

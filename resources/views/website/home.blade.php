@@ -30,6 +30,13 @@
     --brand-primary-dark: {{ $darkenHex($primary) }};
     --brand-secondary: {{ $secondary }};
     --brand-tertiary: {{ $tertiary }};
+    --brand-action: var(--brand-primary);
+    --brand-highlight: var(--brand-secondary);
+    --brand-support: var(--brand-tertiary);
+    --soft-primary: color-mix(in srgb, var(--brand-primary) 14%, transparent);
+    --soft-highlight: color-mix(in srgb, var(--brand-secondary) 12%, transparent);
+    --soft-support: color-mix(in srgb, var(--brand-tertiary) 14%, transparent);
+    --line-support: color-mix(in srgb, var(--brand-tertiary) 24%, transparent);
     --red: var(--brand-primary);
     --red-dark: var(--brand-primary-dark);
     --gold: var(--brand-secondary);

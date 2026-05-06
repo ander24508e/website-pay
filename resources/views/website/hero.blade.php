@@ -1,4 +1,10 @@
 @php
+    $waPhone = preg_replace('/\D+/', '', (string) $empresa->telefono_contacto);
+    $waMessage = rawurlencode('¡Hola me gustaria mas informacion!');
+    $waUrl = $waPhone ? "https://wa.me/{$waPhone}?text={$waMessage}" : '#';
+@endphp
+
+@php
     $landingBanners = $empresa->landingBanners->where('activo', true)->sortBy('orden')->values();
 @endphp
 
@@ -33,8 +39,8 @@
         </div>
 
         @if($landingBanners->count() > 1)
-            <button type="button" class="hero-control hero-control-prev" id="hero-prev" aria-label="Banner anterior">‹</button>
-            <button type="button" class="hero-control hero-control-next" id="hero-next" aria-label="Banner siguiente">›</button>
+            <button type="button" class="hero-control hero-control-prev" id="hero-prev" aria-label="Banner anterior">â€¹</button>
+            <button type="button" class="hero-control hero-control-next" id="hero-next" aria-label="Banner siguiente">â€º</button>
 
             <div class="hero-dots" id="hero-dots">
                 @foreach($landingBanners as $index => $banner)
@@ -100,12 +106,21 @@
     </script>
     @endpush
 @else
+    @php
+        $heroNombre = strtoupper($empresa->nombre ?? 'Lavadora y Lubricadora');
+        $heroPartes = explode(' ', $heroNombre);
+        $heroInicio = implode(' ', array_slice($heroPartes, 0, 2));
+        $heroDestacado = implode(' ', array_slice($heroPartes, 2));
+    @endphp
     <section class="hero" id="inicio">
         <div class="hero-bg"></div>
         <div class="hero-content">
-            <div class="hero-eyebrow">🚗 {{ $empresa->eslogan_texto }}</div>
+            <div class="hero-eyebrow">ðŸš— {{ $empresa->eslogan_texto }}</div>
             <h1 class="hero-title">
-                {{ strtoupper($empresa->nombre ?? 'Lavadora y Lubricadora') }}
+                {{ $heroInicio ?: $heroNombre }}
+                @if($heroDestacado)
+                    <span class="accent">{{ $heroDestacado }}</span>
+                @endif
             </h1>
             <p class="hero-sub">{{ $empresa->descripcion_corta_texto }}</p>
             <div class="hero-actions">
@@ -114,15 +129,17 @@
             </div>
             <div class="hero-stats">
                 <div class="stat-item">
-                    <div class="stat-number">{{ $empresa->correo_contacto }}</div>
+                    <div class="stat-number stat-number-support">{{ $empresa->correo_contacto }}</div>
                     <div class="stat-label">Correo</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-number">{{ $empresa->ciudad_texto }}</div>
+                    <div class="stat-number stat-number-support">{{ $empresa->ciudad_texto }}</div>
                     <div class="stat-label">Ciudad</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-number">{{ $empresa->telefono_contacto }}</div>
+                    <div class="stat-number">
+                        <a href="{{ $waUrl }}" target="_blank" rel="noopener noreferrer">{{ $empresa->telefono_contacto }}</a>
+                    </div>
                     <div class="stat-label">Llamanos</div>
                 </div>
             </div>
