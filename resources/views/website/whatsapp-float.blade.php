@@ -1,8 +1,5 @@
 @php
-    $rawPhone = (string) ($empresa->telefono_contacto ?? '');
-    $waPhone = preg_replace('/\D+/', '', $rawPhone);
-    $waMessage = rawurlencode('¡Hola me gustaria mas informacion!');
-    $waUrl = $waPhone ? "https://wa.me/{$waPhone}?text={$waMessage}" : null;
+    $waUrl = $empresa->whatsapp_url;
     $waBg = '#25D366';
     $waBadge = $empresa->color_primario_hex ?? '#D82128';
 @endphp

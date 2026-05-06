@@ -9,9 +9,7 @@
             })
             ->values();
 
-        $waPhone = preg_replace('/\D+/', '', (string) $empresa->telefono_contacto);
-        $waMessage = rawurlencode('¡Hola me gustaria mas informacion!');
-        $waUrl = $waPhone ? "https://wa.me/{$waPhone}?text={$waMessage}" : '#';
+        $waUrl = $empresa->whatsapp_url ?? '#';
     @endphp
 
     <div class="section-header fade-up">
@@ -99,7 +97,7 @@
 
                 <div>
                     <label for="contact-servicio">Servicio que deseas agendar <span>*</span></label>
-                    <select id="contact-servicio" required>
+                    <select id="contact-servicio" class="contact-service-select" required>
                         <option value="">Selecciona un servicio</option>
                         @foreach($reservableServices as $service)
                             <option value="{{ $service->id }}">{{ $service->name }}</option>
@@ -152,7 +150,7 @@
     const servicioInput = document.getElementById('contact-servicio');
     const horaInput = document.getElementById('contact-hora');
     const mensajeInput = document.getElementById('contact-mensaje');
-    const waPhone = @json($waPhone ?: '');
+    const waPhone = @json((string) ($empresa->telefono_contacto ?? ''));
 
     const today = new Date();
     const yyyy = today.getFullYear();

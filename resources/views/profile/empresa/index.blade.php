@@ -142,6 +142,27 @@
                         <textarea name="direccion" id="direccion" rows="4" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm resize-none @error('direccion') border-red-400 @enderror" placeholder="Ej: Cayambe, Pichincha, Ecuador">{{ old('direccion', $empresa->direccion) }}</textarea>
                         @error('direccion')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
                     </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Facebook</label>
+                        <input type="url" name="facebook_url" value="{{ old('facebook_url', $empresa->facebook_url) }}" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm @error('facebook_url') border-red-400 @enderror" placeholder="https://facebook.com/tu-pagina">
+                        @error('facebook_url')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Instagram</label>
+                        <input type="url" name="instagram_url" value="{{ old('instagram_url', $empresa->instagram_url) }}" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm @error('instagram_url') border-red-400 @enderror" placeholder="https://instagram.com/tu-cuenta">
+                        @error('instagram_url')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">TikTok</label>
+                        <input type="url" name="tiktok_url" value="{{ old('tiktok_url', $empresa->tiktok_url) }}" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm @error('tiktok_url') border-red-400 @enderror" placeholder="https://tiktok.com/@tu-cuenta">
+                        @error('tiktok_url')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Link de WhatsApp</label>
+                        <input type="url" name="whatsapp_url" value="{{ old('whatsapp_url', $empresa->whatsapp_url) }}" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm @error('whatsapp_url') border-red-400 @enderror" placeholder="https://wa.me/593... o https://api.whatsapp.com/send?...">
+                        <p class="text-xs text-gray-400 mt-1">Si lo dejas vacio, se usa automaticamente el numero de telefono.</p>
+                        @error('whatsapp_url')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+                    </div>
                 </div>
             </div>
 

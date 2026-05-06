@@ -84,16 +84,30 @@
     border: 1px solid rgba(255, 255, 255, 0.2);
     background: rgba(10, 10, 10, 0.45);
     color: white;
-    font-size: 2rem;
-    line-height: 1;
     cursor: pointer;
     z-index: 3;
     transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+}
+
+.hero-control svg {
+    width: 24px;
+    height: 24px;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    display: block;
 }
 
 .hero-control:hover {
-    background: color-mix(in srgb, var(--brand-primary) 88%, transparent);
-    border-color: var(--brand-primary);
+    background: var(--red);
+    border-color: var(--red);
+    transform: translateY(-50%) scale(1.05);
 }
 
 .hero-control-prev {
@@ -300,6 +314,17 @@
     margin-top: 0.25rem;
 }
 
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(25px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 @media (max-width: 768px) {
     .hero {
         min-height: auto;
@@ -312,6 +337,28 @@
 
     .hero-carousel-track {
         min-height: calc(100dvh - 64px);
+        display: flex;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
+        scrollbar-width: thin;
+    }
+
+    .hero-slide {
+        position: relative;
+        inset: auto;
+        opacity: 1;
+        pointer-events: auto;
+        flex: 0 0 100%;
+        min-inline-size: 100%;
+        min-height: calc(100dvh - 64px);
+        scroll-snap-align: center;
+    }
+
+    .hero-slide.is-active {
+        opacity: 1;
     }
 
     .hero-eyebrow {
@@ -347,10 +394,18 @@
     .hero-control {
         width: 42px;
         height: 42px;
-        font-size: 1.5rem;
         top: auto;
         bottom: 4.5rem;
         transform: none;
+    }
+
+    .hero-control:hover {
+        transform: scale(1.05);
+    }
+
+    .hero-control svg {
+        width: 20px;
+        height: 20px;
     }
 
     .hero-control-prev {
@@ -396,5 +451,9 @@
 
     .hero-dots {
         bottom: 1.25rem;
+    }
+
+    .hero-control {
+        bottom: 3.5rem;
     }
 }

@@ -28,6 +28,10 @@ class EmpresaController extends Controller
             'servicios_resumen' => 'nullable|string|max:255',
             'ubicacion_embed' => 'nullable|string|max:5000',
             'ciudad' => 'nullable|string|max:255',
+            'facebook_url' => 'nullable|string|max:255',
+            'instagram_url' => 'nullable|string|max:255',
+            'tiktok_url' => 'nullable|string|max:255',
+            'whatsapp_url' => 'nullable|string|max:255',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:4096',
             'color_primario' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'color_secundario' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
@@ -62,6 +66,10 @@ class EmpresaController extends Controller
         $empresa->telefono = $this->cleanInput($request->telefono);
         $empresa->correo = $this->cleanInput($request->correo);
         $empresa->ciudad = $this->cleanInput($request->ciudad);
+        $empresa->facebook_url = $this->normalizeExternalUrl($request->input('facebook_url'));
+        $empresa->instagram_url = $this->normalizeExternalUrl($request->input('instagram_url'));
+        $empresa->tiktok_url = $this->normalizeExternalUrl($request->input('tiktok_url'));
+        $empresa->whatsapp_url = $this->normalizeExternalUrl($request->input('whatsapp_url'));
         $empresa->eslogan = $this->cleanInput($request->eslogan);
         $empresa->descripcion_corta = $this->cleanInput($request->descripcion_corta);
         $empresa->descripcion_footer = $this->cleanInput($request->descripcion_footer);
@@ -119,5 +127,20 @@ class EmpresaController extends Controller
         $value = strtoupper(trim((string) $value));
         if ($value === '') return null;
         return preg_match('/^#[0-9A-F]{6}$/', $value) ? $value : null;
+    }
+
+    private function normalizeExternalUrl(?string $value): ?string
+    {
+        $value = trim((string) $value);
+
+        if ($value === '') {
+            return null;
+        }
+
+        if (!preg_match('/^https?:\/\//i', $value)) {
+            $value = 'https://' . $value;
+        }
+
+        return $value;
     }
 }

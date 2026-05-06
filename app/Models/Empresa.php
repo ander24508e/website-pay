@@ -20,6 +20,10 @@ class Empresa extends Model
         'servicios_resumen',
         'ubicacion_embed',
         'ciudad',
+        'facebook_url',
+        'instagram_url',
+        'tiktok_url',
+        'whatsapp_url',
         'logo',
         'color_primario',
         'color_secundario',
@@ -90,6 +94,38 @@ class Empresa extends Model
         return $this->ciudad ?: 'Cayambe, Ecuador';
     }
 
+    public function getFacebookUrlAttribute($value): ?string
+    {
+        return $this->normalizeExternalUrl($value);
+    }
+
+    public function getInstagramUrlAttribute($value): ?string
+    {
+        return $this->normalizeExternalUrl($value);
+    }
+
+    public function getTiktokUrlAttribute($value): ?string
+    {
+        return $this->normalizeExternalUrl($value);
+    }
+
+    public function getWhatsappUrlAttribute($value): ?string
+    {
+        $value = $this->normalizeExternalUrl($value);
+
+        if ($value) {
+            return $value;
+        }
+
+        $digits = preg_replace('/\D+/', '', (string) $this->telefono_contacto);
+
+        if (!$digits) {
+            return null;
+        }
+
+        return 'https://wa.me/' . $digits . '?text=' . rawurlencode('¡Hola me gustaria mas informacion!');
+    }
+
     public function getUbicacionMapaUrlAttribute(): string
     {
         $stored = trim((string) $this->ubicacion_embed);
@@ -145,5 +181,20 @@ class Empresa extends Model
         }
 
         return $fallback;
+    }
+
+    private function normalizeExternalUrl(?string $value): ?string
+    {
+        $value = trim((string) $value);
+
+        if ($value === '') {
+            return null;
+        }
+
+        if (!Str::startsWith($value, ['http://', 'https://'])) {
+            $value = 'https://' . $value;
+        }
+
+        return $value;
     }
 }

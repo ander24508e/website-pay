@@ -1,7 +1,5 @@
 @php
-    $waPhone = preg_replace('/\D+/', '', (string) $empresa->telefono_contacto);
-    $waMessage = rawurlencode('¡Hola me gustaria mas informacion!');
-    $waUrl = $waPhone ? "https://wa.me/{$waPhone}?text={$waMessage}" : '#';
+    $waUrl = $empresa->whatsapp_url ?? '#';
 @endphp
 
 @php
@@ -18,7 +16,7 @@
                          src="{{ $banner->imagen_url }}"
                          alt="{{ $banner->titulo ?: 'Banner promocional' }}">
                     <div class="hero-slide-overlay"></div>
-                    <div class="hero-slide-content">
+                    <div class="hero-slide-content"> 
                         @if($banner->titulo)
                             <div class="hero-eyebrow">Promocion destacada</div>
                             <h1 class="hero-title hero-title-banner">{{ $banner->titulo }}</h1>
@@ -39,8 +37,12 @@
         </div>
 
         @if($landingBanners->count() > 1)
-            <button type="button" class="hero-control hero-control-prev" id="hero-prev" aria-label="Banner anterior">â€¹</button>
-            <button type="button" class="hero-control hero-control-next" id="hero-next" aria-label="Banner siguiente">â€º</button>
+            <button type="button" class="hero-control hero-control-prev" id="hero-prev" aria-label="Banner anterior">
+                <x-heroicon-o-chevron-left class="w-6 h-6" />
+            </button>
+            <button type="button" class="hero-control hero-control-next" id="hero-next" aria-label="Banner siguiente">
+                <x-heroicon-o-chevron-right class="w-6 h-6" />
+            </button>
 
             <div class="hero-dots" id="hero-dots">
                 @foreach($landingBanners as $index => $banner)
@@ -56,31 +58,77 @@
     @push('scripts')
     <script>
     (() => {
+        const track = document.getElementById('hero-carousel-track');
         const slides = Array.from(document.querySelectorAll('.hero-slide'));
         const dots = Array.from(document.querySelectorAll('.hero-dot'));
         const prev = document.getElementById('hero-prev');
         const next = document.getElementById('hero-next');
 
-        if (slides.length <= 1) return;
+        if (!track || slides.length <= 1) return;
 
         let currentIndex = 0;
         let autoplay = null;
+        let mobileScrollTick = null;
 
-        const render = (index) => {
-            currentIndex = (index + slides.length) % slides.length;
+        const isMobile = () => window.matchMedia('(max-width: 768px)').matches;
 
-            slides.forEach((slide, slideIndex) => {
-                slide.classList.toggle('is-active', slideIndex === currentIndex);
-            });
-
+        const updateDots = () => {
             dots.forEach((dot, dotIndex) => {
                 dot.classList.toggle('is-active', dotIndex === currentIndex);
             });
         };
 
+        const syncDesktopSlides = () => {
+            slides.forEach((slide, slideIndex) => {
+                slide.classList.toggle('is-active', slideIndex === currentIndex);
+            });
+            updateDots();
+        };
+
+        const scrollToMobileSlide = (index, behavior = 'smooth') => {
+            const target = slides[index];
+            if (!target) return;
+            track.scrollTo({
+                left: target.offsetLeft,
+                behavior,
+            });
+            currentIndex = index;
+            updateDots();
+        };
+
+        const render = (index, behavior = 'smooth') => {
+            currentIndex = (index + slides.length) % slides.length;
+
+            if (isMobile()) {
+                scrollToMobileSlide(currentIndex, behavior);
+                return;
+            }
+
+            syncDesktopSlides();
+        };
+
+        const detectClosestMobileSlide = () => {
+            const trackLeft = track.scrollLeft;
+            let closestIndex = 0;
+            let closestDistance = Number.POSITIVE_INFINITY;
+
+            slides.forEach((slide, index) => {
+                const distance = Math.abs(slide.offsetLeft - trackLeft);
+                if (distance < closestDistance) {
+                    closestDistance = distance;
+                    closestIndex = index;
+                }
+            });
+
+            if (closestIndex !== currentIndex) {
+                currentIndex = closestIndex;
+                updateDots();
+            }
+        };
+
         const startAutoplay = () => {
             clearInterval(autoplay);
-            autoplay = setInterval(() => render(currentIndex + 1), 6000);
+            autoplay = setInterval(() => render(currentIndex + 1), 5000);
         };
 
         prev?.addEventListener('click', () => {
@@ -100,7 +148,17 @@
             });
         });
 
-        render(0);
+        track.addEventListener('scroll', () => {
+            if (!isMobile()) return;
+            window.clearTimeout(mobileScrollTick);
+            mobileScrollTick = window.setTimeout(detectClosestMobileSlide, 60);
+        }, { passive: true });
+
+        window.addEventListener('resize', () => {
+            render(currentIndex, 'auto');
+        });
+
+        render(0, 'auto');
         startAutoplay();
     })();
     </script>
@@ -115,7 +173,7 @@
     <section class="hero" id="inicio">
         <div class="hero-bg"></div>
         <div class="hero-content">
-            <div class="hero-eyebrow">ðŸš— {{ $empresa->eslogan_texto }}</div>
+            <div class="hero-eyebrow">Servicio destacado</div>
             <h1 class="hero-title">
                 {{ $heroInicio ?: $heroNombre }}
                 @if($heroDestacado)

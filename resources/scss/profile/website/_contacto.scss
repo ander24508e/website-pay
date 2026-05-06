@@ -155,11 +155,14 @@
     background:
         linear-gradient(180deg, color-mix(in srgb, var(--dark-2) 72%, var(--brand-tertiary) 28%), color-mix(in srgb, var(--dark-2) 82%, black 18%));
     border-color: color-mix(in srgb, var(--brand-tertiary) 42%, transparent);
+    font-weight: 600;
 }
 
 .contact-service-select option {
     background: #202020;
     color: #ffffff;
+    font-weight: 600;
+    padding-block: 0.55rem;
 }
 
 .contact-service-select option:checked,
