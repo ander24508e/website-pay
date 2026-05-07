@@ -34,15 +34,25 @@
 }
 
 .footer-brand-badge {
-    width: 2.6rem;
-    height: 2.6rem;
-    border-radius: 999px;
-    background: var(--brand-primary);
-    color: #fff;
+    width: 4.35rem;
+    height: 4.35rem;
+    border-radius: 1.2rem;
+    background: color-mix(in srgb, #ffffff 92%, var(--brand-primary) 8%);
+    border: 1px solid color-mix(in srgb, var(--brand-primary) 24%, transparent);
+    box-shadow: 0 14px 26px rgba(0, 0, 0, 0.24);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.05rem;
+    padding: 0.45rem;
+    flex-shrink: 0;
+}
+
+.footer-brand-logo {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    filter: saturate(1.04) contrast(1.04);
 }
 
 .footer-desc {
@@ -132,5 +142,11 @@
     .footer-col h4,
     .footer-brand-row {
         font-size: 1.6rem;
+    }
+
+    .footer-brand-badge {
+        width: 3.85rem;
+        height: 3.85rem;
+        border-radius: 1rem;
     }
 }

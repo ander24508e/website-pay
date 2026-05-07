@@ -11,7 +11,10 @@
         <div class="footer-grid">
             <div class="footer-col footer-col-brand">
                 <div class="footer-brand-row">
-                    <span class="footer-brand-badge">?</span>
+                    <span class="footer-brand-badge">
+                        <img src="{{ $empresa->logo_url }}"
+                            alt="{{ $empresa->nombre ?? 'Logo' }}" class="footer-brand-logo">
+                    </span>
                     <strong class="footer-brand-name">
                         {{ $footerInicio ?: $footerNombre }}
                         @if ($footerDestacado)
@@ -22,21 +25,23 @@
 
                 <p class="footer-desc">{{ $empresa->descripcion_footer_texto }}</p>
                 <div class="footer-social">
-                    @if($empresa->facebook_url)
-                    <a href="{{ $empresa->facebook_url }}" target="_blank" rel="noopener noreferrer" aria-label="Facebook" class="text-gray-600 hover:text-blue-600 transition-colors">
-                        <x-bi-facebook class="w-5 h-5" />
-                    </a>
+                    @if ($empresa->facebook_url)
+                        <a href="{{ $empresa->facebook_url }}" target="_blank" rel="noopener noreferrer"
+                            aria-label="Facebook" class="text-gray-600 hover:text-blue-600 transition-colors">
+                            <x-bi-facebook class="w-5 h-5" />
+                        </a>
                     @endif
-                    @if($empresa->instagram_url)
-                    <a href="{{ $empresa->instagram_url }}" target="_blank" rel="noopener noreferrer" aria-label="Instagram"
-                        class="text-gray-600 hover:text-pink-600 transition-colors">
-                        <x-bi-instagram class="w-5 h-5" />
-                    </a>
+                    @if ($empresa->instagram_url)
+                        <a href="{{ $empresa->instagram_url }}" target="_blank" rel="noopener noreferrer"
+                            aria-label="Instagram" class="text-gray-600 hover:text-pink-600 transition-colors">
+                            <x-bi-instagram class="w-5 h-5" />
+                        </a>
                     @endif
-                    @if($empresa->tiktok_url)
-                    <a href="{{ $empresa->tiktok_url }}" target="_blank" rel="noopener noreferrer" aria-label="TikTok" class="text-gray-600 hover:text-black transition-colors">
-                        <x-bi-tiktok class="w-5 h-5" />
-                    </a>
+                    @if ($empresa->tiktok_url)
+                        <a href="{{ $empresa->tiktok_url }}" target="_blank" rel="noopener noreferrer"
+                            aria-label="TikTok" class="text-gray-600 hover:text-black transition-colors">
+                            <x-bi-tiktok class="w-5 h-5" />
+                        </a>
                     @endif
                 </div>
             </div>
@@ -73,6 +78,6 @@
                 derechos reservados.</p>
             <p>Politica de Privacidad | Politica de Cookies</p>
         </div>
-        
+
     </div>
 </footer>
