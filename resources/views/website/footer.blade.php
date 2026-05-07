@@ -11,10 +11,6 @@
         <div class="footer-grid">
             <div class="footer-col footer-col-brand">
                 <div class="footer-brand-row">
-                    <span class="footer-brand-badge">
-                        <img src="{{ $empresa->logo_url }}"
-                            alt="{{ $empresa->nombre ?? 'Logo' }}" class="footer-brand-logo">
-                    </span>
                     <strong class="footer-brand-name">
                         {{ $footerInicio ?: $footerNombre }}
                         @if ($footerDestacado)

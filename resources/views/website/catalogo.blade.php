@@ -37,6 +37,60 @@
     <div id="catalogo-pagination" class="pagination-wrapper">
         @include('website.catalogo-pagination', ['pagination' => $pagination])
     </div>
+
+    <div class="catalogo-modal-overlay" id="catalogoDetailOverlay" hidden>
+        <div class="catalogo-modal" role="dialog" aria-modal="true" aria-labelledby="catalogoDetailTitle">
+            <button type="button" class="catalogo-modal-close" id="catalogoDetailClose" aria-label="Cerrar detalle">&times;</button>
+            <div class="catalogo-modal-media" id="catalogoDetailMedia"></div>
+            <div class="catalogo-modal-body">
+                <p class="catalogo-modal-category" id="catalogoDetailCategory"></p>
+                <h3 class="catalogo-modal-title" id="catalogoDetailTitle"></h3>
+                <p class="catalogo-modal-price" id="catalogoDetailPrice"></p>
+                <p class="catalogo-modal-desc" id="catalogoDetailDescription"></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="catalogo-modal-overlay" id="catalogoReserveOverlay" hidden>
+        <div class="catalogo-modal catalogo-modal-reserve" role="dialog" aria-modal="true" aria-labelledby="catalogoReserveTitle">
+            <button type="button" class="catalogo-modal-close" id="catalogoReserveClose" aria-label="Cerrar reserva">&times;</button>
+            <div class="catalogo-modal-body">
+                <h3 class="catalogo-modal-title" id="catalogoReserveTitle">Reservar</h3>
+                <p class="catalogo-modal-desc" id="catalogoReserveSubtitle"></p>
+
+                <form id="catalogoReserveForm" class="catalogo-reserve-form" novalidate>
+                    <input type="hidden" id="reserveItemId">
+                    <input type="hidden" id="reserveItemType">
+                    <input type="hidden" id="reserveItemName">
+
+                    <label>Producto o servicio seleccionado
+                        <input type="text" id="reserveSelectedItem" readonly>
+                    </label>
+                    <label>Nombre
+                        <input type="text" id="reserveName" required minlength="3" placeholder="Tu nombre completo">
+                    </label>
+                    <label>Telefono
+                        <input type="tel" id="reservePhone" required pattern="[0-9+\s()\-]{10,15}" placeholder="+593 98 123 4546">
+                    </label>
+                    <div class="catalogo-reserve-grid">
+                        <label>Fecha
+                            <input type="date" id="reserveDate" required>
+                        </label>
+                        <label>Hora
+                            <select id="reserveTime" class="contact-hour-select" required>
+                                <option value="">Selecciona hora</option>
+                                @for($h = 8; $h <= 17; $h++)
+                                    @php($hour = str_pad((string)$h, 2, '0', STR_PAD_LEFT).':00')
+                                    <option value="{{ $hour }}">{{ $hour }}</option>
+                                @endfor
+                            </select>
+                        </label>
+                    </div>
+                    <button type="submit" class="btn-reservar-main">Reservar por WhatsApp</button>
+                </form>
+            </div>
+        </div>
+    </div>
 </section>
 
 @push('scripts')
@@ -48,6 +102,17 @@
 
     const gridContainer = document.getElementById('catalogo-grid');
     const paginationContainer = document.getElementById('catalogo-pagination');
+    const detailOverlay = document.getElementById('catalogoDetailOverlay');
+    const detailClose = document.getElementById('catalogoDetailClose');
+    const detailMedia = document.getElementById('catalogoDetailMedia');
+    const detailCategory = document.getElementById('catalogoDetailCategory');
+    const detailTitle = document.getElementById('catalogoDetailTitle');
+    const detailPrice = document.getElementById('catalogoDetailPrice');
+    const detailDescription = document.getElementById('catalogoDetailDescription');
+    const reserveOverlay = document.getElementById('catalogoReserveOverlay');
+    const reserveClose = document.getElementById('catalogoReserveClose');
+    const reserveForm = document.getElementById('catalogoReserveForm');
+    const reserveSubtitle = document.getElementById('catalogoReserveSubtitle');
     const searchInput = document.getElementById('search-catalogo');
     const filtroBtns = Array.from(document.querySelectorAll('.filtro-btn'));
     const searchRoute = @json(route('catalogo.buscar'));
@@ -57,8 +122,23 @@
         </svg>
     `;
 
+    const whatsappPhone = @json(preg_replace('/\D+/', '', (string) ($empresa->telefono_contacto ?? '')));
+
     if (!gridContainer || !paginationContainer || !searchInput || !filtroBtns.length) {
         return;
+    }
+
+    function normalizePhone(phone) {
+        const digits = String(phone || '').replace(/\D+/g, '');
+        if (!digits) return '';
+        if (digits.startsWith('593')) return digits;
+        if (digits.length === 10 && digits.startsWith('0')) return `593${digits.slice(1)}`;
+        return digits;
+    }
+
+    function isSunday(dateText) {
+        const date = new Date(`${dateText}T00:00:00`);
+        return date.getDay() === 0;
     }
 
     function updateActiveTipoButtons() {
@@ -85,9 +165,13 @@
 
         const tipo = item.tipo === 'product' ? 'product' : 'service';
         const placeholder = tipo === 'product' ? 'PRD' : 'SRV';
+        const safeName = escapeHtml(item.nombre);
+        const safeCategory = escapeHtml(item.categoria);
+        const safeDesc = escapeHtml(item.descripcion || '');
+        const safeImg = item.imagen ? `/storage/${item.imagen}` : '';
         const imageHtml = item.imagen
-            ? `<div class="card-image-wrap"><img src="/storage/${item.imagen}" alt="${escapeHtml(item.nombre)}" class="card-image"></div>`
-            : `<div class="card-image-wrap"><div class="card-placeholder">${placeholder}</div></div>`;
+            ? `<button type="button" class="card-image-wrap js-open-detail" data-id="${Number(item.id)}" data-tipo="${tipo}" data-nombre="${safeName}" data-categoria="${safeCategory}" data-precio="${Number(item.precio)}" data-descripcion="${safeDesc}" data-imagen="${safeImg}" aria-label="Ver detalle de ${safeName}"><img src="${safeImg}" alt="${safeName}" class="card-image"></button>`
+            : `<button type="button" class="card-image-wrap js-open-detail" data-id="${Number(item.id)}" data-tipo="${tipo}" data-nombre="${safeName}" data-categoria="${safeCategory}" data-precio="${Number(item.precio)}" data-descripcion="${safeDesc}" data-imagen="" aria-label="Ver detalle de ${safeName}"><div class="card-placeholder">${placeholder}</div></button>`;
 
         const descripcion = item.descripcion ? String(item.descripcion) : '';
         const shortDescription = descripcion.length > 80 ? `${descripcion.substring(0, 80)}...` : descripcion;
@@ -106,7 +190,7 @@
                 </div>
                 <p class="card-desc">${escapeHtml(shortDescription)}</p>
                 <div class="card-footer">
-                    <button type="button" class="btn-reservar btn-reservar-main" onclick="reserveItem(${Number(item.id)}, '${tipo}')" title="Reservar" aria-label="Reservar">Reservar</button>
+                    <button type="button" class="btn-reservar btn-reservar-main js-open-reserve" data-id="${Number(item.id)}" data-tipo="${tipo}" data-nombre="${safeName}" data-precio="${Number(item.precio)}" title="Reservar" aria-label="Reservar">Reservar</button>
                 </div>
             </div>
         `;
@@ -180,6 +264,140 @@
     updateActiveTipoButtons();
     attachPaginationEvents();
 
+    function openDetailModal(data) {
+        if (!detailOverlay || !detailMedia || !detailCategory || !detailTitle || !detailPrice || !detailDescription) return;
+        detailMedia.innerHTML = data.imagen
+            ? `<img src="${data.imagen}" alt="${data.nombre}" class="catalogo-modal-image">`
+            : `<div class="catalogo-modal-placeholder">${data.tipo === 'product' ? 'PRD' : 'SRV'}</div>`;
+        detailCategory.textContent = data.categoria || '';
+        detailTitle.textContent = data.nombre || '';
+        detailPrice.textContent = `Desde $${Number(data.precio || 0).toFixed(2)}`;
+        detailDescription.textContent = data.descripcion || 'Sin descripcion adicional.';
+        detailOverlay.hidden = false;
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeDetailModal() {
+        if (!detailOverlay) return;
+        detailOverlay.hidden = true;
+        document.body.style.overflow = '';
+    }
+
+    function openReserveModal(data) {
+        if (!reserveOverlay || !reserveForm || !reserveSubtitle) return;
+        reserveForm.reset();
+        const reserveItemId = document.getElementById('reserveItemId');
+        const reserveItemType = document.getElementById('reserveItemType');
+        const reserveItemName = document.getElementById('reserveItemName');
+        const reserveSelectedItem = document.getElementById('reserveSelectedItem');
+        const dateInput = document.getElementById('reserveDate');
+        if (!reserveItemId || !reserveItemType || !reserveItemName || !reserveSelectedItem || !dateInput) return;
+
+        reserveItemId.value = data.id || '';
+        reserveItemType.value = data.tipo || '';
+        reserveItemName.value = data.nombre || '';
+        reserveSelectedItem.value = data.nombre || '';
+        reserveSubtitle.textContent = `Completa la reserva para: ${data.nombre || ''}`;
+        const now = new Date();
+        dateInput.min = now.toISOString().split('T')[0];
+        reserveOverlay.hidden = false;
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeReserveModal() {
+        if (!reserveOverlay) return;
+        reserveOverlay.hidden = true;
+        document.body.style.overflow = '';
+    }
+
+    function collectDataset(el) {
+        return {
+            id: el.dataset.id || '',
+            tipo: el.dataset.tipo || '',
+            nombre: el.dataset.nombre || '',
+            categoria: el.dataset.categoria || '',
+            precio: el.dataset.precio || 0,
+            descripcion: el.dataset.descripcion || '',
+            imagen: el.dataset.imagen || '',
+        };
+    }
+
+    gridContainer.addEventListener('click', (event) => {
+        const detailTarget = event.target.closest('.js-open-detail');
+        if (detailTarget) {
+            openDetailModal(collectDataset(detailTarget));
+            return;
+        }
+        const reserveTarget = event.target.closest('.js-open-reserve');
+        if (reserveTarget) {
+            openReserveModal(collectDataset(reserveTarget));
+        }
+    });
+
+    detailClose?.addEventListener('click', closeDetailModal);
+    reserveClose?.addEventListener('click', closeReserveModal);
+    detailOverlay?.addEventListener('click', (e) => {
+        if (e.target === detailOverlay) closeDetailModal();
+    });
+    reserveOverlay?.addEventListener('click', (e) => {
+        if (e.target === reserveOverlay) closeReserveModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeDetailModal();
+            closeReserveModal();
+        }
+    });
+
+    reserveForm?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const reserveName = document.getElementById('reserveName');
+        const reservePhone = document.getElementById('reservePhone');
+        const reserveDate = document.getElementById('reserveDate');
+        const reserveTime = document.getElementById('reserveTime');
+        const reserveItemName = document.getElementById('reserveItemName');
+        if (!reserveName || !reservePhone || !reserveDate || !reserveTime || !reserveItemName) return;
+
+        const name = reserveName.value.trim();
+        const phone = reservePhone.value.trim();
+        const date = reserveDate.value;
+        const time = reserveTime.value;
+        const itemName = reserveItemName.value;
+
+        if (!name || name.length < 3) {
+            return window.websiteNotify?.('error', 'Ingresa un nombre valido.');
+        }
+        if (!phone) {
+            return window.websiteNotify?.('error', 'Ingresa un telefono.');
+        }
+        if (!date || !time) {
+            return window.websiteNotify?.('error', 'Completa fecha y hora.');
+        }
+        if (isSunday(date)) {
+            return window.websiteNotify?.('error', 'No se agendan reservas en domingo.');
+        }
+
+        const waPhone = normalizePhone(whatsappPhone || phone);
+        const message = encodeURIComponent(
+            `NUEVA RESERVA\n\n` +
+            `Nombre: ${name}\n` +
+            `Telefono: ${phone}\n` +
+            `Item: ${itemName}\n` +
+            `Fecha: ${date}\n` +
+            `Hora: ${time}`
+        );
+        const waUrl = waPhone ? `https://wa.me/${waPhone}?text=${message}` : '';
+        if (!waUrl) {
+            window.websiteNotify?.('error', 'No hay numero de WhatsApp configurado.');
+            return;
+        }
+        const popup = window.open('about:blank', '_blank');
+        if (popup) popup.location.href = waUrl;
+        else window.location.href = waUrl;
+        closeReserveModal();
+        window.websiteNotify?.('success', 'Abriendo WhatsApp para completar tu reserva.');
+    });
+
     filtroBtns.forEach((btn) => {
         btn.addEventListener('click', () => {
             currentTipo = btn.dataset.tipo || 'todos';
@@ -198,6 +416,15 @@
             loadCatalog();
         }, 320);
     });
+
+    const reserveDateInput = document.getElementById('reserveDate');
+    reserveDateInput?.addEventListener('change', () => {
+        if (reserveDateInput.value && isSunday(reserveDateInput.value)) {
+            reserveDateInput.value = '';
+            window.websiteNotify?.('error', 'No se agendan reservas en domingo.');
+        }
+    });
 })();
 </script>
 @endpush
+
