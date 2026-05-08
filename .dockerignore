@@ -1,10 +1,10 @@
 /vendor
 /node_modules
-/storage/*.key
-/storage/logs
-/storage/framework/cache
-/storage/framework/sessions
-/storage/framework/views
+# /storage/*.key
+# /storage/logs
+# /storage/framework/cache
+# /storage/framework/sessions
+# /storage/framework/views
 /public/storage
 /public/hot
 .env
