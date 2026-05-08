@@ -123,6 +123,8 @@
     `;
 
     const whatsappPhone = @json(preg_replace('/\D+/', '', (string) ($empresa->telefono_contacto ?? '')));
+    const reserveRoute = @json(route('reservas.catalogo'));
+    const csrfToken = @json(csrf_token());
 
     if (!gridContainer || !paginationContainer || !searchInput || !filtroBtns.length) {
         return;
@@ -349,20 +351,24 @@
         }
     });
 
-    reserveForm?.addEventListener('submit', (e) => {
+    reserveForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const reserveName = document.getElementById('reserveName');
         const reservePhone = document.getElementById('reservePhone');
         const reserveDate = document.getElementById('reserveDate');
         const reserveTime = document.getElementById('reserveTime');
         const reserveItemName = document.getElementById('reserveItemName');
-        if (!reserveName || !reservePhone || !reserveDate || !reserveTime || !reserveItemName) return;
+        const reserveItemId = document.getElementById('reserveItemId');
+        const reserveItemType = document.getElementById('reserveItemType');
+        if (!reserveName || !reservePhone || !reserveDate || !reserveTime || !reserveItemName || !reserveItemId || !reserveItemType) return;
 
         const name = reserveName.value.trim();
         const phone = reservePhone.value.trim();
         const date = reserveDate.value;
         const time = reserveTime.value;
         const itemName = reserveItemName.value;
+        const itemId = reserveItemId.value;
+        const itemType = reserveItemType.value;
 
         if (!name || name.length < 3) {
             return window.websiteNotify?.('error', 'Ingresa un nombre valido.');
@@ -375,6 +381,34 @@
         }
         if (isSunday(date)) {
             return window.websiteNotify?.('error', 'No se agendan reservas en domingo.');
+        }
+
+        if (!itemId || !itemType) {
+            return window.websiteNotify?.('error', 'No se encontro el item a reservar.');
+        }
+
+        try {
+            const response = await fetch(reserveRoute, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({
+                    item_id: Number(itemId),
+                    item_type: itemType,
+                }),
+            });
+
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                throw new Error(data.message || 'No se pudo guardar la reserva.');
+            }
+        } catch (error) {
+            window.websiteNotify?.('error', error.message || 'No se pudo guardar la reserva.');
+            return;
         }
 
         const waPhone = normalizePhone(whatsappPhone || phone);
@@ -395,7 +429,7 @@
         if (popup) popup.location.href = waUrl;
         else window.location.href = waUrl;
         closeReserveModal();
-        window.websiteNotify?.('success', 'Abriendo WhatsApp para completar tu reserva.');
+        window.websiteNotify?.('success', 'Reserva guardada y WhatsApp abierto para continuar.');
     });
 
     filtroBtns.forEach((btn) => {
@@ -427,4 +461,3 @@
 })();
 </script>
 @endpush
-

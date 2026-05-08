@@ -33,7 +33,7 @@
             </a>
             <a href="{{ route('admin.banners.index') }}" class="{{ request()->routeIs('admin.banners.*') ? 'active' : '' }}">
                 <span><x-heroicon-o-rectangle-group class="w-5 h-5" /></span>
-                <span>Landing Page</span>
+                <span>Banners</span>
             </a>
             <a href="{{ route('admin.categories.index') }}"
                 class="{{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
@@ -117,7 +117,7 @@
             </a>
             <a href="{{ route('admin.banners.index') }}" class="{{ request()->routeIs('admin.banners.*') ? 'active' : '' }}">
                 <span><x-heroicon-o-rectangle-group class="w-5 h-5" /></span>
-                <span>Landing Page</span>
+                <span>Banners</span>
             </a>
             <a href="{{ route('admin.categories.index') }}"
                 class="{{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">

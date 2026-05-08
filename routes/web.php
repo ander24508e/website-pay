@@ -31,6 +31,7 @@ Route::delete('/carrito/limpiar', [CarritoController::class, 'limpiar'])->name('
 Route::get('/checkout', [OrderController::class, 'checkout'])->name('checkout');
 Route::post('/orden/crear', [OrderController::class, 'store'])->name('orden.store');
 Route::post('/reservas/servicio/{service}', [OrderController::class, 'reservarServicio'])->name('reservas.servicio');
+Route::post('/reservas/catalogo', [OrderController::class, 'reservarCatalogo'])->name('reservas.catalogo');
 Route::get('/orden/{order}/confirmacion', [OrderController::class, 'confirmacion'])->name('orden.confirmacion');
 Route::get('/payphone/success', [TransactionController::class, 'success'])->name('payphone.success');
 Route::get('/payphone/cancel', [TransactionController::class, 'cancel'])->name('payphone.cancel');
@@ -82,7 +83,7 @@ Route::middleware(['auth', 'role:admin'])
         Route::resource('/categories', CategoryController::class);
         Route::resource('/products', ProductController::class);
         Route::resource('/services', ServiceController::class);
-        Route::resource('/orders', OrderController::class)->only(['index', 'show']);
+        Route::resource('/orders', OrderController::class)->only(['index', 'show', 'destroy']);
         Route::patch('/orders/{order}/marcar-pagada', [OrderController::class, 'marcarPagada'])->name('orders.marcar-pagada');
         Route::resource('/transactions', TransactionController::class)->only(['index', 'show']);
     });

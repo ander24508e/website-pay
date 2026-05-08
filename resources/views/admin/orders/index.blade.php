@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', '�rdenes')
+@section('title', 'Ordenes')
 
 @section('content')
 <div class="container mx-auto px-4 sm:px-6">
@@ -97,6 +97,11 @@
                                             <button type="submit" class="text-green-600 hover:text-green-800 text-xs font-semibold">Marcar pagada</button>
                                         </form>
                                     @endif
+                                    <form method="POST" action="{{ route('admin.orders.destroy', $order) }}" onsubmit="return confirm('¿Eliminar esta orden? Esta accion no se puede deshacer.');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="text-red-600 hover:text-red-800 text-xs font-semibold">Eliminar</button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>
