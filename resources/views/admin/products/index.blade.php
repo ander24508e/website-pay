@@ -6,15 +6,22 @@
     <div class="container mx-auto px-4 sm:px-6">
 
         {{-- HEADER --}}
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
 
-            <div>
+            <div class="min-w-0">
                 <div class="flex items-center gap-2">
                     <x-heroicon-o-cube class="w-8 h-8 text-gray-800" />
                     <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Productos</h2>
                 </div>
                 <p class="text-gray-500 text-sm mt-1">Gestiona el inventario</p>
             </div>
+
+            <form method="GET" action="{{ route('admin.products.index') }}" class="flex-1 max-w-xl">
+                <div class="relative">
+                    <x-heroicon-o-magnifying-glass class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input type="search" name="q" value="{{ request('q') }}" placeholder="Buscar por nombre, proveedor o categoria..." class="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm text-gray-700 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none focus:ring-0">
+                </div>
+            </form>
 
             <a href="{{ route('admin.products.create') }}"
                 class="bg-gray-900 text-white px-5 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-center">

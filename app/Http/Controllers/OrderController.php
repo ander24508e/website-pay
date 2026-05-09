@@ -151,9 +151,29 @@ class OrderController extends Controller
         return view('checkout.confirmacion', compact('order'));
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $orders = Order::with('user', 'items')->latest()->paginate(15);
+        $search = trim((string) $request->query('q', ''));
+
+        $orders = Order::with('user', 'items')
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($subQuery) use ($search) {
+                    $subQuery->where('id', 'like', "%{$search}%")
+                        ->orWhere('status', 'like', "%{$search}%");
+
+                    if (Schema::hasColumn('orders', 'order_type')) {
+                        $subQuery->orWhere('order_type', 'like', "%{$search}%");
+                    }
+
+                    $subQuery->orWhereHas('user', function ($userQuery) use ($search) {
+                        $userQuery->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    });
+                });
+            })
+            ->latest()
+            ->paginate(15)
+            ->withQueryString();
 
         return view('admin.orders.index', compact('orders'));
     }

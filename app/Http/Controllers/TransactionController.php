@@ -144,9 +144,30 @@ class TransactionController extends Controller
     // ══════════════════════════════════════════
     // ADMIN — Listado de transacciones
     // ══════════════════════════════════════════
-    public function index()
+    public function index(Request $request)
     {
-        $transactions = Transaction::with('order.user')->latest()->paginate(15);
+        $search = trim((string) $request->query('q', ''));
+
+        $transactions = Transaction::with('order.user')
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($subQuery) use ($search) {
+                    $subQuery->where('id', 'like', "%{$search}%")
+                        ->orWhere('status', 'like', "%{$search}%")
+                        ->orWhere('payphone_ref', 'like', "%{$search}%")
+                        ->orWhere('client_transaction_id', 'like', "%{$search}%")
+                        ->orWhereHas('order', function ($orderQuery) use ($search) {
+                            $orderQuery->where('id', 'like', "%{$search}%")
+                                ->orWhereHas('user', function ($userQuery) use ($search) {
+                                    $userQuery->where('name', 'like', "%{$search}%")
+                                        ->orWhere('email', 'like', "%{$search}%");
+                                });
+                        });
+                });
+            })
+            ->latest()
+            ->paginate(15)
+            ->withQueryString();
+
         return view('admin.transactions.index', compact('transactions'));
     }
 

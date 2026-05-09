@@ -5,14 +5,20 @@
 @section('content')
 <div class="container mx-auto px-4 sm:px-6">
 
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div>
+    <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 mb-6">
+        <div class="min-w-0">
             <div class="flex items-center gap-2">
                 <x-heroicon-o-shopping-bag class="w-8 h-8 text-gray-800" />
                 <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Ordenes</h2>
             </div>
             <p class="text-gray-500 text-sm mt-1">Historial de compras y reservas</p>
         </div>
+        <form method="GET" action="{{ route('admin.orders.index') }}" class="flex-1 max-w-xl">
+            <div class="relative">
+                <x-heroicon-o-magnifying-glass class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input type="search" name="q" value="{{ request('q') }}" placeholder="Buscar por orden, cliente, correo, tipo o estado..." class="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm text-gray-700 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none focus:ring-0">
+            </div>
+        </form>
         <div class="flex gap-3 flex-wrap">
             <span class="bg-yellow-100 text-yellow-700 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1">
                 <x-heroicon-o-clock class="w-3 h-3" />

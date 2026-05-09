@@ -12,13 +12,24 @@ class BannerController extends Controller
     /**
      * Muestra la lista de banners (vista principal)
      */
-    public function index()
+    public function index(Request $request)
     {
         $empresa = $this->getOrCreateEmpresa();
+        $search = trim((string) $request->query('q', ''));
+
         $banners = LandingBanner::query()
             ->where('empresa_id', $empresa->id)
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($subQuery) use ($search) {
+                    $subQuery->where('titulo', 'like', "%{$search}%")
+                        ->orWhere('texto', 'like', "%{$search}%")
+                        ->orWhere('boton_texto', 'like', "%{$search}%")
+                        ->orWhere('boton_link', 'like', "%{$search}%");
+                });
+            })
             ->ordered()
-            ->paginate(12);
+            ->paginate(12)
+            ->withQueryString();
 
         return view('admin.banners.index', compact('empresa', 'banners'));
     }

@@ -7,10 +7,21 @@ use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $search = trim((string) $request->query('q', ''));
+
         // Carga products y services para mostrar el conteo en la vista
-        $categories = Category::with(['products', 'services'])->latest()->get();
+        $categories = Category::with(['products', 'services'])
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($subQuery) use ($search) {
+                    $subQuery->where('name', 'like', "%{$search}%")
+                        ->orWhere('type', 'like', "%{$search}%");
+                });
+            })
+            ->latest()
+            ->get();
+
         return view('admin.categories.index', compact('categories'));
     }
     public function create()
