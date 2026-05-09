@@ -216,14 +216,15 @@ class OrderController extends Controller
             }
         }
 
-        $order = Order::create($this->buildOrderData((float) $model->price, auth()->id(), true));
+        $reservationPrice = $model instanceof Product ? (float) $model->display_price : (float) $model->price;
+        $order = Order::create($this->buildOrderData($reservationPrice, auth()->id(), true));
 
         OrderItem::create([
             'order_id' => $order->id,
             'itemable_type' => get_class($model),
             'itemable_id' => $model->id,
             'quantity' => 1,
-            'unit_price' => $model->price,
+            'unit_price' => $reservationPrice,
         ]);
 
         return response()->json([

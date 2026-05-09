@@ -34,7 +34,7 @@ class CatalogoController extends Controller
         $perPage = max(1, $perPage);
 
         $productosQuery = Product::query()
-            ->with('category')
+            ->with(['category', 'activeVariants'])
             ->where('active', true)
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
@@ -63,7 +63,7 @@ class CatalogoController extends Controller
                 'id'          => $producto->id,
                 'nombre'      => $producto->name,
                 'descripcion' => $producto->description,
-                'precio'      => $producto->price,
+                'precio'      => $producto->display_price,
                 'imagen'      => $producto->image,
                 'categoria'   => $producto->category->name ?? 'Producto',
                 'tipo'        => 'product',

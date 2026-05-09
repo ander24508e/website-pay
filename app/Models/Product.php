@@ -24,6 +24,25 @@ class Product extends Model
         return $this->belongsTo(Category::class);
     }
 
+    public function variants()
+    {
+        return $this->hasMany(ProductVariant::class);
+    }
+
+    public function activeVariants()
+    {
+        return $this->hasMany(ProductVariant::class)->where('active', true);
+    }
+
+    public function getDisplayPriceAttribute(): float
+    {
+        $variantPrice = $this->relationLoaded('activeVariants')
+            ? $this->activeVariants->min('price')
+            : $this->activeVariants()->min('price');
+
+        return (float) ($variantPrice ?? $this->price ?? 0);
+    }
+
     public function orderItems()
     {
         return $this->morphMany(OrderItem::class, 'itemable');

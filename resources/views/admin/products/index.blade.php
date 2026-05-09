@@ -34,7 +34,8 @@
                             <th class="px-4 sm:px-6 py-3 sm:py-4">Nombre</th>
                             <th class="px-4 sm:px-6 py-3 sm:py-4">Categoría</th>
                             <th class="px-4 sm:px-6 py-3 sm:py-4">Proveedor</th>
-                            <th class="px-4 sm:px-6 py-3 sm:py-4">Precio</th>
+                            <th class="px-4 sm:px-6 py-3 sm:py-4">Precio Desde</th>
+                            <th class="px-4 sm:px-6 py-3 sm:py-4">Presentaciones</th>
                             <th class="px-4 sm:px-6 py-3 sm:py-4">Estado</th>
                             <th class="px-4 sm:px-6 py-3 sm:py-4">Acciones</th>
                         </tr>
@@ -72,7 +73,11 @@
 
                                 {{-- Precio --}}
                                 <td class="px-4 sm:px-6 py-3 sm:py-4 font-semibold text-gray-800">
-                                    ${{ number_format($product->price, 2) }}
+                                    ${{ number_format($product->display_price, 2) }}
+                                </td>
+
+                                <td class="px-4 sm:px-6 py-3 sm:py-4 text-gray-500">
+                                    {{ $product->activeVariants->count() }}
                                 </td>
 
                                 {{-- Estado --}}
@@ -115,7 +120,7 @@
 
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center py-10 text-gray-400">
+                                <td colspan="8" class="text-center py-10 text-gray-400">
                                     No hay productos registrados
                                 </td>
                             </tr>

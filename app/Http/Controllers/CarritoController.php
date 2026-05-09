@@ -33,11 +33,12 @@ class CarritoController extends Controller
         if (isset($carrito[$key])) {
             $carrito[$key]['quantity'] += $request->quantity;
         } else {
+            $price = $request->type === 'product' ? $item->display_price : $item->price;
             $carrito[$key] = [
                 'id'       => $item->id,
                 'type'     => $request->type,
                 'name'     => $item->name,
-                'price'    => $item->price,
+                'price'    => $price,
                 'image'    => $item->image,
                 'quantity' => $request->quantity,
             ];

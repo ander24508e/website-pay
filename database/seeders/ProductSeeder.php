@@ -32,7 +32,7 @@ public function run(): void
     ];
 
     foreach ($productos as $producto) {
-        Product::create([
+        $product = Product::create([
             'category_id' => $producto['category_id'],
             'name'        => $producto['name'],
             'provider'    => $producto['provider'],
@@ -40,6 +40,15 @@ public function run(): void
             'price'       => $producto['price'],
             'image'       => null,
             'active'      => true,
+        ]);
+
+        $product->variants()->create([
+            'name' => $producto['name'],
+            'presentation' => 'Unidad',
+            'specification' => null,
+            'price' => $producto['price'],
+            'active' => true,
+            'is_default' => true,
         ]);
     }
 }

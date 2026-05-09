@@ -110,8 +110,47 @@
                 </div>
                 <div>
                     <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Precio</p>
-                    <p class="text-3xl font-bold text-gray-900">${{ number_format($product->price, 2) }}</p>
+                    <p class="text-3xl font-bold text-gray-900">${{ number_format($product->display_price, 2) }}</p>
+                    <p class="text-xs text-gray-400 mt-1">Precio minimo entre presentaciones activas</p>
                 </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Presentaciones</p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm">
+                    <thead>
+                        <tr class="text-left text-gray-500 border-b">
+                            <th class="py-2 pr-4">Nombre</th>
+                            <th class="py-2 pr-4">Presentacion</th>
+                            <th class="py-2 pr-4">Especificacion</th>
+                            <th class="py-2 pr-4">Precio</th>
+                            <th class="py-2 pr-4">Stock</th>
+                            <th class="py-2">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y">
+                        @forelse($product->variants as $variant)
+                            <tr>
+                                <td class="py-2 pr-4 text-gray-800">{{ $variant->name }}</td>
+                                <td class="py-2 pr-4 text-gray-700">{{ $variant->presentation ?? '—' }}</td>
+                                <td class="py-2 pr-4 text-gray-700">{{ $variant->specification ?? '—' }}</td>
+                                <td class="py-2 pr-4 font-semibold text-gray-800">${{ number_format($variant->price, 2) }}</td>
+                                <td class="py-2 pr-4 text-gray-700">{{ $variant->stock ?? '—' }}</td>
+                                <td class="py-2">
+                                    <span class="px-2 py-0.5 rounded-full text-xs {{ $variant->active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
+                                        {{ $variant->active ? 'Activo' : 'Inactivo' }}
+                                    </span>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="py-3 text-gray-400">Sin presentaciones registradas.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
 

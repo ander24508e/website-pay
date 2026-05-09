@@ -124,17 +124,21 @@
                             </div>
                         </div>
 
-                        {{-- Precio --}}
+                        <input type="hidden" name="price" value="{{ old('price', 0) }}">
+
+                        {{-- Variantes --}}
                         <div class="mb-5">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Precio *</label>
-                            <div class="relative">
-                                <span class="absolute left-4 top-2.5 text-gray-400 text-sm font-semibold">$</span>
-                                <input type="number" name="price" value="{{ old('price') }}" step="0.01"
-                                    min="0"
-                                    class="w-full border border-gray-200 rounded-lg pl-8 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-gray-50 @error('price') border-red-400 bg-red-50 @enderror"
-                                    placeholder="0.00">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block text-sm font-medium text-gray-700">Presentaciones y Precios *</label>
+                                <button type="button" id="add-variant-btn"
+                                    class="text-xs font-semibold px-3 py-1.5 rounded bg-gray-900 text-white hover:bg-gray-700 transition">
+                                    + Agregar presentacion
+                                </button>
                             </div>
-                            @error('price')
+                            <p class="text-xs text-gray-500 mb-3">Ejemplo: Litro, Galon, Caneca. El precio mostrado en catalogo sera el menor precio activo.</p>
+
+                            <div id="variants-container" class="space-y-3"></div>
+                            @error('variants')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>
@@ -189,5 +193,66 @@
             reader.readAsDataURL(file);
             document.getElementById('img-name').textContent = file.name;
         }
+
+        (function initVariants() {
+            const container = document.getElementById('variants-container');
+            const addBtn = document.getElementById('add-variant-btn');
+            if (!container || !addBtn) return;
+
+            const oldVariants = @json(old('variants', []));
+
+            function renderRow(index, data = {}) {
+                const row = document.createElement('div');
+                row.className = 'grid grid-cols-1 md:grid-cols-12 gap-2 border border-gray-200 rounded-lg p-3 bg-gray-50';
+                row.innerHTML = `
+                    <input type="text" name="variants[${index}][name]" value="${data.name ?? ''}" placeholder="Nombre (Ej: Aceite 20W50)"
+                        class="md:col-span-3 border border-gray-200 rounded px-3 py-2 text-sm" />
+                    <input type="text" name="variants[${index}][presentation]" value="${data.presentation ?? ''}" placeholder="Presentacion (Litro, Galon)"
+                        class="md:col-span-2 border border-gray-200 rounded px-3 py-2 text-sm" />
+                    <input type="text" name="variants[${index}][specification]" value="${data.specification ?? ''}" placeholder="Especificacion (1L, 5L)"
+                        class="md:col-span-2 border border-gray-200 rounded px-3 py-2 text-sm" />
+                    <input type="number" name="variants[${index}][price]" value="${data.price ?? ''}" placeholder="Precio"
+                        step="0.01" min="0" class="md:col-span-2 border border-gray-200 rounded px-3 py-2 text-sm" />
+                    <input type="number" name="variants[${index}][stock]" value="${data.stock ?? ''}" placeholder="Stock"
+                        min="0" class="md:col-span-2 border border-gray-200 rounded px-3 py-2 text-sm" />
+                    <div class="md:col-span-1 flex items-center justify-between gap-2">
+                        <label class="text-xs flex items-center gap-1">
+                            <input type="checkbox" name="variants[${index}][active]" value="1" ${data.active === false ? '' : 'checked'}>
+                            Activo
+                        </label>
+                        <button type="button" class="remove-variant text-red-600 text-xs font-semibold">Quitar</button>
+                    </div>
+                `;
+
+                row.querySelector('.remove-variant').addEventListener('click', () => {
+                    row.remove();
+                    reindexRows();
+                });
+
+                return row;
+            }
+
+            function reindexRows() {
+                Array.from(container.children).forEach((row, idx) => {
+                    row.querySelectorAll('input').forEach((input) => {
+                        if (!input.name) return;
+                        input.name = input.name.replace(/variants\[\d+\]/, `variants[${idx}]`);
+                    });
+                });
+            }
+
+            function addRow(data = {}) {
+                const index = container.children.length;
+                container.appendChild(renderRow(index, data));
+            }
+
+            addBtn.addEventListener('click', () => addRow());
+
+            if (oldVariants.length) {
+                oldVariants.forEach((variant) => addRow(variant));
+            } else {
+                addRow({ name: '', presentation: 'Unidad', specification: '', price: '', stock: '', active: true });
+            }
+        })();
     </script>
 @endpush
