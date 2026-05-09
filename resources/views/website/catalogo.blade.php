@@ -47,6 +47,19 @@
                 <h3 class="catalogo-modal-title" id="catalogoDetailTitle"></h3>
                 <p class="catalogo-modal-price" id="catalogoDetailPrice"></p>
                 <p class="catalogo-modal-desc" id="catalogoDetailDescription"></p>
+                <div class="catalogo-detail-product-controls" id="catalogoDetailProductControls" hidden>
+                    <div class="catalogo-detail-grid">
+                        <label>Presentacion
+                            <select id="detailVariantSelect"></select>
+                        </label>
+                        <label>Cantidad
+                            <input type="number" id="detailQtyInput" min="1" step="1" value="1">
+                        </label>
+                    </div>
+                    <p class="catalogo-modal-price" id="detailVariantPrice">$0.00</p>
+                    <button type="button" class="btn-reservar-main" id="detailAddToCartBtn">Agregar al carrito</button>
+                    <p class="catalogo-detail-hint">Preparado para filtro por presentacion (litro, galon, caneca) en siguiente fase.</p>
+                </div>
             </div>
         </div>
     </div>
@@ -109,6 +122,11 @@
     const detailTitle = document.getElementById('catalogoDetailTitle');
     const detailPrice = document.getElementById('catalogoDetailPrice');
     const detailDescription = document.getElementById('catalogoDetailDescription');
+    const detailProductControls = document.getElementById('catalogoDetailProductControls');
+    const detailVariantSelect = document.getElementById('detailVariantSelect');
+    const detailQtyInput = document.getElementById('detailQtyInput');
+    const detailVariantPrice = document.getElementById('detailVariantPrice');
+    const detailAddToCartBtn = document.getElementById('detailAddToCartBtn');
     const reserveOverlay = document.getElementById('catalogoReserveOverlay');
     const reserveClose = document.getElementById('catalogoReserveClose');
     const reserveForm = document.getElementById('catalogoReserveForm');
@@ -125,6 +143,9 @@
     const whatsappPhone = @json(preg_replace('/\D+/', '', (string) ($empresa->telefono_contacto ?? '')));
     const reserveRoute = @json(route('reservas.catalogo'));
     const csrfToken = @json(csrf_token());
+    const initialCatalogItems = @json(($catalogo ?? collect())->values());
+    const catalogItemsByKey = new Map();
+    let currentDetailItem = null;
 
     if (!gridContainer || !paginationContainer || !searchInput || !filtroBtns.length) {
         return;
@@ -159,6 +180,32 @@
             if (m === '"') return '&quot;';
             return '&#039;';
         });
+    }
+
+    function itemKey(tipo, id) {
+        return `${tipo}_${Number(id)}`;
+    }
+
+    function upsertCatalogItems(items) {
+        if (!Array.isArray(items)) return;
+        items.forEach((item) => {
+            if (!item || typeof item !== 'object') return;
+            catalogItemsByKey.set(itemKey(item.tipo, item.id), item);
+        });
+    }
+
+    function getVariants(item) {
+        const variants = Array.isArray(item?.variantes) ? item.variantes : [];
+        return variants
+            .filter((v) => v && Number(v.price) >= 0)
+            .map((v) => ({
+                id: Number(v.id),
+                name: String(v.name || ''),
+                presentation: String(v.presentation || ''),
+                specification: String(v.specification || ''),
+                price: Number(v.price || 0),
+                is_default: Boolean(v.is_default),
+            }));
     }
 
     function createCard(item) {
@@ -241,6 +288,8 @@
 
             const data = await response.json();
             const items = Array.isArray(data.items) ? data.items : [];
+            catalogItemsByKey.clear();
+            upsertCatalogItems(items);
 
             gridContainer.innerHTML = '';
 
@@ -265,16 +314,53 @@
 
     updateActiveTipoButtons();
     attachPaginationEvents();
+    upsertCatalogItems(initialCatalogItems);
+
+    function buildVariantLabel(variant) {
+        const parts = [variant.presentation, variant.specification].filter(Boolean);
+        return parts.length ? parts.join(' ') : (variant.name || 'Presentacion');
+    }
+
+    function updateDetailVariantPrice() {
+        if (!currentDetailItem || !detailVariantSelect || !detailVariantPrice) return;
+        const variants = getVariants(currentDetailItem);
+        const selectedId = Number(detailVariantSelect.value || 0);
+        const selected = variants.find((v) => v.id === selectedId) || variants[0];
+        const price = selected ? selected.price : Number(currentDetailItem.precio || 0);
+        detailVariantPrice.textContent = `Precio: $${price.toFixed(2)}`;
+    }
 
     function openDetailModal(data) {
         if (!detailOverlay || !detailMedia || !detailCategory || !detailTitle || !detailPrice || !detailDescription) return;
+        const fullItem = catalogItemsByKey.get(itemKey(data.tipo, data.id));
+        currentDetailItem = fullItem ? { ...data, ...fullItem } : data;
+
         detailMedia.innerHTML = data.imagen
             ? `<img src="${data.imagen}" alt="${data.nombre}" class="catalogo-modal-image">`
             : `<div class="catalogo-modal-placeholder">${data.tipo === 'product' ? 'PRD' : 'SRV'}</div>`;
-        detailCategory.textContent = data.categoria || '';
-        detailTitle.textContent = data.nombre || '';
-        detailPrice.textContent = `Desde $${Number(data.precio || 0).toFixed(2)}`;
-        detailDescription.textContent = data.descripcion || 'Sin descripcion adicional.';
+        detailCategory.textContent = currentDetailItem.categoria || '';
+        detailTitle.textContent = currentDetailItem.nombre || '';
+        detailPrice.textContent = `Desde $${Number(currentDetailItem.precio || 0).toFixed(2)}`;
+        detailDescription.textContent = currentDetailItem.descripcion || 'Sin descripcion adicional.';
+
+        if (currentDetailItem.tipo === 'product' && detailProductControls && detailVariantSelect && detailQtyInput) {
+            const variants = getVariants(currentDetailItem);
+            detailVariantSelect.innerHTML = '';
+            variants.forEach((variant) => {
+                const option = document.createElement('option');
+                option.value = String(variant.id);
+                option.textContent = `${buildVariantLabel(variant)} - $${variant.price.toFixed(2)}`;
+                detailVariantSelect.appendChild(option);
+            });
+            const defaultVariant = variants.find((v) => v.is_default) || variants[0];
+            if (defaultVariant) detailVariantSelect.value = String(defaultVariant.id);
+            detailQtyInput.value = '1';
+            detailProductControls.hidden = false;
+            updateDetailVariantPrice();
+        } else if (detailProductControls) {
+            detailProductControls.hidden = true;
+        }
+
         detailOverlay.hidden = false;
         document.body.style.overflow = 'hidden';
     }
@@ -283,6 +369,7 @@
         if (!detailOverlay) return;
         detailOverlay.hidden = true;
         document.body.style.overflow = '';
+        currentDetailItem = null;
     }
 
     function openReserveModal(data) {
@@ -337,6 +424,14 @@
     });
 
     detailClose?.addEventListener('click', closeDetailModal);
+    detailVariantSelect?.addEventListener('change', updateDetailVariantPrice);
+    detailAddToCartBtn?.addEventListener('click', () => {
+        if (!currentDetailItem || currentDetailItem.tipo !== 'product') return;
+        const qty = Math.max(1, Number(detailQtyInput?.value || 1));
+        const variantId = Number(detailVariantSelect?.value || 0) || null;
+        addToCart(Number(currentDetailItem.id), 'product', qty, variantId);
+        closeDetailModal();
+    });
     reserveClose?.addEventListener('click', closeReserveModal);
     detailOverlay?.addEventListener('click', (e) => {
         if (e.target === detailOverlay) closeDetailModal();

@@ -65,14 +65,14 @@
             track.style.transform = `translateX(-${newOffset * cardWidth}px)`;
         }
 
-        function addToCart(id, type) {
+        function addToCart(id, type, quantity = 1, variantId = null) {
             fetch('{{ route('carrito.agregar') }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
-                body: JSON.stringify({ id, type, quantity: 1 })
+                body: JSON.stringify({ id, type, quantity, variant_id: variantId })
             }).then(() => window.websiteNotify?.('success', 'Agregado al carrito'));
         }
 

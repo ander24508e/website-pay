@@ -67,6 +67,19 @@ class CatalogoController extends Controller
                 'imagen'      => $producto->image,
                 'categoria'   => $producto->category->name ?? 'Producto',
                 'tipo'        => 'product',
+                'variantes'   => $producto->activeVariants
+                    ->sortBy('price')
+                    ->values()
+                    ->map(function ($variant) {
+                        return [
+                            'id' => $variant->id,
+                            'name' => $variant->name,
+                            'presentation' => $variant->presentation,
+                            'specification' => $variant->specification,
+                            'price' => (float) $variant->price,
+                            'is_default' => (bool) $variant->is_default,
+                        ];
+                    }),
             ];
         });
 
