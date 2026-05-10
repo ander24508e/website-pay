@@ -12,7 +12,7 @@
                     <x-heroicon-o-wrench class="w-8 h-8 text-gray-800" />
                     <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Servicios</h2>
                 </div>
-                <p class="text-gray-500 text-sm mt-1">Gestiona los servicios del carwash</p>
+                <p class="text-gray-500 text-sm mt-1">Gestiona los Servicios</p>
             </div>
             <form method="GET" action="{{ route('admin.services.index') }}" class="flex-1 max-w-xl">
                 <div class="relative">

@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'CategorÃ­as')
+@section('title', 'Categorias')
 
 @section('content')
 <div class="container mx-auto px-4 sm:px-6">
@@ -10,9 +10,9 @@
         <div class="min-w-0">
             <div class="flex items-center gap-2">
                 <x-heroicon-o-tag class="w-8 h-8 text-gray-800" />
-                <h2 class="text-xl sm:text-2xl font-bold text-gray-800">CategorÃ­as</h2>
+                <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Categorias</h2>
             </div>
-            <p class="text-gray-500 text-sm mt-1">Organiza productos y servicios por categorÃ­a</p>
+            <p class="text-gray-500 text-sm mt-1">Organiza productos y servicios</p>
         </div>
 
         <form method="GET" action="{{ route('admin.categories.index') }}" class="flex-1 max-w-xl">
@@ -24,7 +24,7 @@
 
         <a href="{{ route('admin.categories.create') }}"
            class="bg-gray-900 text-white px-5 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-center">
-            + Nueva CategorÃ­a
+            Nueva Categoria
         </a>
     </div>
 
@@ -37,7 +37,7 @@
             <div class="px-4 sm:px-6 py-4 border-b bg-gray-50 flex-shrink-0">
                 <div class="flex items-center gap-2">
                     <x-heroicon-o-wrench class="w-5 h-5 text-gray-600" />
-                    <h3 class="font-semibold text-gray-700">CategorÃ­as de Servicios</h3>
+                    <h3 class="font-semibold text-gray-700">Categorias de Servicios</h3>
                 </div>
             </div>
 
@@ -82,7 +82,7 @@
                         @empty
                             <tr>
                                 <td colspan="3" class="text-center py-10 text-gray-400">
-                                    Sin categorÃ­as de servicios
+                                    Sin categorias de servicios
                                 </td>
                             </tr>
                         @endforelse
@@ -97,7 +97,7 @@
             <div class="px-4 sm:px-6 py-4 border-b bg-gray-50 flex-shrink-0">
                 <div class="flex items-center gap-2">
                     <x-heroicon-o-cube class="w-5 h-5 text-gray-600" />
-                    <h3 class="font-semibold text-gray-700">CategorÃ­as de Productos</h3>
+                    <h3 class="font-semibold text-gray-700">Categorias de Productos</h3>
                 </div>
             </div>
 
@@ -142,7 +142,7 @@
                         @empty
                             <tr>
                                 <td colspan="3" class="text-center py-10 text-gray-400">
-                                    Sin categorÃ­as de productos
+                                    Sin categorias de productos
                                 </td>
                             </tr>
                         @endforelse
