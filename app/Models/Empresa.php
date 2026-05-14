@@ -35,6 +35,21 @@ class Empresa extends Model
         return $this->hasMany(LandingBanner::class)->orderBy('orden')->orderByDesc('created_at');
     }
 
+    public function catalogTypes()
+    {
+        return $this->hasMany(CatalogType::class)->orderBy('sort_order')->orderBy('name');
+    }
+
+    public function catalogCategories()
+    {
+        return $this->hasMany(CatalogCategory::class)->orderBy('sort_order')->orderBy('name');
+    }
+
+    public function catalogItems()
+    {
+        return $this->hasMany(CatalogItem::class)->orderBy('sort_order')->orderBy('name');
+    }
+
     public function getLogoUrlAttribute(): string
     {
         if ($this->logo && Storage::disk('public')->exists($this->logo)) {

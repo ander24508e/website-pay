@@ -31,6 +31,14 @@
                 <span><x-heroicon-o-chart-bar class="w-5 h-5" /></span>
                 <span>Dashboard</span>
             </a>
+            <a href="{{ route('admin.catalog.index') }}"
+                class="{{ request()->routeIs('admin.catalog.*') || request()->routeIs('admin.catalog-types.*') || request()->routeIs('admin.catalog-categories.*') || request()->routeIs('admin.catalog-items.*') || request()->routeIs('admin.categories.*') || request()->routeIs('admin.products.*') || request()->routeIs('admin.services.*') || request()->routeIs('admin.banners.*') ? 'active' : '' }}">
+
+            {{-- <a href="{{ route('admin.dashboard') }}"
+                class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}"></a> --}}
+                <span><x-heroicon-o-squares-2x2 class="w-5 h-5" /></span>
+                <span>Catalogo</span>
+            </a>
             <a href="{{ route('admin.banners.index') }}" class="{{ request()->routeIs('admin.banners.*') ? 'active' : '' }}">
                 <span><x-heroicon-o-rectangle-group class="w-5 h-5" /></span>
                 <span>Banners</span>
@@ -114,6 +122,11 @@
                 class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                 <span><x-heroicon-o-chart-bar class="w-5 h-5" /></span>
                 <span>Dashboard</span>
+            </a>
+            <a href="{{ route('admin.catalog.index') }}"
+                class="{{ request()->routeIs('admin.catalog.*') || request()->routeIs('admin.catalog-types.*') || request()->routeIs('admin.catalog-categories.*') || request()->routeIs('admin.catalog-items.*') || request()->routeIs('admin.categories.*') || request()->routeIs('admin.products.*') || request()->routeIs('admin.services.*') || request()->routeIs('admin.banners.*') ? 'active' : '' }}">
+                <span><x-heroicon-o-squares-2x2 class="w-5 h-5" /></span>
+                <span>Catalogo</span>
             </a>
             <a href="{{ route('admin.banners.index') }}" class="{{ request()->routeIs('admin.banners.*') ? 'active' : '' }}">
                 <span><x-heroicon-o-rectangle-group class="w-5 h-5" /></span>

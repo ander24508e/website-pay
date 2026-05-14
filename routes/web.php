@@ -1,6 +1,9 @@
 <?php
 
 use App\Http\Controllers\BannerController;
+use App\Http\Controllers\CatalogTypeController;
+use App\Http\Controllers\CatalogCategoryController;
+use App\Http\Controllers\CatalogItemController;
 use App\Http\Controllers\CarritoController;
 use App\Http\Controllers\CatalogoController;
 use App\Http\Controllers\CategoryController;
@@ -70,6 +73,16 @@ Route::middleware(['auth', 'role:admin'])
     ->name('admin.')
     ->group(function () {
         Route::get('/dashboard', fn() => view('admin.dashboard'))->name('dashboard');
+        Route::view('/catalogo', 'admin.catalog.index')->name('catalog.index');
+        Route::resource('/catalogo/tipos', CatalogTypeController::class)
+            ->parameters(['tipos' => 'catalogType'])
+            ->names('catalog-types');
+        Route::resource('/catalogo/categorias', CatalogCategoryController::class)
+            ->parameters(['categorias' => 'catalogCategory'])
+            ->names('catalog-categories');
+        Route::resource('/catalogo/items', CatalogItemController::class)
+            ->parameters(['items' => 'catalogItem'])
+            ->names('catalog-items');
 
         // Empresa
         Route::get('/empresa', [EmpresaController::class, 'edit'])->name('empresa.edit');
