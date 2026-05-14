@@ -5,13 +5,13 @@
 @section('content')
 <div class="container mx-auto px-4 sm:px-6">
     <div class="flex flex-wrap items-center gap-3 mb-6">
-        <a href="{{ route('admin.catalog-items.index') }}"
+        <a href="{{ ($returnToType ?? false) && ($selectedTypeId ?? 0) > 0 ? route('admin.catalog-types.show', $selectedTypeId) : route('admin.catalog-items.index') }}"
            class="flex items-center justify-center w-9 h-9 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition text-gray-500 hover:text-gray-800">
             <span aria-hidden="true">&larr;</span>
         </a>
         <div>
             <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Nuevo Item Universal</h2>
-            <p class="text-gray-400 text-sm">Crea un item flexible para cualquier tipo de negocio.</p>
+            <p class="text-gray-400 text-sm">Crea un item dentro del catalogo o subnegocio que elegiste.</p>
         </div>
     </div>
 
@@ -84,6 +84,10 @@
                         <p class="text-xs text-gray-400">Puede usarse para reservas futuras</p>
                     </div>
                 </label>
+
+                <div class="rounded-lg bg-gray-50 border border-gray-200 p-3 text-xs text-gray-500">
+                    Un item puede ser solo comprable, solo reservable o ambas cosas segun el flujo del negocio.
+                </div>
             </div>
         </div>
 
@@ -103,6 +107,7 @@
 
                     <form id="catalog-item-form" action="{{ route('admin.catalog-items.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
+                        <input type="hidden" name="redirect_to_type" value="{{ ($returnToType ?? false) ? 1 : 0 }}">
 
                         <div class="mb-5">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
@@ -121,7 +126,7 @@
                                         class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-gray-50 @error('catalog_type_id') border-red-400 bg-red-50 @enderror">
                                     <option value="">Selecciona un tipo</option>
                                     @foreach($types as $type)
-                                        <option value="{{ $type->id }}" {{ old('catalog_type_id') == $type->id ? 'selected' : '' }}>{{ $type->name }}</option>
+                                        <option value="{{ $type->id }}" {{ (old('catalog_type_id', $selectedTypeId ?? null) == $type->id) ? 'selected' : '' }}>{{ $type->name }}</option>
                                     @endforeach
                                 </select>
                                 @error('catalog_type_id')
@@ -135,7 +140,7 @@
                                         class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-gray-50 @error('catalog_category_id') border-red-400 bg-red-50 @enderror">
                                     <option value="">Sin categoria</option>
                                     @foreach($categories as $category)
-                                        <option value="{{ $category->id }}" data-type="{{ $category->catalog_type_id }}" {{ old('catalog_category_id') == $category->id ? 'selected' : '' }}>
+                                        <option value="{{ $category->id }}" data-type="{{ $category->catalog_type_id }}" {{ (old('catalog_category_id', $selectedCategoryId ?? null) == $category->id) ? 'selected' : '' }}>
                                             {{ $category->type->name }} / {{ $category->name }}
                                         </option>
                                     @endforeach
@@ -196,7 +201,7 @@
                                     class="bg-gray-900 text-white px-6 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-sm">
                                 Guardar Item
                             </button>
-                            <a href="{{ route('admin.catalog-items.index') }}"
+                            <a href="{{ ($returnToType ?? false) && ($selectedTypeId ?? 0) > 0 ? route('admin.catalog-types.show', $selectedTypeId) : route('admin.catalog-items.index') }}"
                                class="bg-gray-100 text-gray-600 px-6 py-2.5 rounded-lg hover:bg-gray-200 transition font-medium text-sm text-center">
                                 Cancelar
                             </a>

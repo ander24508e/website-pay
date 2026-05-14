@@ -17,9 +17,35 @@ class CatalogItemController extends Controller
     {
         $empresa = $this->getOrCreateEmpresa();
         $search = trim((string) $request->query('q', ''));
+        $selectedTypeId = (int) $request->query('catalog_type_id', 0);
+        $selectedCategoryId = (int) $request->query('catalog_category_id', 0);
+        $selectedType = null;
+        $selectedCategory = null;
+        $baseQuery = CatalogItem::query()->where('empresa_id', $empresa->id);
 
-        $items = CatalogItem::query()
-            ->where('empresa_id', $empresa->id)
+        if ($selectedTypeId > 0) {
+            $selectedType = CatalogType::query()
+                ->where('empresa_id', $empresa->id)
+                ->find($selectedTypeId);
+
+            if ($selectedType) {
+                $baseQuery->where('catalog_type_id', $selectedType->id);
+            }
+        }
+
+        if ($selectedCategoryId > 0) {
+            $selectedCategory = CatalogCategory::query()
+                ->where('empresa_id', $empresa->id)
+                ->with('type')
+                ->find($selectedCategoryId);
+
+            if ($selectedCategory) {
+                $baseQuery->where('catalog_category_id', $selectedCategory->id);
+                $selectedType = $selectedCategory->type;
+            }
+        }
+
+        $items = (clone $baseQuery)
             ->with(['type', 'category'])
             ->withCount(['variants'])
             ->when($search !== '', function ($query) use ($search) {
@@ -39,10 +65,17 @@ class CatalogItemController extends Controller
             ->paginate(12)
             ->withQueryString();
 
-        return view('admin.catalog.items.index', compact('empresa', 'items'));
+        $stats = [
+            'total' => (clone $baseQuery)->count(),
+            'active' => (clone $baseQuery)->where('active', true)->count(),
+            'purchasable' => (clone $baseQuery)->where('purchasable', true)->count(),
+            'reservable' => (clone $baseQuery)->where('reservable', true)->count(),
+        ];
+
+        return view('admin.catalog.items.index', compact('empresa', 'items', 'stats', 'selectedType', 'selectedCategory'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $empresa = $this->getOrCreateEmpresa();
         $types = CatalogType::query()
@@ -54,8 +87,29 @@ class CatalogItemController extends Controller
             ->with('type')
             ->ordered()
             ->get();
+        $selectedTypeId = (int) $request->query('catalog_type_id', old('catalog_type_id', 0));
+        $selectedCategoryId = (int) $request->query('catalog_category_id', old('catalog_category_id', 0));
 
-        return view('admin.catalog.items.create', compact('empresa', 'types', 'categories'));
+        if ($selectedCategoryId > 0 && $selectedTypeId === 0) {
+            $selectedCategory = CatalogCategory::query()
+                ->where('empresa_id', $empresa->id)
+                ->find($selectedCategoryId);
+
+            if ($selectedCategory) {
+                $selectedTypeId = (int) $selectedCategory->catalog_type_id;
+            }
+        }
+
+        $returnToType = (bool) $request->boolean('return_to_type', $selectedTypeId > 0);
+
+        return view('admin.catalog.items.create', compact(
+            'empresa',
+            'types',
+            'categories',
+            'selectedTypeId',
+            'selectedCategoryId',
+            'returnToType'
+        ));
     }
 
     public function store(Request $request)
@@ -103,9 +157,13 @@ class CatalogItemController extends Controller
             $payload['image'] = $request->file('image')->store('catalog_items', 'public');
         }
 
-        CatalogItem::create($payload);
+        $item = CatalogItem::create($payload);
 
         NotificationHelper::success('Item universal creado correctamente.');
+
+        if ($request->boolean('redirect_to_type')) {
+            return redirect()->route('admin.catalog-types.show', $item->catalog_type_id);
+        }
 
         return redirect()->route('admin.catalog-items.index');
     }

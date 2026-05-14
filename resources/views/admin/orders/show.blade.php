@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+Ôªø@extends('layouts.admin')
 
 @section('title', 'Detalle Orden')
 
@@ -6,18 +6,18 @@
 <div class="container mx-auto px-4 sm:px-6">
     @php
         $badges = [
-            'pending'   => 'bg-yellow-100 text-yellow-700',
-            'reserved'  => 'bg-blue-100 text-blue-700',
-            'paid'      => 'bg-green-100 text-green-700',
-            'failed'    => 'bg-red-100 text-red-700',
+            'pending' => 'bg-yellow-100 text-yellow-700',
+            'reserved' => 'bg-blue-100 text-blue-700',
+            'paid' => 'bg-green-100 text-green-700',
+            'failed' => 'bg-red-100 text-red-700',
             'cancelled' => 'bg-gray-100 text-gray-600',
         ];
 
         $labels = [
-            'pending'   => 'Pendiente',
-            'reserved'  => 'Reservada',
-            'paid'      => 'Pagada',
-            'failed'    => 'Fallida',
+            'pending' => 'Pendiente',
+            'reserved' => 'Reservada',
+            'paid' => 'Pagada',
+            'failed' => 'Fallida',
             'cancelled' => 'Cancelada',
         ];
     @endphp
@@ -36,7 +36,7 @@
             <div class="bg-white rounded-xl shadow-sm p-6">
                 <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">Cliente</p>
                 <p class="font-semibold text-gray-800">{{ $order->user->name ?? 'Invitado' }}</p>
-                <p class="text-xs text-gray-400">{{ $order->user->email ?? 'ó' }}</p>
+                <p class="text-xs text-gray-400">{{ $order->user->email ?? '‚Äî' }}</p>
             </div>
 
             <div class="bg-white rounded-xl shadow-sm p-6">
@@ -70,12 +70,12 @@
         <div class="lg:col-span-2 flex flex-col gap-6">
             <div class="bg-white rounded-xl shadow-sm overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-100">
-                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Õtems de la orden</p>
+                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">√çtems de la orden</p>
                 </div>
                 <table class="w-full text-sm">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="text-left px-6 py-3 text-gray-500 font-semibold text-xs">Õtem</th>
+                            <th class="text-left px-6 py-3 text-gray-500 font-semibold text-xs">√çtem</th>
                             <th class="text-left px-6 py-3 text-gray-500 font-semibold text-xs">Tipo</th>
                             <th class="text-left px-6 py-3 text-gray-500 font-semibold text-xs">Cant.</th>
                             <th class="text-left px-6 py-3 text-gray-500 font-semibold text-xs">Precio unit.</th>
@@ -85,15 +85,15 @@
                     <tbody class="divide-y divide-gray-50">
                         @forelse($order->items as $item)
                             <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-3 font-medium text-gray-800">{{ $item->itemable->name ?? 'Õtem eliminado' }}</td>
-                                <td class="px-6 py-3 text-gray-600">{{ str_contains($item->itemable_type, 'Product') ? 'Producto' : 'Servicio' }}</td>
+                                <td class="px-6 py-3 font-medium text-gray-800">{{ $item->item_display_name }}</td>
+                                <td class="px-6 py-3 text-gray-600">{{ $item->item_type_label }}</td>
                                 <td class="px-6 py-3 text-gray-600">{{ $item->quantity }}</td>
                                 <td class="px-6 py-3 text-gray-600">${{ number_format($item->unit_price, 2) }}</td>
                                 <td class="px-6 py-3 font-semibold text-gray-800">${{ number_format($item->unit_price * $item->quantity, 2) }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="px-6 py-8 text-center text-gray-400 text-sm">Sin Ìtems registrados.</td>
+                                <td colspan="5" class="px-6 py-8 text-center text-gray-400 text-sm">Sin √≠tems registrados.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -102,9 +102,9 @@
 
             @if($order->transaction)
                 <div class="bg-white rounded-xl shadow-sm p-6">
-                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">⁄ltima transacciÛn</p>
+                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">√öltima transacci√≥n</p>
                     <p class="text-sm text-gray-700">Estado: <strong>{{ ucfirst($order->transaction->status) }}</strong></p>
-                    <a href="{{ route('admin.transactions.show', $order->transaction) }}" class="inline-block mt-3 text-blue-600 hover:underline text-sm">Ver transacciÛn</a>
+                    <a href="{{ route('admin.transactions.show', $order->transaction) }}" class="inline-block mt-3 text-blue-600 hover:underline text-sm">Ver transacci√≥n</a>
                 </div>
             @endif
         </div>

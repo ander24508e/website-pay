@@ -15,9 +15,21 @@ class CatalogCategoryController extends Controller
     {
         $empresa = $this->getOrCreateEmpresa();
         $search = trim((string) $request->query('q', ''));
+        $selectedTypeId = (int) $request->query('catalog_type_id', 0);
+        $selectedType = null;
+        $baseQuery = CatalogCategory::query()->where('empresa_id', $empresa->id);
 
-        $categories = CatalogCategory::query()
-            ->where('empresa_id', $empresa->id)
+        if ($selectedTypeId > 0) {
+            $selectedType = CatalogType::query()
+                ->where('empresa_id', $empresa->id)
+                ->find($selectedTypeId);
+
+            if ($selectedType) {
+                $baseQuery->where('catalog_type_id', $selectedType->id);
+            }
+        }
+
+        $categories = (clone $baseQuery)
             ->with(['type'])
             ->withCount(['items'])
             ->when($search !== '', function ($query) use ($search) {
@@ -34,18 +46,27 @@ class CatalogCategoryController extends Controller
             ->paginate(12)
             ->withQueryString();
 
-        return view('admin.catalog.categories.index', compact('empresa', 'categories'));
+        $stats = [
+            'total' => (clone $baseQuery)->count(),
+            'active' => (clone $baseQuery)->where('active', true)->count(),
+            'with_items' => (clone $baseQuery)->has('items')->count(),
+            'types' => CatalogType::query()->where('empresa_id', $empresa->id)->count(),
+        ];
+
+        return view('admin.catalog.categories.index', compact('empresa', 'categories', 'stats', 'selectedType'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $empresa = $this->getOrCreateEmpresa();
         $types = CatalogType::query()
             ->where('empresa_id', $empresa->id)
             ->ordered()
             ->get();
+        $selectedTypeId = (int) $request->query('catalog_type_id', old('catalog_type_id', 0));
+        $returnToType = (bool) $request->boolean('return_to_type', $selectedTypeId > 0);
 
-        return view('admin.catalog.categories.create', compact('empresa', 'types'));
+        return view('admin.catalog.categories.create', compact('empresa', 'types', 'selectedTypeId', 'returnToType'));
     }
 
     public function store(Request $request)
@@ -67,7 +88,7 @@ class CatalogCategoryController extends Controller
 
         $slug = $this->resolveSlug($type->id, $data['name'], $data['slug'] ?? null);
 
-        CatalogCategory::create([
+        $category = CatalogCategory::create([
             'empresa_id' => $empresa->id,
             'catalog_type_id' => $type->id,
             'name' => trim($data['name']),
@@ -79,12 +100,20 @@ class CatalogCategoryController extends Controller
 
         NotificationHelper::success('Categoria universal creada correctamente.');
 
+        if ($request->boolean('redirect_to_type')) {
+            return redirect()->route('admin.catalog-types.show', $category->catalog_type_id);
+        }
+
         return redirect()->route('admin.catalog-categories.index');
     }
 
     public function show(CatalogCategory $catalogCategory)
     {
-        $catalogCategory->load(['type'])->loadCount(['items']);
+        $catalogCategory->load(['type']);
+        $catalogCategory->loadCount(['items']);
+        $catalogCategory->load([
+            'items' => fn ($query) => $query->withCount('variants')->ordered()->limit(12),
+        ]);
 
         return view('admin.catalog.categories.show', compact('catalogCategory'));
     }

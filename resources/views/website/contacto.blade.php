@@ -1,13 +1,11 @@
 <section id="contacto" class="section section-dark contact-section">
     @php
-        $reservableServices = \App\Models\Service::with('category')
+        $reservableItems = \App\Models\CatalogItem::with(['type', 'category'])
             ->where('active', true)
-            ->get()
-            ->filter(function ($service) {
-                $text = strtolower(trim(($service->name ?? '') . ' ' . ($service->description ?? '') . ' ' . ($service->category->name ?? '')));
-                return str_contains($text, 'lavad');
-            })
-            ->values();
+            ->where('reservable', true)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
 
         $waUrl = $empresa->whatsapp_url ?? '#';
     @endphp
@@ -96,11 +94,13 @@
                 </div>
 
                 <div>
-                    <label for="contact-servicio">Servicio que deseas agendar <span>*</span></label>
+                    <label for="contact-servicio">Item que deseas agendar <span>*</span></label>
                     <select id="contact-servicio" class="contact-service-select" required>
-                        <option value="">Selecciona un servicio</option>
-                        @foreach($reservableServices as $service)
-                            <option value="{{ $service->id }}">{{ $service->name }}</option>
+                        <option value="">Selecciona un item</option>
+                        @foreach($reservableItems as $item)
+                            <option value="{{ $item->id }}">
+                                {{ $item->type->name ?? 'Catalogo' }} / {{ $item->name }}
+                            </option>
                         @endforeach
                     </select>
                 </div>
@@ -126,7 +126,7 @@
 
                 <div>
                     <label for="contact-mensaje">Comentarios adicionales <small>(opcional)</small></label>
-                    <textarea id="contact-mensaje" rows="3" maxlength="500" placeholder="Ej: Tengo camioneta, necesito lavado completo..."></textarea>
+                    <textarea id="contact-mensaje" rows="3" maxlength="500" placeholder="Ej: Necesito una mesa para 4, una camioneta, un combo o una reserva especial..."></textarea>
                     <p class="field-hint">Escribenos tu mensaje describiendo todo lo que necesites.</p>
                 </div>
 
@@ -174,7 +174,7 @@
     function validate() {
         if (!nombreInput.value || nombreInput.value.trim().length < 3) return 'Ingresa tu nombre completo (minimo 3 caracteres).';
         if (!telefonoInput.value.trim()) return 'Ingresa tu telefono de contacto.';
-        if (!servicioInput.value) return 'Selecciona un servicio de lavado.';
+        if (!servicioInput.value) return 'Selecciona un item del catalogo.';
         if (!fechaInput.value) return 'Selecciona una fecha.';
         if (isSunday(fechaInput.value)) return 'No se agendan reservas en domingo.';
         if (!horaInput.value) return 'Selecciona una hora.';
@@ -182,7 +182,7 @@
     }
 
     function formatDate(dateText) {
-        const [y,m,d] = dateText.split('-');
+        const [y, m, d] = dateText.split('-');
         return `${d}/${m}/${y}`;
     }
 
@@ -195,11 +195,11 @@
     }
 
     function buildWhatsappMessage() {
-        const servicioName = servicioInput.options[servicioInput.selectedIndex]?.text || 'Servicio';
+        const itemName = servicioInput.options[servicioInput.selectedIndex]?.text || 'Item';
         let msg = `NUEVA CITA\n\n`;
         msg += `Nombre: ${nombreInput.value.trim()}\n`;
         msg += `Telefono: ${telefonoInput.value.trim()}\n`;
-        msg += `Servicio: ${servicioName}\n`;
+        msg += `Item: ${itemName}\n`;
         msg += `Fecha: ${formatDate(fechaInput.value)}\n`;
         msg += `Hora: ${horaInput.value}\n`;
         if (mensajeInput.value.trim()) msg += `\nComentarios:\n${mensajeInput.value.trim()}`;
@@ -226,15 +226,15 @@
         }
 
         try {
-            const serviceId = Number(servicioInput.value);
-            const response = await fetch(`/reservas/servicio/${serviceId}`, {
+            const itemId = Number(servicioInput.value);
+            const response = await fetch(@json(route('reservas.catalogo')), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': @json(csrf_token()),
                     'X-Requested-With': 'XMLHttpRequest'
                 },
-                body: JSON.stringify({})
+                body: JSON.stringify({ item_id: itemId, item_type: 'catalog' })
             });
 
             const data = await response.json().catch(() => ({}));

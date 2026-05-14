@@ -13,23 +13,63 @@
                 </a>
                 <div>
                     <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Categorias Universales</h2>
-                    <p class="text-gray-500 text-sm mt-1">Organiza items dentro de cada tipo del catalogo universal.</p>
+                    <p class="text-gray-500 text-sm mt-1">
+                        @if(isset($selectedType) && $selectedType)
+                            Estas viendo las categorias del catalogo {{ $selectedType->name }}.
+                        @else
+                            Organiza items dentro de cada tipo del catalogo universal.
+                        @endif
+                    </p>
                 </div>
             </div>
         </div>
 
         <form method="GET" action="{{ route('admin.catalog-categories.index') }}" class="flex-1 max-w-xl">
+            @if(isset($selectedType) && $selectedType)
+                <input type="hidden" name="catalog_type_id" value="{{ $selectedType->id }}">
+            @endif
             <div class="relative">
                 <x-heroicon-o-magnifying-glass class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input type="search" name="q" value="{{ request('q') }}" placeholder="Buscar por nombre, tipo, slug o descripcion..." class="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm text-gray-700 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none focus:ring-0">
             </div>
         </form>
 
-        <a href="{{ route('admin.catalog-categories.create') }}"
+        <a href="{{ route('admin.catalog-categories.create', array_filter(['catalog_type_id' => $selectedType->id ?? null, 'return_to_type' => isset($selectedType) && $selectedType ? 1 : null])) }}"
             class="bg-gray-900 text-white px-5 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-center">
             + Nueva Categoria
         </a>
     </div>
+
+    <div class="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+            <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Categorias</p>
+            <p class="text-2xl font-bold text-gray-800 mt-2">{{ $stats['total'] }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+            <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Activas</p>
+            <p class="text-2xl font-bold text-emerald-700 mt-2">{{ $stats['active'] }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+            <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Con Items</p>
+            <p class="text-2xl font-bold text-gray-800 mt-2">{{ $stats['with_items'] }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+            <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Subnegocios</p>
+            <p class="text-2xl font-bold text-gray-800 mt-2">{{ $stats['types'] }}</p>
+        </div>
+    </div>
+
+    @if(isset($selectedType) && $selectedType)
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6 flex flex-wrap items-center gap-3">
+            <span class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Contexto actual</span>
+            <a href="{{ route('admin.catalog-types.show', $selectedType) }}" class="inline-flex items-center rounded-full bg-gray-100 text-gray-700 px-3 py-1 text-sm font-medium hover:bg-gray-200 transition">
+                Catalogo: {{ $selectedType->name }}
+            </a>
+            <a href="{{ route('admin.catalog-categories.index') }}" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                Limpiar filtro
+            </a>
+        </div>
+    @endif
 
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
         <div class="overflow-x-auto overflow-y-auto max-h-[70vh]">
@@ -76,6 +116,8 @@
                             <td class="px-4 sm:px-6 py-3 sm:py-4">
                                 <div class="flex flex-wrap gap-2">
                                     <a href="{{ route('admin.catalog-categories.show', $category) }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium px-2 py-1">Ver</a>
+                                    <a href="{{ route('admin.catalog-items.index', ['catalog_type_id' => $category->catalog_type_id, 'catalog_category_id' => $category->id]) }}" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium px-2 py-1">Items</a>
+                                    <a href="{{ route('admin.catalog-items.create', ['catalog_type_id' => $category->catalog_type_id, 'catalog_category_id' => $category->id, 'return_to_type' => 1]) }}" class="text-emerald-600 hover:text-emerald-800 text-sm font-medium px-2 py-1">+ Item</a>
                                     <a href="{{ route('admin.catalog-categories.edit', $category) }}" class="text-yellow-600 hover:text-yellow-800 text-sm font-medium px-2 py-1">Editar</a>
                                     <form method="POST" action="{{ route('admin.catalog-categories.destroy', $category) }}" onsubmit="return confirm('¿Eliminar esta categoria universal?');" class="inline">
                                         @csrf

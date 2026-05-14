@@ -3,20 +3,27 @@
         <div class="section-tag">Todo en un solo lugar</div>
         <h2 class="section-title">NUESTRO <span>CATALOGO</span></h2>
         <div class="divider"></div>
-        <p class="section-sub">Productos y servicios para el cuidado de tu vehiculo</p>
+        <p class="section-sub">Explora los subnegocios e items que tu empresa muestra en su catalogo publico</p>
     </div>
 
     <div class="filtros-container fade-up">
         <div class="filtros-tipo" role="tablist" aria-label="Filtrar catalogo por tipo">
-            <button type="button" data-tipo="todos" class="filtro-btn {{ $tipo === 'todos' ? 'active' : '' }}">Todos</button>
-            <button type="button" data-tipo="productos" class="filtro-btn {{ $tipo === 'productos' ? 'active' : '' }}">
-                <x-heroicon-o-cube class="w-4 h-4" />
-                Productos
-            </button>
-            <button type="button" data-tipo="servicios" class="filtro-btn {{ $tipo === 'servicios' ? 'active' : '' }}">
-                <x-heroicon-o-wrench class="w-4 h-4" />
-                Servicios
-            </button>
+            @foreach(($catalogFilters ?? []) as $filter)
+                <button type="button" data-tipo="{{ $filter['value'] }}" class="filtro-btn {{ $tipo === $filter['value'] ? 'active' : '' }}">
+                    @if(($filter['icon'] ?? null) === 'cube')
+                        <x-heroicon-o-cube class="w-4 h-4" />
+                    @elseif(($filter['icon'] ?? null) === 'wrench')
+                        <x-heroicon-o-wrench class="w-4 h-4" />
+                    @elseif(($filter['icon'] ?? null) === 'cake')
+                        <x-heroicon-o-cake class="w-4 h-4" />
+                    @elseif(($filter['icon'] ?? null) === 'sparkles')
+                        <x-heroicon-o-sparkles class="w-4 h-4" />
+                    @elseif(($filter['icon'] ?? null) === 'building-storefront')
+                        <x-heroicon-o-building-storefront class="w-4 h-4" />
+                    @endif
+                    {{ $filter['label'] }}
+                </button>
+            @endforeach
         </div>
 
         <div class="buscador">
@@ -58,7 +65,7 @@
                     </div>
                     <p class="catalogo-modal-price" id="detailVariantPrice">$0.00</p>
                     <button type="button" class="btn-reservar-main" id="detailAddToCartBtn">Agregar al carrito</button>
-                    <p class="catalogo-detail-hint">Preparado para filtro por presentacion (litro, galon, caneca) en siguiente fase.</p>
+                    <p class="catalogo-detail-hint">Si este item tiene variantes, aqui puedes elegir la presentacion exacta antes de agregarlo.</p>
                 </div>
             </div>
         </div>
@@ -76,7 +83,7 @@
                     <input type="hidden" id="reserveItemType">
                     <input type="hidden" id="reserveItemName">
 
-                    <label>Producto o servicio seleccionado
+                    <label>Item seleccionado
                         <input type="text" id="reserveSelectedItem" readonly>
                     </label>
                     <label>Nombre
@@ -212,12 +219,14 @@
         const card = document.createElement('div');
         card.className = 'card item-catalogo';
 
-        const tipo = item.tipo === 'product' ? 'product' : 'service';
-        const placeholder = tipo === 'product' ? 'PRD' : 'SRV';
+        const tipo = 'catalog';
+        const placeholder = 'ITM';
         const safeName = escapeHtml(item.nombre);
         const safeCategory = escapeHtml(item.categoria);
         const safeDesc = escapeHtml(item.descripcion || '');
         const safeImg = item.imagen ? `/storage/${item.imagen}` : '';
+        const isPurchasable = Boolean(item.comprable);
+        const isReservable = Boolean(item.reservable);
         const imageHtml = item.imagen
             ? `<button type="button" class="card-image-wrap js-open-detail" data-id="${Number(item.id)}" data-tipo="${tipo}" data-nombre="${safeName}" data-categoria="${safeCategory}" data-precio="${Number(item.precio)}" data-descripcion="${safeDesc}" data-imagen="${safeImg}" aria-label="Ver detalle de ${safeName}"><img src="${safeImg}" alt="${safeName}" class="card-image"></button>`
             : `<button type="button" class="card-image-wrap js-open-detail" data-id="${Number(item.id)}" data-tipo="${tipo}" data-nombre="${safeName}" data-categoria="${safeCategory}" data-precio="${Number(item.precio)}" data-descripcion="${safeDesc}" data-imagen="" aria-label="Ver detalle de ${safeName}"><div class="card-placeholder">${placeholder}</div></button>`;
@@ -228,18 +237,16 @@
         card.innerHTML = `
             ${imageHtml}
             <div class="card-body">
-                <div class="card-category">${escapeHtml(item.categoria)}</div>
+                <div class="card-category">${escapeHtml(item.tipo_label || 'Catalogo')} · ${escapeHtml(item.categoria)}</div>
                 <div class="card-top">
                     <div class="card-name-row">
                         <div class="card-name">${escapeHtml(item.nombre)}</div>
-                        <button class="card-name-cart-btn" onclick="addToCart(${Number(item.id)}, '${tipo}')" title="Agregar al carrito" aria-label="Agregar al carrito">
-                            ${cartIconSvg}
-                        </button>
+                        ${isPurchasable ? `<button class="card-name-cart-btn" onclick="addToCart(${Number(item.id)}, '${tipo}')" title="Agregar al carrito" aria-label="Agregar al carrito">${cartIconSvg}</button>` : ''}
                     </div>
                 </div>
                 <p class="card-desc">${escapeHtml(shortDescription)}</p>
                 <div class="card-footer">
-                    <button type="button" class="btn-reservar btn-reservar-main js-open-reserve" data-id="${Number(item.id)}" data-tipo="${tipo}" data-nombre="${safeName}" data-precio="${Number(item.precio)}" title="Reservar" aria-label="Reservar">Reservar</button>
+                    ${isReservable ? `<button type="button" class="btn-reservar btn-reservar-main js-open-reserve" data-id="${Number(item.id)}" data-tipo="${tipo}" data-nombre="${safeName}" data-precio="${Number(item.precio)}" title="Reservar" aria-label="Reservar">Reservar</button>` : ''}
                 </div>
             </div>
         `;
@@ -337,23 +344,30 @@
 
         detailMedia.innerHTML = data.imagen
             ? `<img src="${data.imagen}" alt="${data.nombre}" class="catalogo-modal-image">`
-            : `<div class="catalogo-modal-placeholder">${data.tipo === 'product' ? 'PRD' : 'SRV'}</div>`;
-        detailCategory.textContent = currentDetailItem.categoria || '';
+            : `<div class="catalogo-modal-placeholder">ITM</div>`;
+        detailCategory.textContent = `${currentDetailItem.tipo_label || 'Catalogo'} · ${currentDetailItem.categoria || ''}`;
         detailTitle.textContent = currentDetailItem.nombre || '';
         detailPrice.textContent = `Desde $${Number(currentDetailItem.precio || 0).toFixed(2)}`;
         detailDescription.textContent = currentDetailItem.descripcion || 'Sin descripcion adicional.';
 
-        if (currentDetailItem.tipo === 'product' && detailProductControls && detailVariantSelect && detailQtyInput) {
+        if (currentDetailItem.tipo === 'catalog' && currentDetailItem.comprable && detailProductControls && detailVariantSelect && detailQtyInput) {
             const variants = getVariants(currentDetailItem);
             detailVariantSelect.innerHTML = '';
-            variants.forEach((variant) => {
+            if (variants.length) {
+                variants.forEach((variant) => {
+                    const option = document.createElement('option');
+                    option.value = String(variant.id);
+                    option.textContent = `${buildVariantLabel(variant)} - $${variant.price.toFixed(2)}`;
+                    detailVariantSelect.appendChild(option);
+                });
+                const defaultVariant = variants.find((v) => v.is_default) || variants[0];
+                if (defaultVariant) detailVariantSelect.value = String(defaultVariant.id);
+            } else {
                 const option = document.createElement('option');
-                option.value = String(variant.id);
-                option.textContent = `${buildVariantLabel(variant)} - $${variant.price.toFixed(2)}`;
+                option.value = '';
+                option.textContent = 'Presentacion base';
                 detailVariantSelect.appendChild(option);
-            });
-            const defaultVariant = variants.find((v) => v.is_default) || variants[0];
-            if (defaultVariant) detailVariantSelect.value = String(defaultVariant.id);
+            }
             detailQtyInput.value = '1';
             detailProductControls.hidden = false;
             updateDetailVariantPrice();
@@ -426,10 +440,10 @@
     detailClose?.addEventListener('click', closeDetailModal);
     detailVariantSelect?.addEventListener('change', updateDetailVariantPrice);
     detailAddToCartBtn?.addEventListener('click', () => {
-        if (!currentDetailItem || currentDetailItem.tipo !== 'product') return;
+        if (!currentDetailItem || currentDetailItem.tipo !== 'catalog') return;
         const qty = Math.max(1, Number(detailQtyInput?.value || 1));
         const variantId = Number(detailVariantSelect?.value || 0) || null;
-        addToCart(Number(currentDetailItem.id), 'product', qty, variantId);
+        addToCart(Number(currentDetailItem.id), currentDetailItem.tipo, qty, variantId);
         closeDetailModal();
     });
     reserveClose?.addEventListener('click', closeReserveModal);

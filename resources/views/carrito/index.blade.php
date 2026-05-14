@@ -89,7 +89,7 @@
 
                             {{-- Info --}}
                             <div class="item-info">
-                                <div class="item-type">{{ $item['type'] === 'product' ? 'Producto' : 'Servicio' }}
+                                <div class="item-type">{{ $item['type_label'] ?? ($item['type'] === 'product' ? 'Producto' : ($item['type'] === 'service' ? 'Servicio' : 'Catalogo')) }}
                                 </div>
                                 <div class="item-name">{{ $item['name'] }}</div>
                                 <div class="item-unit">${{ number_format($item['price'], 2) }} c/u</div>
@@ -167,4 +167,3 @@
 </body>
 
 </html>
-

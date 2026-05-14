@@ -15,9 +15,9 @@ class CatalogTypeController extends Controller
     {
         $empresa = $this->getOrCreateEmpresa();
         $search = trim((string) $request->query('q', ''));
+        $baseQuery = CatalogType::query()->where('empresa_id', $empresa->id);
 
-        $types = CatalogType::query()
-            ->where('empresa_id', $empresa->id)
+        $types = (clone $baseQuery)
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($subQuery) use ($search) {
                     $subQuery->where('name', 'like', "%{$search}%")
@@ -30,7 +30,14 @@ class CatalogTypeController extends Controller
             ->paginate(12)
             ->withQueryString();
 
-        return view('admin.catalog.types.index', compact('empresa', 'types'));
+        $stats = [
+            'total' => (clone $baseQuery)->count(),
+            'active' => (clone $baseQuery)->where('active', true)->count(),
+            'categories' => \App\Models\CatalogCategory::query()->where('empresa_id', $empresa->id)->count(),
+            'items' => \App\Models\CatalogItem::query()->where('empresa_id', $empresa->id)->count(),
+        ];
+
+        return view('admin.catalog.types.index', compact('empresa', 'types', 'stats'));
     }
 
     public function create()
@@ -73,6 +80,10 @@ class CatalogTypeController extends Controller
     public function show(CatalogType $catalogType)
     {
         $catalogType->loadCount(['categories', 'items']);
+        $catalogType->load([
+            'categories' => fn ($query) => $query->ordered(),
+            'items' => fn ($query) => $query->with(['category'])->withCount('variants')->ordered()->limit(12),
+        ]);
 
         return view('admin.catalog.types.show', compact('catalogType'));
     }

@@ -76,15 +76,15 @@
             }).then(() => window.websiteNotify?.('success', 'Agregado al carrito'));
         }
 
-        function reserveService(serviceId) {
-            fetch(`/reservas/servicio/${serviceId}`, {
+        function reserveCatalogItem(itemId) {
+            fetch('{{ route('reservas.catalogo') }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
                     'X-Requested-With': 'XMLHttpRequest'
                 },
-                body: JSON.stringify({})
+                body: JSON.stringify({ item_id: itemId, item_type: 'catalog' })
             })
                 .then(async (response) => {
                     const data = await response.json().catch(() => ({}));
@@ -97,8 +97,8 @@
         }
 
         function reserveItem(id, type) {
-            if (type === 'service') {
-                reserveService(id);
+            if (type === 'catalog') {
+                reserveCatalogItem(id);
                 return;
             }
 
@@ -106,18 +106,8 @@
             if (contactoSection) {
                 contactoSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
-            window.websiteNotify?.('info', 'Puedes reservar este producto desde Contacto o WhatsApp.');
+            window.websiteNotify?.('info', 'Este flujo ahora usa solo items del catalogo universal.');
         }
-
-        window.addEventListener('resize', () => {
-            ['servicios-track', 'productos-track'].forEach(id => {
-                const track = document.getElementById(id);
-                if (track) {
-                    track.dataset.offset = 0;
-                    track.style.transform = 'translateX(0)';
-                }
-            });
-        });
 
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(e => {

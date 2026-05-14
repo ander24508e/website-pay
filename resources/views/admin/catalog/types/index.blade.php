@@ -31,6 +31,25 @@
         </a>
     </div>
 
+    <div class="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+            <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Subnegocios</p>
+            <p class="text-2xl font-bold text-gray-800 mt-2">{{ $stats['total'] }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+            <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Activos</p>
+            <p class="text-2xl font-bold text-emerald-700 mt-2">{{ $stats['active'] }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+            <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Categorias</p>
+            <p class="text-2xl font-bold text-gray-800 mt-2">{{ $stats['categories'] }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+            <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Items</p>
+            <p class="text-2xl font-bold text-gray-800 mt-2">{{ $stats['items'] }}</p>
+        </div>
+    </div>
+
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
         <div class="overflow-x-auto overflow-y-auto max-h-[70vh]">
             <table class="min-w-[760px] w-full text-sm text-left">
@@ -74,6 +93,8 @@
                             <td class="px-4 sm:px-6 py-3 sm:py-4">
                                 <div class="flex flex-wrap gap-2">
                                     <a href="{{ route('admin.catalog-types.show', $type) }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium px-2 py-1">Ver</a>
+                                    <a href="{{ route('admin.catalog-items.index', ['catalog_type_id' => $type->id]) }}" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium px-2 py-1">Items</a>
+                                    <a href="{{ route('admin.catalog-items.create', ['catalog_type_id' => $type->id, 'return_to_type' => 1]) }}" class="text-emerald-600 hover:text-emerald-800 text-sm font-medium px-2 py-1">+ Item</a>
                                     <a href="{{ route('admin.catalog-types.edit', $type) }}" class="text-yellow-600 hover:text-yellow-800 text-sm font-medium px-2 py-1">Editar</a>
                                     <form method="POST" action="{{ route('admin.catalog-types.destroy', $type) }}" onsubmit="return confirm('¿Eliminar este tipo de catalogo?');" class="inline">
                                         @csrf

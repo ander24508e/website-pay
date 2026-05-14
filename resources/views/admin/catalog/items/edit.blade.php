@@ -84,6 +84,10 @@
                         <p class="text-xs text-gray-400">Puede usarse para reservas futuras</p>
                     </div>
                 </label>
+
+                <div class="rounded-lg bg-gray-50 border border-gray-200 p-3 text-xs text-gray-500">
+                    Ajusta esta combinacion segun el rol real del item en la web: venta, reserva o ambas.
+                </div>
             </div>
         </div>
 

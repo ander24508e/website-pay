@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
-use App\Models\ProductVariant;
-use App\Models\Service;
+use App\Models\CatalogItem;
+use App\Models\CatalogItemVariant;
 use Illuminate\Http\Request;
 
 class CarritoController extends Controller
@@ -20,41 +19,33 @@ class CarritoController extends Controller
     {
         $request->validate([
             'id'       => 'required|integer',
-            'type'     => 'required|in:product,service',
+            'type'     => 'required|in:catalog',
             'quantity' => 'required|integer|min:1',
             'variant_id' => 'nullable|integer',
         ]);
 
-        $item = $request->type === 'product'
-            ? Product::where('active', true)->findOrFail($request->id)
-            : Service::where('active', true)->findOrFail($request->id);
+        $item = CatalogItem::where('active', true)->where('purchasable', true)->findOrFail($request->id);
 
         $carrito = session()->get('carrito', []);
         $key = $request->type . '_' . $request->id;
 
         $variantId = null;
         $variantLabel = null;
-        $price = $item->price;
+        $price = (float) $item->display_price;
 
-        if ($request->type === 'product') {
-            if ($request->filled('variant_id')) {
-                $variant = ProductVariant::query()
-                    ->where('product_id', $item->id)
-                    ->where('active', true)
-                    ->find($request->variant_id);
-            } else {
-                $variant = $item->activeVariants()->orderByDesc('is_default')->orderBy('price')->first();
-            }
-
-            if ($variant) {
-                $variantId = $variant->id;
-                $variantLabel = trim(($variant->presentation ?? '') . ' ' . ($variant->specification ?? ''));
-                $price = (float) $variant->price;
-            } else {
-                $price = (float) $item->display_price;
-            }
+        if ($request->filled('variant_id')) {
+            $variant = CatalogItemVariant::query()
+                ->where('catalog_item_id', $item->id)
+                ->where('active', true)
+                ->find($request->variant_id);
         } else {
-            $price = (float) $item->price;
+            $variant = $item->activeVariants()->orderByDesc('is_default')->orderBy('sort_order')->orderBy('price')->first();
+        }
+
+        if ($variant) {
+            $variantId = $variant->id;
+            $variantLabel = trim(($variant->presentation ?? '') . ' ' . ($variant->specification ?? ''));
+            $price = (float) ($variant->price ?? $item->display_price);
         }
 
         $key = $request->type . '_' . $request->id . ($variantId ? ('_v' . $variantId) : '');
@@ -71,6 +62,7 @@ class CarritoController extends Controller
                 'id'       => $item->id,
                 'variant_id' => $variantId,
                 'type'     => $request->type,
+                'type_label' => $item->type->name ?? 'Catalogo',
                 'name'     => $name,
                 'price'    => $price,
                 'image'    => $item->image,
