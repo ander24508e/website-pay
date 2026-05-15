@@ -27,23 +27,25 @@
                 <span><x-heroicon-o-globe-alt class="w-5 h-5" /></span>
                 <span>Pagina web</span>
             </a>
-            <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+            <a href="{{ route('admin.dashboard') }}"
+                class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                 <span><x-heroicon-o-chart-bar class="w-5 h-5" /></span>
                 <span>Dashboard</span>
             </a>
-            <a href="{{ route('admin.catalog.index') }}"
-                class="{{ request()->routeIs('admin.catalog.*') || request()->routeIs('admin.catalog-types.*') || request()->routeIs('admin.catalog-categories.*') || request()->routeIs('admin.catalog-items.*') || request()->routeIs('admin.catalog-variants.*') || request()->routeIs('admin.banners.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-squares-2x2 class="w-5 h-5" /></span>
-                <span>Catalogo</span>
-            </a>
-            <a href="{{ route('admin.banners.index') }}" class="{{ request()->routeIs('admin.banners.*') ? 'active' : '' }}">
+            <a href="{{ route('admin.banners.index') }}"
+                class="{{ request()->routeIs('admin.banners.*') ? 'active' : '' }}">
                 <span><x-heroicon-o-rectangle-group class="w-5 h-5" /></span>
                 <span>Banners</span>
+            </a>
+            <a href="{{ route('admin.catalog.index') }}"
+                class="{{ request()->routeIs('admin.catalog.*') || request()->routeIs('admin.catalog-types.*') || request()->routeIs('admin.catalog-categories.*') || request()->routeIs('admin.catalog-items.*') || request()->routeIs('admin.catalog-variants.*') || request()->routeIs('admin.catalog.*') ? 'active' : '' }}">
+                <span><x-heroicon-o-squares-2x2 class="w-5 h-5" /></span>
+                <span>Catálogo</span>
             </a>
             <a href="{{ route('admin.orders.index') }}"
                 class="{{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
                 <span><x-heroicon-o-shopping-bag class="w-5 h-5" /></span>
-                <span>Ã“rdenes</span>
+                <span>Órdenes</span>
             </a>
             <a href="{{ route('admin.transactions.index') }}"
                 class="{{ request()->routeIs('admin.transactions.*') ? 'active' : '' }}">
@@ -67,7 +69,7 @@
                 <button type="submit"
                     class="w-full text-left px-4 py-2 rounded-lg hover:bg-red-700 transition flex items-center gap-3 text-red-400">
                     <span><x-heroicon-o-arrow-right-start-on-rectangle class="w-5 h-5" /></span>
-                    <span>Cerrar sesiÃ³n</span>
+                    <span>Cerrar sesión</span>
                 </button>
             </form>
         </div>
@@ -104,14 +106,15 @@
                 <span><x-heroicon-o-chart-bar class="w-5 h-5" /></span>
                 <span>Dashboard</span>
             </a>
-            <a href="{{ route('admin.catalog.index') }}"
-                class="{{ request()->routeIs('admin.catalog.*') || request()->routeIs('admin.catalog-types.*') || request()->routeIs('admin.catalog-categories.*') || request()->routeIs('admin.catalog-items.*') || request()->routeIs('admin.catalog-variants.*') || request()->routeIs('admin.banners.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-squares-2x2 class="w-5 h-5" /></span>
-                <span>Catalogo</span>
-            </a>
-            <a href="{{ route('admin.banners.index') }}" class="{{ request()->routeIs('admin.banners.*') ? 'active' : '' }}">
+            <a href="{{ route('admin.banners.index') }}"
+                class="{{ request()->routeIs('admin.banners.*') ? 'active' : '' }}">
                 <span><x-heroicon-o-rectangle-group class="w-5 h-5" /></span>
                 <span>Banners</span>
+            </a>
+            <a href="{{ route('admin.catalog.index') }}"
+                class="{{ request()->routeIs('admin.catalog.*') || request()->routeIs('admin.catalog-types.*') || request()->routeIs('admin.catalog-categories.*') || request()->routeIs('admin.catalog-items.*') || request()->routeIs('admin.catalog-variants.*') || request()->routeIs('admin.catalog.*') ? 'active' : '' }}">
+                <span><x-heroicon-o-squares-2x2 class="w-5 h-5" /></span>
+                <span>Catálogo</span>
             </a>
             <a href="{{ route('admin.orders.index') }}"
                 class="{{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
@@ -139,7 +142,7 @@
                 @csrf
                 <button type="submit" class="flex items-center gap-3 w-full">
                     <span><x-heroicon-o-arrow-right-start-on-rectangle class="w-5 h-5" /></span>
-                    <span>Cerrar sesiÃ³n</span>
+                    <span>Cerrar sesión</span>
                 </button>
             </form>
         </div>

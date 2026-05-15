@@ -51,7 +51,7 @@
         <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
             <div class="flex items-center gap-2">
                 <x-heroicon-o-shopping-bag class="w-5 h-5 text-gray-600" />
-                <h3 class="font-semibold text-gray-800">Ãšltimas Ã“rdenes</h3>
+                <h3 class="font-semibold text-gray-800">Últimas Órdenes</h3>
             </div>
             <a href="{{ route('admin.orders.index') }}" class="text-xs text-gray-400 hover:text-gray-700 flex items-center gap-1">
                 Ver todas <x-heroicon-o-arrow-right class="w-3 h-3" />
@@ -89,7 +89,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="4" class="px-6 py-8 text-center text-gray-400 text-sm">No hay Ã³rdenes aÃºn.</td>
+                    <td colspan="4" class="px-6 py-8 text-center text-gray-400 text-sm">No existen Órdenes.</td>
                 </tr>
                 @endforelse
             </tbody>
@@ -99,7 +99,7 @@
     <div class="bg-white rounded-xl shadow-sm p-6">
         <div class="flex items-center gap-2 mb-4">
             <x-heroicon-o-bolt class="w-5 h-5 text-gray-600" />
-            <h3 class="font-semibold text-gray-800">Accesos RÃ¡pidos</h3>
+            <h3 class="font-semibold text-gray-800">Accesos Rá pidos</h3>
         </div>
         <div class="grid grid-cols-2 gap-3">
             <a href="{{ route('admin.catalog-types.create') }}"

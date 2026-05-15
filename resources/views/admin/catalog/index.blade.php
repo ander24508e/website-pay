@@ -14,10 +14,10 @@
             <x-heroicon-o-squares-2x2 class="w-8 h-8 text-gray-800" />
             <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Catalogo</h2>
         </div>
-        <p class="text-gray-500 text-sm mt-1">Administra subnegocios, categorias, items y variantes desde un solo lugar.</p>
+        <p class="text-gray-500 text-sm mt-1">Administrar Catálogo.</p>
     </div>
 
-    <div class="flex flex-wrap gap-3 mb-6">
+    {{-- <div class="flex flex-wrap gap-3 mb-6">
         <a href="{{ route('admin.catalog-types.create') }}" class="bg-gray-900 text-white px-4 py-2.5 rounded-lg font-medium text-sm hover:bg-gray-700 transition">
             + Nuevo Subnegocio
         </a>
@@ -30,7 +30,7 @@
         <a href="{{ route('admin.catalog-variants.create') }}" class="bg-white text-gray-700 px-4 py-2.5 rounded-lg font-medium text-sm hover:bg-gray-50 transition border border-gray-200">
             + Nueva Variante
         </a>
-    </div>
+    </div> --}}
 
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <a href="{{ route('admin.catalog-types.index') }}" class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition">
