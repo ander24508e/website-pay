@@ -17,10 +17,12 @@ class LandingBanner extends Model
         'boton_link',
         'orden',
         'activo',
+        'es_principal',
     ];
 
     protected $casts = [
         'activo' => 'boolean',
+        'es_principal' => 'boolean',
     ];
 
     public function empresa()
@@ -30,7 +32,7 @@ class LandingBanner extends Model
 
     public function scopeOrdered(Builder $query): Builder
     {
-        return $query->orderBy('orden')->orderByDesc('created_at');
+        return $query->orderByDesc('es_principal')->orderBy('orden')->orderByDesc('created_at');
     }
 
     public function scopeActive(Builder $query): Builder

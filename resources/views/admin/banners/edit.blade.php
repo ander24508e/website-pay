@@ -58,6 +58,20 @@
                         <p class="text-xs text-gray-400">Visible en el carrusel</p>
                     </div>
                 </label>
+
+                <label class="flex items-center gap-3 cursor-pointer mt-4">
+                    <div class="relative">
+                        <input type="hidden" name="es_principal" value="0" form="banner-form">
+                        <input type="checkbox" name="es_principal" value="1" form="banner-form"
+                               {{ old('es_principal', $banner->es_principal) ? 'checked' : '' }} class="sr-only peer">
+                        <div class="w-11 h-6 bg-gray-200 peer-checked:bg-amber-500 rounded-full transition-colors"></div>
+                        <div class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5"></div>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-700">Banner principal</p>
+                        <p class="text-xs text-gray-400">Si activas este, los demas dejan de ser principal.</p>
+                    </div>
+                </label>
             </div>
 
             <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-red-100">

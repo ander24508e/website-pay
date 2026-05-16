@@ -336,10 +336,13 @@
     }
 
     .hero-carousel-track {
-        min-height: calc(100dvh - 64px);
+        min-height: auto;
         display: flex;
         overflow-x: auto;
         overflow-y: hidden;
+        gap: 0.95rem;
+        padding: 0 0.6rem 0.85rem;
+        margin: 0 -0.6rem;
         scroll-snap-type: x mandatory;
         -webkit-overflow-scrolling: touch;
         scroll-behavior: smooth;
@@ -351,10 +354,11 @@
         inset: auto;
         opacity: 1;
         pointer-events: auto;
-        flex: 0 0 100%;
-        min-inline-size: 100%;
-        min-height: calc(100dvh - 64px);
-        scroll-snap-align: center;
+        flex: 0 0 min(88vw, 700px);
+        min-inline-size: min(88vw, 700px);
+        min-height: min(78dvh, 620px);
+        scroll-snap-align: center !important;
+        border-radius: 12px;
     }
 
     .hero-slide.is-active {
@@ -376,7 +380,7 @@
     }
 
     .hero-slide-content {
-        padding: 2.1rem 1rem 5.25rem;
+        padding: 2rem 1rem 4.25rem;
         text-align: center;
     }
 
@@ -392,28 +396,7 @@
     }
 
     .hero-control {
-        width: 42px;
-        height: 42px;
-        top: auto;
-        bottom: 4.5rem;
-        transform: none;
-    }
-
-    .hero-control:hover {
-        transform: scale(1.05);
-    }
-
-    .hero-control svg {
-        width: 20px;
-        height: 20px;
-    }
-
-    .hero-control-prev {
-        left: 0.75rem;
-    }
-
-    .hero-control-next {
-        right: 0.75rem;
+        display: none;
     }
 
     .btn-primary,
@@ -425,7 +408,7 @@
 
     .hero-stats {
         gap: 1.5rem;
-        margin-top: 3rem;
+        margin-top: 2.25rem;
         padding-top: 2rem;
         justify-content: center;
     }
@@ -453,7 +436,8 @@
         bottom: 1.25rem;
     }
 
-    .hero-control {
-        bottom: 3.5rem;
+    .hero-slide {
+        flex: 0 0 92vw;
+        min-inline-size: 92vw;
     }
 }

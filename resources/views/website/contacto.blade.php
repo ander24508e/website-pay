@@ -24,10 +24,7 @@
             <div class="contact-list">
                 <div class="contact-row">
                     <div class="contact-bullet whatsapp" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none" class="contact-icon" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M20 11.5C20 16.1944 16.1944 20 11.5 20C10.1227 20 8.8219 19.6725 7.67138 19.0916L4 20L4.94782 16.4705C4.33863 15.3343 4 14.0356 4 12.6579C4 7.96355 7.80558 4.15796 12.5 4.15796C17.1944 4.15796 21 7.96355 21 12.6579" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M9.26953 9.18066C9.51604 8.95114 9.74158 8.95114 9.90865 9.18066L11.1302 10.859C11.2599 11.0373 11.2599 11.2872 11.1302 11.4655L10.587 12.2116C10.4878 12.3478 10.4685 12.5293 10.5365 12.6835C10.8954 13.4972 11.5028 14.1046 12.3165 14.4635C12.4707 14.5315 12.6522 14.5122 12.7884 14.413L13.5345 13.8698C13.7128 13.7401 13.9627 13.7401 14.141 13.8698L15.8193 15.0914C16.0489 15.2584 16.0489 15.484 15.8193 15.7305L15.3334 16.2524C14.8914 16.7274 14.2005 16.8898 13.5993 16.6654C10.8744 15.6487 8.35133 13.1256 7.33463 10.4007C7.11023 9.79953 7.27256 9.10856 7.74758 8.66661L8.26953 8.18066H9.26953Z" fill="currentColor"/>
-                        </svg>
+                        <span class="contact-emoji">💬</span>
                     </div>
                     <div>
                         <h4 class="warn">WhatsApp</h4>
@@ -38,10 +35,7 @@
 
                 <div class="contact-row">
                     <div class="contact-bullet location" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none" class="contact-icon" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 21C12 21 18 15.6274 18 10.5C18 7.18629 15.3137 4.5 12 4.5C8.68629 4.5 6 7.18629 6 10.5C6 15.6274 12 21 12 21Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                            <circle cx="12" cy="10.5" r="2.25" fill="currentColor"/>
-                        </svg>
+                        <span class="contact-emoji">📍</span>
                     </div>
                     <div>
                         <h4 class="warn">Ubicacion</h4>
@@ -52,10 +46,7 @@
 
                 <div class="contact-row">
                     <div class="contact-bullet schedule" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none" class="contact-icon" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"/>
-                            <path d="M12 8V12L14.75 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
+                        <span class="contact-emoji">🗓️</span>
                     </div>
                     <div>
                         <h4 class="warn">Horarios</h4>

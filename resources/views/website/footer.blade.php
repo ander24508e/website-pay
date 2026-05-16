@@ -4,6 +4,37 @@
     $footerPartes = explode(' ', $footerNombre);
     $footerInicio = implode(' ', array_slice($footerPartes, 0, 2));
     $footerDestacado = implode(' ', array_slice($footerPartes, 2));
+
+    // Horarios flexibles:
+    // - Una sola linea: "Lunes a Sabado 08:00 - 18:00"
+    // - Multiples lineas (textarea) o separadas por "|":
+    //   "Lun - Vie: 08:00 - 18:00 | Sabado: 08:00 - 15:00 | Domingo: Cerrado"
+    $rawHorario = trim((string) ($empresa->horario_texto ?? ''));
+    $chunks = preg_split('/\r\n|\r|\n|\|/', $rawHorario) ?: [];
+    $chunks = array_values(array_filter(array_map('trim', $chunks), fn ($v) => $v !== ''));
+
+    $footerHorarios = [];
+    foreach ($chunks as $chunk) {
+        if (strpos($chunk, ':') !== false) {
+            [$label, $value] = array_map('trim', explode(':', $chunk, 2));
+            $footerHorarios[] = [
+                'label' => $label !== '' ? $label : 'Horario',
+                'value' => $value !== '' ? $value : $chunk,
+            ];
+        } else {
+            $footerHorarios[] = [
+                'label' => 'Horario',
+                'value' => $chunk,
+            ];
+        }
+    }
+
+    if (empty($footerHorarios)) {
+        $footerHorarios[] = [
+            'label' => 'Horario',
+            'value' => 'Lunes a Sabado: 08:00 - 18:00',
+        ];
+    }
 @endphp
 
 <footer class="footer footer-modern">
@@ -45,15 +76,14 @@
             <div class="footer-col">
                 <h4>Horarios</h4>
                 <ul class="footer-list">
-                    <li><span></span>
-                        <div><strong>Lun - Vie</strong><small>{{ $empresa->horario_texto }}</small></div>
-                    </li>
-                    <li><span></span>
-                        <div><strong>Sabado</strong><small>{{ $empresa->horario_texto }}</small></div>
-                    </li>
-                    <li><span></span>
-                        <div><strong>Domingo</strong><small>Domingos (Mantenimiento)</small></div>
-                    </li>
+                    @foreach($footerHorarios as $item)
+                        <li><span></span>
+                            <div>
+                                <strong>{{ $item['label'] }}</strong>
+                                <small>{{ $item['value'] }}</small>
+                            </div>
+                        </li>
+                    @endforeach
                 </ul>
             </div>
 

@@ -36,6 +36,7 @@
                         <th class="px-4 sm:px-6 py-3 sm:py-4">Titulo</th>
                         <th class="px-4 sm:px-6 py-3 sm:py-4">Boton</th>
                         <th class="px-4 sm:px-6 py-3 sm:py-4">Orden</th>
+                        <th class="px-4 sm:px-6 py-3 sm:py-4">Principal</th>
                         <th class="px-4 sm:px-6 py-3 sm:py-4">Estado</th>
                         <th class="px-4 sm:px-6 py-3 sm:py-4">Acciones</th>
                     </tr>
@@ -65,6 +66,14 @@
 
                             <td class="px-4 sm:px-6 py-3 sm:py-4 font-semibold text-gray-800">
                                 {{ $banner->orden }}
+                            </td>
+
+                            <td class="px-4 sm:px-6 py-3 sm:py-4">
+                                @if($banner->es_principal)
+                                    <span class="bg-amber-100 text-amber-700 px-2 sm:px-3 py-1 rounded-full text-xs font-medium">Principal</span>
+                                @else
+                                    <span class="bg-gray-100 text-gray-500 px-2 sm:px-3 py-1 rounded-full text-xs font-medium">Normal</span>
+                                @endif
                             </td>
 
                             <td class="px-4 sm:px-6 py-3 sm:py-4">
@@ -98,7 +107,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center py-10 text-gray-400">No hay banners registrados</td>
+                            <td colspan="7" class="text-center py-10 text-gray-400">No hay banners registrados</td>
                         </tr>
                     @endforelse
                 </tbody>
