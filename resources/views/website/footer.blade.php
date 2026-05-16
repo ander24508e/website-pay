@@ -5,31 +5,46 @@
     $footerInicio = implode(' ', array_slice($footerPartes, 0, 2));
     $footerDestacado = implode(' ', array_slice($footerPartes, 2));
 
-    // Horarios flexibles:
-    // - Una sola linea: "Lunes a Sabado 08:00 - 18:00"
-    // - Multiples lineas (textarea) o separadas por "|":
-    //   "Lun - Vie: 08:00 - 18:00 | Sabado: 08:00 - 15:00 | Domingo: Cerrado"
+    // Horarios flexibles y compatibles
     $rawHorario = trim((string) ($empresa->horario_texto ?? ''));
-    $chunks = preg_split('/\r\n|\r|\n|\|/', $rawHorario) ?: [];
-    $chunks = array_values(array_filter(array_map('trim', $chunks), fn ($v) => $v !== ''));
-
     $footerHorarios = [];
-    foreach ($chunks as $chunk) {
-        if (strpos($chunk, ':') !== false) {
-            [$label, $value] = array_map('trim', explode(':', $chunk, 2));
+
+    if ($rawHorario !== '') {
+        $normalized = str_replace(["\r\n", "\r"], "\n", $rawHorario);
+        $normalized = str_replace('|', "\n", $normalized);
+        $chunks = explode("\n", $normalized);
+
+        foreach ($chunks as $chunk) {
+            $chunk = trim($chunk);
+            if ($chunk === '') {
+                continue;
+            }
+
+            $label = 'Horario';
+            $value = $chunk;
+
+            if (strpos($chunk, ':') !== false) {
+                $parts = explode(':', $chunk, 2);
+                $candidateLabel = trim($parts[0]);
+                $candidateValue = trim($parts[1]);
+
+                if ($candidateLabel !== '') {
+                    $label = $candidateLabel;
+                }
+
+                if ($candidateValue !== '') {
+                    $value = $candidateValue;
+                }
+            }
+
             $footerHorarios[] = [
-                'label' => $label !== '' ? $label : 'Horario',
-                'value' => $value !== '' ? $value : $chunk,
-            ];
-        } else {
-            $footerHorarios[] = [
-                'label' => 'Horario',
-                'value' => $chunk,
+                'label' => $label,
+                'value' => $value,
             ];
         }
     }
 
-    if (empty($footerHorarios)) {
+    if (count($footerHorarios) === 0) {
         $footerHorarios[] = [
             'label' => 'Horario',
             'value' => 'Lunes a Sabado: 08:00 - 18:00',
