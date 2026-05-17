@@ -40,12 +40,11 @@
 }
 
 .contact-bullet {
-    width: 44px;
-    height: 44px;
-    border-radius: 999px;
+    width: 24px;
+    height: 24px;
+    border-radius: 0;
     display: grid;
     place-items: center;
-    font-size: 1.2rem;
     flex-shrink: 0;
 }
 
@@ -55,21 +54,22 @@
     display: block;
 }
 
-.contact-bullet.whatsapp { background: color-mix(in srgb, var(--brand-primary) 18%, white 82%); }
-.contact-bullet.location { background: color-mix(in srgb, var(--brand-primary) 22%, white 78%); }
-.contact-bullet.schedule { background: color-mix(in srgb, var(--brand-tertiary) 24%, var(--dark-2) 76%); }
-
-.contact-bullet.whatsapp {
-    color: #25d366;
+.contact-icon-logo {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    display: block;
 }
 
-.contact-bullet.location {
-    color: var(--brand-primary);
+.contact-emoji {
+    font-size: 1.25rem;
+    line-height: 1;
+    display: inline-block;
 }
 
-.contact-bullet.schedule {
-    color: var(--brand-tertiary);
-}
+.contact-bullet.whatsapp,
+.contact-bullet.location,
+.contact-bullet.schedule { background: transparent; }
 
 .contact-row h4 {
     color: var(--brand-primary);
@@ -262,5 +262,14 @@
 
     .map-frame {
         height: 220px;
+    }
+
+    .contact-icon-logo {
+        width: 22px;
+        height: 22px;
+    }
+
+    .contact-emoji {
+        font-size: 1.15rem;
     }
 }

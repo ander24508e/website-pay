@@ -44,6 +44,14 @@
                         </div>
                     @endif
                 </div>
+
+                <div class="mt-4 pt-4 border-t border-gray-100">
+                    @if($banner->es_principal)
+                        <span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-medium">Banner principal</span>
+                    @else
+                        <span class="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-medium">Banner normal</span>
+                    @endif
+                </div>
             </div>
 
             <div class="bg-white rounded-xl shadow-sm p-6">

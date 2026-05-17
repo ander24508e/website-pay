@@ -74,6 +74,7 @@ class BannerController extends Controller
             'boton_link'  => 'nullable|string|max:1000',
             'orden'       => 'nullable|integer|min:0|max:9999',
             'activo'      => 'nullable|boolean',
+            'es_principal' => 'nullable|boolean',
         ]);
 
         $empresa = $this->getOrCreateEmpresa();
@@ -86,8 +87,17 @@ class BannerController extends Controller
         $banner->boton_link  = $this->cleanInput($data['boton_link'] ?? null);
         $banner->orden       = (int) ($data['orden'] ?? 0);
         $banner->activo      = (bool) ($data['activo'] ?? true);
+        $banner->es_principal = (bool) ($data['es_principal'] ?? false);
         $banner->imagen      = $request->file('imagen')->store('landing_banners', 'public');
         $banner->save();
+
+        if ($banner->es_principal) {
+            LandingBanner::query()
+                ->where('empresa_id', $empresa->id)
+                ->where('id', '!=', $banner->id)
+                ->where('es_principal', true)
+                ->update(['es_principal' => false]);
+        }
 
         return redirect()->route('admin.banners.index')->with('success', 'Banner creado correctamente.');
     }
@@ -105,7 +115,10 @@ class BannerController extends Controller
             'boton_link'  => 'nullable|string|max:1000',
             'orden'       => 'nullable|integer|min:0|max:9999',
             'activo'      => 'nullable|boolean',
+            'es_principal' => 'nullable|boolean',
         ]);
+
+        $empresa = $this->getOrCreateEmpresa();
 
         $banner->titulo      = $this->cleanInput($data['titulo'] ?? null);
         $banner->texto       = $this->cleanInput($data['texto'] ?? null);
@@ -113,6 +126,7 @@ class BannerController extends Controller
         $banner->boton_link  = $this->cleanInput($data['boton_link'] ?? null);
         $banner->orden       = (int) ($data['orden'] ?? 0);
         $banner->activo      = (bool) ($data['activo'] ?? false);
+        $banner->es_principal = (bool) ($data['es_principal'] ?? false);
 
         if ($request->hasFile('imagen') && $request->file('imagen')->isValid()) {
             if ($banner->imagen && Storage::disk('public')->exists($banner->imagen)) {
@@ -122,6 +136,14 @@ class BannerController extends Controller
         }
 
         $banner->save();
+
+        if ($banner->es_principal) {
+            LandingBanner::query()
+                ->where('empresa_id', $empresa->id)
+                ->where('id', '!=', $banner->id)
+                ->where('es_principal', true)
+                ->update(['es_principal' => false]);
+        }
 
         return redirect()->route('admin.banners.index')->with('success', 'Banner actualizado correctamente.');
     }

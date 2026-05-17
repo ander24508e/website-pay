@@ -32,7 +32,7 @@ class Empresa extends Model
 
     public function landingBanners()
     {
-        return $this->hasMany(LandingBanner::class)->orderBy('orden')->orderByDesc('created_at');
+        return $this->hasMany(LandingBanner::class)->ordered();
     }
 
     public function catalogTypes()

@@ -10,14 +10,14 @@ class RoleSeeder extends Seeder
 {
     public function run(): void
     {
-        // Limpiar caché primero
+        // Limpiar caché de permisos
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // Crear roles — firstOrCreate evita duplicados
+        // Crear roles
         Role::firstOrCreate(['name' => 'admin',   'guard_name' => 'web']);
-        Role::firstOrCreate(['name' => 'cliente',  'guard_name' => 'web']);
+        Role::firstOrCreate(['name' => 'cliente', 'guard_name' => 'web']);
 
-        // Crear usuario admin
+        // Usuario administrador
         $admin = User::firstOrCreate(
             ['email' => 'admin@endara.com'],
             [
@@ -28,7 +28,19 @@ class RoleSeeder extends Seeder
         );
         $admin->assignRole('admin');
 
+        // Usuario cliente de ejemplo
+        $cliente = User::firstOrCreate(
+            ['email' => 'cliente@test.com'],
+            [
+                'name'              => 'Daniel',
+                'password'          => bcrypt('Cliente123'),
+                'email_verified_at' => now(),
+            ]
+        );
+        $cliente->assignRole('cliente');
+
         $this->command->info('✅ Roles creados: admin, cliente');
         $this->command->info('✅ Admin: admin@endara.com / Admin123');
+        $this->command->info('✅ Cliente: cliente@test.com / Cliente123');
     }
 }
