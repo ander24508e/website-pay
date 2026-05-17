@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CatalogItem;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\Product;
-use App\Models\Service;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -57,9 +56,9 @@ class OrderController extends Controller
         $order = Order::create($this->buildOrderData((float) $total, auth()->id(), false));
 
         foreach ($carrito as $item) {
-            $model = $item['type'] === 'product'
-                ? Product::find($item['id'])
-                : Service::find($item['id']);
+            $model = $item['type'] === 'catalog'
+                ? CatalogItem::find($item['id'])
+                : null;
 
             if (!$model) {
                 continue;
@@ -178,65 +177,24 @@ class OrderController extends Controller
         return view('admin.orders.index', compact('orders'));
     }
 
-    public function reservarServicio(Request $request, Service $service)
-    {
-        if (!$service->active) {
-            return response()->json(['message' => 'Servicio no disponible para reserva.'], 422);
-        }
-
-        $source = strtolower(trim(($service->name ?? '') . ' ' . ($service->description ?? '') . ' ' . ($service->category->name ?? '')));
-
-        if (!str_contains($source, 'lavad')) {
-            return response()->json(['message' => 'Solo se pueden reservar servicios de lavada.'], 422);
-        }
-
-        $order = Order::create($this->buildOrderData((float) $service->price, auth()->id(), true));
-
-        OrderItem::create([
-            'order_id' => $order->id,
-            'itemable_type' => Service::class,
-            'itemable_id' => $service->id,
-            'quantity' => 1,
-            'unit_price' => $service->price,
-        ]);
-
-        return response()->json([
-            'ok' => true,
-            'message' => 'Reserva creada exitosamente.',
-            'order_id' => $order->id,
-        ]);
-    }
-
     public function reservarCatalogo(Request $request)
     {
         $data = $request->validate([
             'item_id' => ['required', 'integer'],
-            'item_type' => ['required', Rule::in(['product', 'service'])],
+            'item_type' => ['required', Rule::in(['catalog'])],
         ]);
 
-        $model = null;
-
-        if ($data['item_type'] === 'product') {
-            $model = Product::query()->where('active', true)->find($data['item_id']);
-        }
-
-        if ($data['item_type'] === 'service') {
-            $model = Service::query()->with('category')->where('active', true)->find($data['item_id']);
-        }
+        $model = CatalogItem::query()
+            ->with(['type', 'category', 'activeVariants'])
+            ->where('active', true)
+            ->where('reservable', true)
+            ->find($data['item_id']);
 
         if (!$model) {
             return response()->json(['message' => 'El item seleccionado no esta disponible.'], 404);
         }
 
-        if ($model instanceof Service) {
-            $source = strtolower(trim(($model->name ?? '') . ' ' . ($model->description ?? '') . ' ' . ($model->category->name ?? '')));
-
-            if (!str_contains($source, 'lavad')) {
-                return response()->json(['message' => 'Solo se pueden reservar servicios de lavada.'], 422);
-            }
-        }
-
-        $reservationPrice = $model instanceof Product ? (float) $model->display_price : (float) $model->price;
+        $reservationPrice = (float) $model->display_price;
         $order = Order::create($this->buildOrderData($reservationPrice, auth()->id(), true));
 
         OrderItem::create([

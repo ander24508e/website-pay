@@ -9,30 +9,28 @@
         <x-heroicon-o-chart-bar class="w-8 h-8 text-gray-800" />
         <h2 class="text-2xl font-bold text-gray-800">Dashboard</h2>
     </div>
-    <p class="text-gray-500 text-sm mt-1">Resumen general de tu negocio</p>
+    <p class="text-gray-500 text-sm mt-1">Resumen general del catalogo universal y tu negocio</p>
 </div>
 
-{{-- Tarjetas de resumen --}}
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-
     <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-blue-500">
-        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Productos</p>
-        <p class="text-3xl font-bold text-gray-800 mt-1">{{ \App\Models\Product::count() }}</p>
-        <a href="{{ route('admin.products.index') }}" class="text-blue-500 text-xs mt-2 inline-block hover:underline flex items-center gap-1">
+        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Subnegocios</p>
+        <p class="text-3xl font-bold text-gray-800 mt-1">{{ \App\Models\CatalogType::count() }}</p>
+        <a href="{{ route('admin.catalog-types.index') }}" class="text-blue-500 text-xs mt-2 inline-block hover:underline flex items-center gap-1">
             Ver todos <x-heroicon-o-arrow-right class="w-3 h-3" />
         </a>
     </div>
 
     <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-green-500">
-        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Servicios</p>
-        <p class="text-3xl font-bold text-gray-800 mt-1">{{ \App\Models\Service::count() }}</p>
-        <a href="{{ route('admin.services.index') }}" class="text-green-500 text-xs mt-2 inline-block hover:underline flex items-center gap-1">
+        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Items Universales</p>
+        <p class="text-3xl font-bold text-gray-800 mt-1">{{ \App\Models\CatalogItem::count() }}</p>
+        <a href="{{ route('admin.catalog-items.index') }}" class="text-green-500 text-xs mt-2 inline-block hover:underline flex items-center gap-1">
             Ver todos <x-heroicon-o-arrow-right class="w-3 h-3" />
         </a>
     </div>
 
     <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-yellow-500">
-        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Órdenes</p>
+        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Ã“rdenes</p>
         <p class="text-3xl font-bold text-gray-800 mt-1">{{ \App\Models\Order::count() }}</p>
         <a href="{{ route('admin.orders.index') }}" class="text-yellow-500 text-xs mt-2 inline-block hover:underline flex items-center gap-1">
             Ver todas <x-heroicon-o-arrow-right class="w-3 h-3" />
@@ -46,13 +44,9 @@
             Ver todas <x-heroicon-o-arrow-right class="w-3 h-3" />
         </a>
     </div>
-
 </div>
 
-{{-- Segunda fila --}}
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-    {{-- Últimas órdenes --}}
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
             <div class="flex items-center gap-2">
@@ -81,54 +75,47 @@
                     <td class="px-6 py-3">
                         @php
                             $colors = [
-                                'pending'   => 'bg-yellow-100 text-yellow-700',
-                                'paid'      => 'bg-green-100 text-green-700',
-                                'failed'    => 'bg-red-100 text-red-700',
+                                'pending' => 'bg-yellow-100 text-yellow-700',
+                                'paid' => 'bg-green-100 text-green-700',
+                                'failed' => 'bg-red-100 text-red-700',
                                 'cancelled' => 'bg-gray-100 text-gray-600',
-                            ];
-                            $icons = [
-                                'pending'   => '<x-heroicon-o-clock class="w-3 h-3 mr-1 inline" />',
-                                'paid'      => '<x-heroicon-o-check-circle class="w-3 h-3 mr-1 inline" />',
-                                'failed'    => '<x-heroicon-o-x-circle class="w-3 h-3 mr-1 inline" />',
-                                'cancelled' => '<x-heroicon-o-ban class="w-3 h-3 mr-1 inline" />',
+                                'reserved' => 'bg-blue-100 text-blue-700',
                             ];
                         @endphp
                         <span class="px-2 py-1 rounded-full text-xs font-medium {{ $colors[$order->status] ?? 'bg-gray-100 text-gray-600' }} flex items-center w-fit">
-                            {!! $icons[$order->status] ?? '' !!}
                             {{ ucfirst($order->status) }}
                         </span>
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="4" class="px-6 py-8 text-center text-gray-400 text-sm">No hay órdenes aún.</td>
+                    <td colspan="4" class="px-6 py-8 text-center text-gray-400 text-sm">No existen Órdenes.</td>
                 </tr>
                 @endforelse
             </tbody>
         </table>
     </div>
 
-    {{-- Accesos rápidos --}}
     <div class="bg-white rounded-xl shadow-sm p-6">
         <div class="flex items-center gap-2 mb-4">
             <x-heroicon-o-bolt class="w-5 h-5 text-gray-600" />
-            <h3 class="font-semibold text-gray-800">Accesos Rápidos</h3>
+            <h3 class="font-semibold text-gray-800">Accesos Rá pidos</h3>
         </div>
         <div class="grid grid-cols-2 gap-3">
-            <a href="{{ route('admin.products.create') }}"
+            <a href="{{ route('admin.catalog-types.create') }}"
                class="flex flex-col items-center justify-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition text-center">
-                <x-heroicon-o-cube class="w-8 h-8 text-gray-600 mb-1" />
-                <span class="text-xs font-semibold text-gray-700">Nuevo Producto</span>
+                <x-heroicon-o-squares-plus class="w-8 h-8 text-gray-600 mb-1" />
+                <span class="text-xs font-semibold text-gray-700">Nuevo Subnegocio</span>
             </a>
-            <a href="{{ route('admin.services.create') }}"
-               class="flex flex-col items-center justify-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition text-center">
-                <x-heroicon-o-wrench class="w-8 h-8 text-gray-600 mb-1" />
-                <span class="text-xs font-semibold text-gray-700">Nuevo Servicio</span>
-            </a>
-            <a href="{{ route('admin.categories.create') }}"
+            <a href="{{ route('admin.catalog-categories.create') }}"
                class="flex flex-col items-center justify-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition text-center">
                 <x-heroicon-o-tag class="w-8 h-8 text-gray-600 mb-1" />
-                <span class="text-xs font-semibold text-gray-700">Nueva Categoría</span>
+                <span class="text-xs font-semibold text-gray-700">Nueva Categoria</span>
+            </a>
+            <a href="{{ route('admin.catalog-items.create') }}"
+               class="flex flex-col items-center justify-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition text-center">
+                <x-heroicon-o-archive-box class="w-8 h-8 text-gray-600 mb-1" />
+                <span class="text-xs font-semibold text-gray-700">Nuevo Item</span>
             </a>
             <a href="{{ route('admin.empresa.edit') }}"
                class="flex flex-col items-center justify-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition text-center">
@@ -137,7 +124,6 @@
             </a>
         </div>
 
-        {{-- Ingresos del mes --}}
         <div class="mt-6 pt-4 border-t border-gray-100">
             <div class="flex items-center gap-2 mb-1">
                 <x-heroicon-o-currency-dollar class="w-4 h-4 text-gray-500" />
@@ -149,7 +135,6 @@
             <p class="text-xs text-gray-400 mt-1">Solo transacciones aprobadas</p>
         </div>
     </div>
-
 </div>
 
 @endsection

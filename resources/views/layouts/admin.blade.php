@@ -12,13 +12,13 @@
     <!-- Tooltip flotante para feedback -->
     <div class="sidebar-tooltip" id="sidebarTooltip"></div>
 
-    <!-- Overlay para sidebar móvil -->
+    <!-- Overlay para sidebar mÃ³vil -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <!-- Sidebar (Colapsable al hacer clic) -->
     <aside class="sidebar flex flex-col h-full" id="sidebar">
         <div class="sidebar-header">
-            <h1>⚡ Admin Panel</h1>
+            <h1>âš¡ Admin Panel</h1>
             <p>{{ auth()->user()?->name ?? 'Administrador' }}</p>
         </div>
 
@@ -27,28 +27,20 @@
                 <span><x-heroicon-o-globe-alt class="w-5 h-5" /></span>
                 <span>Pagina web</span>
             </a>
-            <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+            <a href="{{ route('admin.dashboard') }}"
+                class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                 <span><x-heroicon-o-chart-bar class="w-5 h-5" /></span>
                 <span>Dashboard</span>
             </a>
-            <a href="{{ route('admin.banners.index') }}" class="{{ request()->routeIs('admin.banners.*') ? 'active' : '' }}">
+            <a href="{{ route('admin.banners.index') }}"
+                class="{{ request()->routeIs('admin.banners.*') ? 'active' : '' }}">
                 <span><x-heroicon-o-rectangle-group class="w-5 h-5" /></span>
                 <span>Banners</span>
             </a>
-            <a href="{{ route('admin.categories.index') }}"
-                class="{{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-tag class="w-5 h-5" /></span>
-                <span>Categorías</span>
-            </a>
-            <a href="{{ route('admin.products.index') }}"
-                class="{{ request()->routeIs('admin.products.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-cube class="w-5 h-5" /></span>
-                <span>Productos</span>
-            </a>
-            <a href="{{ route('admin.services.index') }}"
-                class="{{ request()->routeIs('admin.services.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-wrench class="w-5 h-5" /></span>
-                <span>Servicios</span>
+            <a href="{{ route('admin.catalog.index') }}"
+                class="{{ request()->routeIs('admin.catalog.*') || request()->routeIs('admin.catalog-types.*') || request()->routeIs('admin.catalog-categories.*') || request()->routeIs('admin.catalog-items.*') || request()->routeIs('admin.catalog-variants.*') || request()->routeIs('admin.catalog.*') ? 'active' : '' }}">
+                <span><x-heroicon-o-squares-2x2 class="w-5 h-5" /></span>
+                <span>Catálogo</span>
             </a>
             <a href="{{ route('admin.orders.index') }}"
                 class="{{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
@@ -60,7 +52,6 @@
                 <span><x-heroicon-o-credit-card class="w-5 h-5" /></span>
                 <span>Transacciones</span>
             </a>
-            <!-- Mi Empresa dentro del nav, justo antes del footer -->
             <a href="{{ route('admin.empresa.edit') }}"
                 class="{{ request()->routeIs('admin.empresa.*') ? 'active' : '' }}">
                 <span><x-heroicon-o-building-office class="w-5 h-5" /></span>
@@ -84,7 +75,7 @@
         </div>
     </aside>
     <main class="main-content" id="mainContent">
-        {{-- Toast Notifications - Aparecen y desaparecen automáticamente --}}
+        {{-- Toast Notifications - Aparecen y desaparecen automÃ¡ticamente --}}
         @include('partials.admin-notifications')
 
         @yield('content')
@@ -94,14 +85,14 @@
     <!-- Overlay difuminado para bottom sheet -->
     <div class="bottom-sheet-overlay" id="bottomSheetOverlay"></div>
 
-    <!-- BOTTOM SHEET (Menú deslizable desde abajo) -->
+    <!-- BOTTOM SHEET (MenÃº deslizable desde abajo) -->
     <div class="bottom-sheet" id="bottomSheet">
         <div class="bottom-sheet-handle">
             <span></span>
         </div>
 
         <div class="bottom-sheet-header">
-            <h2>⚡ Panel de Control</h2>
+            <h2>âš¡ Panel de Control</h2>
             <p>{{ auth()->user()?->name ?? 'Administrador' }}</p>
         </div>
 
@@ -115,29 +106,20 @@
                 <span><x-heroicon-o-chart-bar class="w-5 h-5" /></span>
                 <span>Dashboard</span>
             </a>
-            <a href="{{ route('admin.banners.index') }}" class="{{ request()->routeIs('admin.banners.*') ? 'active' : '' }}">
+            <a href="{{ route('admin.banners.index') }}"
+                class="{{ request()->routeIs('admin.banners.*') ? 'active' : '' }}">
                 <span><x-heroicon-o-rectangle-group class="w-5 h-5" /></span>
                 <span>Banners</span>
             </a>
-            <a href="{{ route('admin.categories.index') }}"
-                class="{{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-tag class="w-5 h-5" /></span>
-                <span>Categorías</span>
-            </a>
-            <a href="{{ route('admin.products.index') }}"
-                class="{{ request()->routeIs('admin.products.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-cube class="w-5 h-5" /></span>
-                <span>Productos</span>
-            </a>
-            <a href="{{ route('admin.services.index') }}"
-                class="{{ request()->routeIs('admin.services.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-wrench class="w-5 h-5" /></span>
-                <span>Servicios</span>
+            <a href="{{ route('admin.catalog.index') }}"
+                class="{{ request()->routeIs('admin.catalog.*') || request()->routeIs('admin.catalog-types.*') || request()->routeIs('admin.catalog-categories.*') || request()->routeIs('admin.catalog-items.*') || request()->routeIs('admin.catalog-variants.*') || request()->routeIs('admin.catalog.*') ? 'active' : '' }}">
+                <span><x-heroicon-o-squares-2x2 class="w-5 h-5" /></span>
+                <span>Catálogo</span>
             </a>
             <a href="{{ route('admin.orders.index') }}"
                 class="{{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
                 <span><x-heroicon-o-shopping-bag class="w-5 h-5" /></span>
-                <span>Órdenes</span>
+                <span>Ã“rdenes</span>
             </a>
             <a href="{{ route('admin.empresa.edit') }}"
                 class="{{ request()->routeIs('admin.empresa.*') ? 'active' : '' }}">
@@ -185,7 +167,7 @@
         document.querySelectorAll('#sidebar a, #sidebar button').forEach(el => {
             el.addEventListener('click', (e) => {
                 clickOnLink = true;
-                // En móvil, cerrar sidebar después del clic
+                // En mÃ³vil, cerrar sidebar despuÃ©s del clic
                 if (window.innerWidth < 768) {
                     closeMobileSidebar();
                 }
@@ -200,7 +182,7 @@
         sidebar.addEventListener('click', (e) => {
             // Solo en desktop (>= 768px)
             if (window.innerWidth >= 768) {
-                // Si el clic fue en un enlace o botón, no colapsar
+                // Si el clic fue en un enlace o botÃ³n, no colapsar
                 if (clickOnLink) {
                     clickOnLink = false;
                     return;
@@ -220,7 +202,7 @@
             });
         });
 
-        // ========== SIDEBAR MÓVIL ==========
+        // ========== SIDEBAR MÃ“VIL ==========
         const menuToggleMobile = document.getElementById('menuToggleMobile');
         const sidebarOverlay = document.getElementById('sidebarOverlay');
 
@@ -239,7 +221,7 @@
         menuToggleMobile?.addEventListener('click', openMobileSidebar);
         sidebarOverlay?.addEventListener('click', closeMobileSidebar);
 
-        // ========== BOTTOM SHEET MÓVIL ==========
+        // ========== BOTTOM SHEET MÃ“VIL ==========
         const bottomSheetTrigger = document.getElementById('bottomSheetTrigger');
         const bottomSheet = document.getElementById('bottomSheet');
         const bottomSheetOverlay = document.getElementById('bottomSheetOverlay');

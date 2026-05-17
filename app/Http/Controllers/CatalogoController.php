@@ -2,102 +2,96 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CatalogItem;
+use App\Models\CatalogType;
 use App\Models\Empresa;
-use App\Models\Product;
-use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 
 class CatalogoController extends Controller
 {
-    private function isReservableService(Service $service): bool
+    private function isUniversalFilter(string $tipo): bool
     {
-        $source = strtolower(
-            trim(
-                ($service->name ?? '') . ' ' .
-                ($service->description ?? '') . ' ' .
-                ($service->category->name ?? '')
-            )
-        );
+        return str_starts_with($tipo, 'tipo:');
+    }
 
-        return str_contains($source, 'lavad');
+    private function extractUniversalFilterSlug(string $tipo): ?string
+    {
+        if (!$this->isUniversalFilter($tipo)) {
+            return null;
+        }
+
+        $slug = trim(substr($tipo, 5));
+
+        return $slug !== '' ? $slug : null;
     }
 
     /**
-     * Obtiene los items del catalogo (productos + servicios) con filtros y paginacion.
+     * Obtiene los items del catalogo universal con filtros y paginacion.
      */
     private function getCatalogItems(string $tipo = 'todos', string $search = '', int $page = 1, int $perPage = 12): array
     {
-        $tipo = in_array($tipo, ['todos', 'productos', 'servicios'], true) ? $tipo : 'todos';
         $search = trim($search);
         $page = max(1, $page);
         $perPage = max(1, $perPage);
+        $universalFilterSlug = $this->extractUniversalFilterSlug($tipo);
 
-        $productosQuery = Product::query()
-            ->with(['category', 'activeVariants'])
-            ->where('active', true)
-            ->when($search !== '', function ($query) use ($search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('name', 'LIKE', "%{$search}%")
-                        ->orWhere('description', 'LIKE', "%{$search}%")
-                        ->orWhereHas('category', fn($cq) => $cq->where('name', 'LIKE', "%{$search}%"));
+        if ($tipo !== 'todos' && !$universalFilterSlug) {
+            $tipo = 'todos';
+        }
+
+        $catalogoUniversales = collect();
+
+        if (Schema::hasTable('catalog_items') && Schema::hasTable('catalog_types')) {
+            $universalesQuery = CatalogItem::query()
+                ->with(['type', 'category', 'activeVariants'])
+                ->where('active', true)
+                ->when($universalFilterSlug, function ($query) use ($universalFilterSlug) {
+                    $query->whereHas('type', function ($typeQuery) use ($universalFilterSlug) {
+                        $typeQuery->where('slug', $universalFilterSlug);
+                    });
+                })
+                ->when($search !== '', function ($query) use ($search) {
+                    $query->where(function ($q) use ($search) {
+                        $q->where('name', 'LIKE', "%{$search}%")
+                            ->orWhere('description', 'LIKE', "%{$search}%")
+                            ->orWhereHas('type', fn($tq) => $tq->where('name', 'LIKE', "%{$search}%"))
+                            ->orWhereHas('category', fn($cq) => $cq->where('name', 'LIKE', "%{$search}%"));
+                    });
                 });
+
+            $catalogoUniversales = $universalesQuery->latest()->get()->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'nombre' => $item->name,
+                    'descripcion' => $item->description,
+                    'precio' => $item->display_price,
+                    'imagen' => $item->image,
+                    'categoria' => $item->category->name ?? ($item->type->name ?? 'Catalogo'),
+                    'tipo' => 'catalog',
+                    'tipo_label' => $item->type->name ?? 'Catalogo',
+                    'comprable' => (bool) $item->purchasable,
+                    'reservable' => (bool) $item->reservable,
+                    'variantes' => $item->activeVariants
+                        ->sortBy(function ($variant) {
+                            return $variant->is_default ? -1 : $variant->sort_order;
+                        })
+                        ->values()
+                        ->map(function ($variant) {
+                            return [
+                                'id' => $variant->id,
+                                'name' => $variant->name,
+                                'presentation' => $variant->presentation,
+                                'specification' => $variant->specification,
+                                'price' => (float) ($variant->price ?? 0),
+                                'is_default' => (bool) $variant->is_default,
+                            ];
+                        }),
+                ];
             });
+        }
 
-        $serviciosQuery = Service::query()
-            ->with('category')
-            ->where('active', true)
-            ->when($search !== '', function ($query) use ($search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('name', 'LIKE', "%{$search}%")
-                        ->orWhere('description', 'LIKE', "%{$search}%")
-                        ->orWhereHas('category', fn($cq) => $cq->where('name', 'LIKE', "%{$search}%"));
-                });
-            });
-
-        $productos = $tipo === 'servicios' ? collect() : $productosQuery->latest()->get();
-        $servicios = $tipo === 'productos' ? collect() : $serviciosQuery->latest()->get();
-
-        $catalogoProductos = $productos->map(function ($producto) {
-            return [
-                'id'          => $producto->id,
-                'nombre'      => $producto->name,
-                'descripcion' => $producto->description,
-                'precio'      => $producto->display_price,
-                'imagen'      => $producto->image,
-                'categoria'   => $producto->category->name ?? 'Producto',
-                'tipo'        => 'product',
-                'variantes'   => $producto->activeVariants
-                    ->sortBy('price')
-                    ->values()
-                    ->map(function ($variant) {
-                        return [
-                            'id' => $variant->id,
-                            'name' => $variant->name,
-                            'presentation' => $variant->presentation,
-                            'specification' => $variant->specification,
-                            'price' => (float) $variant->price,
-                            'is_default' => (bool) $variant->is_default,
-                        ];
-                    }),
-            ];
-        });
-
-        $catalogoServicios = $servicios->map(function ($servicio) {
-            return [
-                'id'          => $servicio->id,
-                'nombre'      => $servicio->name,
-                'descripcion' => $servicio->description,
-                'precio'      => $servicio->price,
-                'imagen'      => $servicio->image,
-                'categoria'   => $servicio->category->name ?? 'Servicio',
-                'tipo'        => 'service',
-                'reservable'  => $this->isReservableService($servicio),
-            ];
-        });
-
-        $catalogo = $catalogoProductos
-            ->concat($catalogoServicios)
+        $catalogo = $catalogoUniversales
             ->sortBy('nombre', SORT_NATURAL | SORT_FLAG_CASE)
             ->values();
 
@@ -115,6 +109,42 @@ class CatalogoController extends Controller
                 'total'        => (int) $total,
             ],
         ];
+    }
+
+    private function getCatalogFilters(): array
+    {
+        $filters = [
+            ['value' => 'todos', 'label' => 'Todos', 'icon' => null],
+        ];
+
+        if (!Schema::hasTable('catalog_types')) {
+            return $filters;
+        }
+
+        $empresa = Empresa::query()->first();
+        if (!$empresa) {
+            return $filters;
+        }
+
+        $types = CatalogType::query()
+            ->where('empresa_id', $empresa->id)
+            ->where('active', true)
+            ->ordered()
+            ->get(['name', 'slug', 'icon']);
+
+        foreach ($types as $type) {
+            if (!$type->slug) {
+                continue;
+            }
+
+            $filters[] = [
+                'value' => 'tipo:' . $type->slug,
+                'label' => $type->name,
+                'icon' => $type->icon,
+            ];
+        }
+
+        return $filters;
     }
 
     /**
@@ -139,6 +169,7 @@ class CatalogoController extends Controller
             'empresa'    => $empresa,
             'catalogo'   => $data['items'],
             'pagination' => $data['pagination'],
+            'catalogFilters' => $this->getCatalogFilters(),
             'tipo'       => $tipo,
             'search'     => $search,
         ]);
@@ -164,23 +195,5 @@ class CatalogoController extends Controller
             'search' => $search,
             'page' => $page,
         ]);
-    }
-
-    /**
-     * Muestra detalle de un producto individual.
-     */
-    public function showProduct(Product $product)
-    {
-        abort_if(!$product->active, 404);
-        return view('catalogo.product', compact('product'));
-    }
-
-    /**
-     * Muestra detalle de un servicio individual.
-     */
-    public function showService(Service $service)
-    {
-        abort_if(!$service->active, 404);
-        return view('catalogo.service', compact('service'));
     }
 }

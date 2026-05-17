@@ -1,0 +1,208 @@
+@extends('layouts.admin')
+
+@section('title', 'Detalle Item Universal')
+
+@section('content')
+<div class="container mx-auto px-4 sm:px-6">
+    <div class="flex flex-wrap items-center gap-2 text-xs text-gray-400 uppercase tracking-wide mb-4">
+        <a href="{{ route('admin.catalog.index') }}" class="hover:text-gray-600 transition">Catalogo</a>
+        <span>/</span>
+        @if($catalogItem->type)
+            <a href="{{ route('admin.catalog-types.show', $catalogItem->type) }}" class="hover:text-gray-600 transition">{{ $catalogItem->type->name }}</a>
+            <span>/</span>
+        @endif
+        @if($catalogItem->category)
+            <a href="{{ route('admin.catalog-categories.show', $catalogItem->category) }}" class="hover:text-gray-600 transition">{{ $catalogItem->category->name }}</a>
+            <span>/</span>
+        @endif
+        <span class="text-gray-600 font-semibold">{{ $catalogItem->name }}</span>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-3 mb-6">
+        <a href="{{ route('admin.catalog-items.index') }}"
+           class="flex items-center justify-center w-9 h-9 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition text-gray-500 hover:text-gray-800">
+            <span aria-hidden="true">&larr;</span>
+        </a>
+        <div>
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-800">{{ $catalogItem->name }}</h2>
+            <p class="text-gray-400 text-sm">Detalle del item universal</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <a href="{{ $catalogItem->type ? route('admin.catalog-types.show', $catalogItem->type) : route('admin.catalog.index') }}" class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:border-gray-300 transition">
+            <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Catalogo</p>
+            <p class="text-lg font-bold text-gray-800 mt-2">{{ $catalogItem->type->name ?? 'Sin tipo' }}</p>
+            <p class="text-xs text-gray-400 mt-1">Volver al subnegocio</p>
+        </a>
+        <a href="{{ $catalogItem->category ? route('admin.catalog-categories.show', $catalogItem->category) : route('admin.catalog-items.index', ['catalog_type_id' => $catalogItem->catalog_type_id]) }}" class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:border-gray-300 transition">
+            <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Categoria</p>
+            <p class="text-lg font-bold text-gray-800 mt-2">{{ $catalogItem->category->name ?? 'Sin categoria' }}</p>
+            <p class="text-xs text-gray-400 mt-1">Ver contexto del item</p>
+        </a>
+        <a href="{{ route('admin.catalog-variants.index', ['catalog_item_id' => $catalogItem->id]) }}" class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:border-gray-300 transition">
+            <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Variantes</p>
+            <p class="text-lg font-bold text-gray-800 mt-2">{{ $catalogItem->variants->count() }}</p>
+            <p class="text-xs text-gray-400 mt-1">Gestionar presentaciones</p>
+        </a>
+    </div>
+
+    <div class="max-w-4xl mx-auto">
+        <div class="bg-white rounded-xl shadow-sm p-4 sm:p-8">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <div class="lg:col-span-1">
+                    <img src="{{ $catalogItem->image_url }}" alt="{{ $catalogItem->name }}" class="w-full h-64 rounded-xl object-cover bg-gray-50 border border-gray-200">
+                </div>
+
+                <div class="lg:col-span-2 space-y-4">
+                    <div>
+                        <p class="text-xs text-gray-400 uppercase tracking-wide">Nombre</p>
+                        <p class="font-semibold text-gray-800 break-words">{{ $catalogItem->name }}</p>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-xs text-gray-400 uppercase tracking-wide">Tipo</p>
+                            <p class="text-gray-700">{{ $catalogItem->type->name ?? 'Sin tipo' }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-400 uppercase tracking-wide">Categoria</p>
+                            <p class="text-gray-700">{{ $catalogItem->category->name ?? '-' }}</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-xs text-gray-400 uppercase tracking-wide">Slug</p>
+                            <p class="text-gray-700 font-mono text-sm">{{ $catalogItem->slug ?: '-' }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-400 uppercase tracking-wide">Precio visible</p>
+                            <p class="text-gray-700 font-semibold">${{ number_format($catalogItem->display_price, 2) }}</p>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 uppercase tracking-wide">Descripcion</p>
+                        <p class="text-gray-700">{{ $catalogItem->description ?: 'Sin descripcion adicional.' }}</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        @if($catalogItem->active)
+                            <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-medium">Activo</span>
+                        @else
+                            <span class="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-medium">Oculto</span>
+                        @endif
+                        @if($catalogItem->featured)
+                            <span class="bg-amber-50 text-amber-700 px-3 py-1 rounded-full text-xs font-medium">Destacado</span>
+                        @endif
+                        @if($catalogItem->purchasable)
+                            <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-medium">Comprable</span>
+                        @endif
+                        @if($catalogItem->reservable)
+                            <span class="bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-medium">Reservable</span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                <div>
+                    <p class="text-xs text-gray-400 uppercase tracking-wide">Orden</p>
+                    <p class="text-gray-700 font-semibold">{{ $catalogItem->sort_order }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-400 uppercase tracking-wide">Variantes</p>
+                    <p class="text-gray-700 font-semibold">{{ $catalogItem->variants->count() }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-400 uppercase tracking-wide">Origen legado</p>
+                    <p class="text-gray-700">{{ $catalogItem->legacy_source_type && $catalogItem->legacy_source_id ? $catalogItem->legacy_source_type . ' #' . $catalogItem->legacy_source_id : 'Aun no migrado' }}</p>
+                </div>
+            </div>
+
+            <div class="mb-8">
+                <div class="flex items-center justify-between gap-3 mb-3">
+                    <div>
+                        <p class="text-sm font-semibold text-gray-800">Variantes del item</p>
+                        <p class="text-xs text-gray-400">Gestiona presentaciones y precios derivados.</p>
+                    </div>
+                    <a href="{{ route('admin.catalog-variants.create', ['catalog_item_id' => $catalogItem->id]) }}"
+                       class="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition text-sm font-medium">
+                        + Nueva Variante
+                    </a>
+                </div>
+
+                <div class="rounded-xl border border-gray-200 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-sm text-left">
+                            <thead class="bg-gray-50 border-b">
+                                <tr>
+                                    <th class="px-4 py-3">Nombre</th>
+                                    <th class="px-4 py-3">Presentacion</th>
+                                    <th class="px-4 py-3">Precio</th>
+                                    <th class="px-4 py-3">Estado</th>
+                                    <th class="px-4 py-3">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y">
+                                @forelse($catalogItem->variants as $variant)
+                                    <tr>
+                                        <td class="px-4 py-3">
+                                            <p class="font-medium text-gray-800">{{ $variant->name }}</p>
+                                            <p class="text-xs text-gray-400">{{ $variant->sku ?: 'Sin SKU' }}</p>
+                                        </td>
+                                        <td class="px-4 py-3 text-gray-600">
+                                            {{ trim(($variant->presentation ?? '') . ' ' . ($variant->specification ?? '')) ?: '-' }}
+                                        </td>
+                                        <td class="px-4 py-3 font-semibold text-gray-800">
+                                            {{ $variant->price !== null ? '$' . number_format((float) $variant->price, 2) : '-' }}
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <div class="flex flex-wrap gap-1">
+                                                @if($variant->active)
+                                                    <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-medium">Activa</span>
+                                                @else
+                                                    <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs font-medium">Oculta</span>
+                                                @endif
+                                                @if($variant->is_default)
+                                                    <span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-xs font-medium">Base</span>
+                                                @endif
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <div class="flex flex-wrap gap-2">
+                                                <a href="{{ route('admin.catalog-variants.show', $variant) }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Ver</a>
+                                                <a href="{{ route('admin.catalog-variants.edit', $variant) }}" class="text-yellow-600 hover:text-yellow-800 text-sm font-medium">Editar</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="5" class="px-4 py-6 text-center text-gray-400">Este item aun no tiene variantes.</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap gap-3 pt-2 border-t border-gray-100">
+                <a href="{{ route('admin.catalog-items.edit', $catalogItem) }}"
+                   class="bg-gray-900 text-white px-5 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-sm">
+                    Editar
+                </a>
+                <a href="{{ route('admin.catalog-variants.create', ['catalog_item_id' => $catalogItem->id]) }}"
+                   class="bg-gray-100 text-gray-700 px-5 py-2.5 rounded-lg hover:bg-gray-200 transition font-medium text-sm">
+                    + Variante
+                </a>
+                <form action="{{ route('admin.catalog-items.destroy', $catalogItem) }}" method="POST"
+                      onsubmit="return confirm('¿Eliminar este item universal?')">
+                    @csrf
+                    @method('DELETE')
+                    <button class="bg-red-50 text-red-600 px-5 py-2.5 rounded-lg hover:bg-red-100 transition font-medium text-sm border border-red-200">
+                        Eliminar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection

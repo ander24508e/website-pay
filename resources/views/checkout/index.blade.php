@@ -64,14 +64,16 @@
                         <div class="item-emoji">
                             @if($item['type'] === 'product')
                                 <x-heroicon-o-cube class="w-6 h-6 text-gray-500" />
-                            @else
+                            @elseif($item['type'] === 'service')
                                 <x-heroicon-o-wrench class="w-6 h-6 text-gray-500" />
+                            @else
+                                <x-heroicon-o-archive-box class="w-6 h-6 text-gray-500" />
                             @endif
                         </div>
                         <div class="item-info">
                             <div class="item-name">{{ $item['name'] }}</div>
                             <div class="item-qty">
-                                {{ $item['type'] === 'product' ? 'Producto' : 'Servicio' }}
+                                {{ $item['type_label'] ?? ($item['type'] === 'product' ? 'Producto' : ($item['type'] === 'service' ? 'Servicio' : 'Catalogo')) }}
                                 × {{ $item['quantity'] }}
                             </div>
                         </div>
