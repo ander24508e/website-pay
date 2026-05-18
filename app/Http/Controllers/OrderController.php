@@ -15,6 +15,55 @@ use Illuminate\Support\Str;
 
 class OrderController extends Controller
 {
+    private function createOrderFromCart(array $carrito): Order
+    {
+        $total = collect($carrito)->sum(fn($item) => $item['price'] * $item['quantity']);
+        $order = Order::create($this->buildOrderData((float) $total, auth()->id(), false));
+
+        foreach ($carrito as $item) {
+            $model = $item['type'] === 'catalog'
+                ? CatalogItem::find($item['id'])
+                : null;
+
+            if (!$model) {
+                continue;
+            }
+
+            OrderItem::create([
+                'order_id' => $order->id,
+                'itemable_type' => get_class($model),
+                'itemable_id' => $model->id,
+                'quantity' => $item['quantity'],
+                'unit_price' => $item['price'],
+            ]);
+        }
+
+        return $order;
+    }
+
+    private function buildPayphoneAmounts(int $totalCents): array
+    {
+        $taxPercent = (int) config('services.payphone.tax', 0);
+        $amountWithTax = 0;      // Base imponible
+        $amountWithoutTax = $totalCents; // Base no imponible
+        $taxAmount = 0;          // Valor de impuesto en centavos
+
+        if ($taxPercent > 0) {
+            // Asumimos que el total incluye impuesto sobre toda la base imponible.
+            $amountWithTax = (int) round($totalCents / (1 + ($taxPercent / 100)));
+            $taxAmount = max(0, $totalCents - $amountWithTax);
+            $amountWithoutTax = 0;
+        }
+
+        return [
+            'tax_percent' => $taxPercent,
+            'amount' => $totalCents,
+            'amount_with_tax' => $amountWithTax,
+            'amount_without_tax' => $amountWithoutTax,
+            'tax' => $taxAmount,
+        ];
+    }
+
     private function buildOrderData(float $total, ?int $userId, bool $isReservation = false): array
     {
         $data = [
@@ -53,26 +102,7 @@ class OrderController extends Controller
             return redirect()->route('carrito.index');
         }
 
-        $total = collect($carrito)->sum(fn($item) => $item['price'] * $item['quantity']);
-        $order = Order::create($this->buildOrderData((float) $total, auth()->id(), false));
-
-        foreach ($carrito as $item) {
-            $model = $item['type'] === 'catalog'
-                ? CatalogItem::find($item['id'])
-                : null;
-
-            if (!$model) {
-                continue;
-            }
-
-            OrderItem::create([
-                'order_id' => $order->id,
-                'itemable_type' => get_class($model),
-                'itemable_id' => $model->id,
-                'quantity' => $item['quantity'],
-                'unit_price' => $item['price'],
-            ]);
-        }
+        $order = $this->createOrderFromCart($carrito);
 
         session()->put('current_order_id', $order->id);
 
@@ -100,6 +130,51 @@ class OrderController extends Controller
         ]);
 
         return redirect()->away($payphoneResponse['payWithCard']);
+    }
+
+    public function prepareBox(Request $request)
+    {
+        $carrito = session()->get('carrito', []);
+
+        if (empty($carrito)) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'El carrito esta vacio.',
+            ], 422);
+        }
+
+        $order = $this->createOrderFromCart($carrito);
+        $totalCents = (int) round($order->total * 100);
+        $amounts = $this->buildPayphoneAmounts($totalCents);
+        $clientTransactionId = 'order-' . $order->id . '-' . Str::uuid()->toString();
+
+        session()->put('current_order_id', $order->id);
+
+        Transaction::create([
+            'order_id' => $order->id,
+            'payphone_ref' => null,
+            'amount' => $order->total,
+            'status' => 'pending',
+            'response_payload' => [
+                'source' => 'payphone_box',
+                'created_at' => now()->toISOString(),
+            ],
+            'client_transaction_id' => $clientTransactionId,
+        ]);
+
+        return response()->json([
+            'ok' => true,
+            'token' => config('services.payphone.token'),
+            'storeId' => config('services.payphone.store_id'),
+            'clientTransactionId' => $clientTransactionId,
+            'amount' => $amounts['amount'],
+            'amountWithoutTax' => $amounts['amount_without_tax'],
+            'amountWithTax' => $amounts['amount_with_tax'],
+            'tax' => $amounts['tax'],
+            'currency' => (string) config('services.payphone.currency', 'USD'),
+            'reference' => 'Orden #' . $order->id . ' - ' . config('app.name'),
+            'timeZone' => (int) config('services.payphone.timezone', -5),
+        ]);
     }
 
     private function prepararPagoPayphone(Order $order): ?array

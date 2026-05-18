@@ -7,12 +7,18 @@
     <title>Checkout — {{ $empresa->nombre ?? 'Endara Carwash' }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    {{-- PayPhone Box v2.0 --}}
+    <link rel="stylesheet" href="https://cdn.payphonetodoesposible.com/box/v2.0/payphone-payment-box.css">
+    <script type="module" src="https://cdn.payphonetodoesposible.com/box/v2.0/payphone-payment-box.js"></script>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     @vite(['resources/css/app.css', 'resources/scss/checkout.scss', 'resources/js/app.js'])
 </head>
 <body>
 
 <header class="topbar">
-    <a href="{{ route('home') }}" class="topbar-brand">ENDARA <span>CARWASH</span></a>
+    <a href="{{ route('home') }}" class="topbar-brand">
+        {{ strtoupper($empresa->nombre_corto ?? 'CARWASH') }}
+    </a>
     <div class="steps">
         <span class="step done">Carrito</span>
         <span class="step-sep">›</span>
@@ -30,7 +36,7 @@
 
     <div class="checkout-grid">
 
-        {{-- Columna izquierda --}}
+        {{-- Columna izquierda: datos + ítems --}}
         <div>
             {{-- Datos del cliente --}}
             <div class="card">
@@ -46,7 +52,7 @@
                                 <div class="cliente-email">{{ auth()->user()->email }}</div>
                             @else
                                 <div class="cliente-name">Cliente Invitado</div>
-                                <div class="cliente-email">Compra sin iniciar sesion</div>
+                                <div class="cliente-email">Compra sin iniciar sesión</div>
                             @endauth
                         </div>
                     </div>
@@ -73,7 +79,7 @@
                         <div class="item-info">
                             <div class="item-name">{{ $item['name'] }}</div>
                             <div class="item-qty">
-                                {{ $item['type_label'] ?? ($item['type'] === 'product' ? 'Producto' : ($item['type'] === 'service' ? 'Servicio' : 'Catalogo')) }}
+                                {{ $item['type_label'] ?? ($item['type'] === 'product' ? 'Producto' : ($item['type'] === 'service' ? 'Servicio' : 'Catálogo')) }}
                                 × {{ $item['quantity'] }}
                             </div>
                         </div>
@@ -84,7 +90,7 @@
             </div>
         </div>
 
-        {{-- Resumen lateral --}}
+        {{-- Columna derecha: resumen + cajita --}}
         <div class="resumen-card">
             <div class="resumen-title">Total a Pagar</div>
 
@@ -102,7 +108,7 @@
                 <span class="resumen-total-value">${{ number_format($total, 2) }}</span>
             </div>
 
-            {{-- Badge Payphone --}}
+            {{-- Badge seguridad --}}
             <div class="payphone-badge">
                 <x-heroicon-o-credit-card class="w-6 h-6 text-gray-500" />
                 <div>
@@ -111,15 +117,17 @@
                 </div>
             </div>
 
-            {{-- Botón pagar --}}
-            <form action="{{ route('orden.store') }}" method="POST" id="checkout-form">
-                @csrf
-                <button type="submit" class="btn-pay" id="pay-btn"
-                        onclick="this.disabled=true; this.textContent='Procesando...'; this.form.submit();">
-                    <x-heroicon-o-credit-card class="w-5 h-5 inline mr-2" />
-                    Pagar ${{ number_format($total, 2) }}
-                </button>
-            </form>
+            {{-- Botón que abre la cajita --}}
+            <button type="button" class="btn-pay" id="pay-btn-box">
+                <x-heroicon-o-credit-card class="w-5 h-5 inline mr-2" />
+                Pagar ${{ number_format($total, 2) }} con PayPhone
+            </button>
+
+            {{-- Aquí se renderiza la cajita de PayPhone --}}
+            <div id="pp-button" style="margin-top: 12px;"></div>
+
+            {{-- Mensaje de estado --}}
+            <div id="pay-status" style="display:none; margin-top:10px; font-size:0.8rem; color:#888; text-align:center;"></div>
 
             <a href="{{ route('carrito.index') }}" class="btn-back flex items-center justify-center gap-1">
                 <x-heroicon-o-arrow-left class="w-4 h-4 inline mr-1"/>
@@ -134,6 +142,81 @@
 
     </div>
 </div>
+
 @include('website.whatsapp-float')
+
+<script>
+    (() => {
+        const payBtn   = document.getElementById('pay-btn-box');
+        const statusEl = document.getElementById('pay-status');
+        const csrf     = document.querySelector('meta[name="csrf-token"]')?.content;
+        const endpoint = @json(route('orden.cajita'));
+
+        function setStatus(msg) {
+            if (!statusEl) return;
+            statusEl.style.display = msg ? 'block' : 'none';
+            statusEl.textContent   = msg;
+        }
+
+        if (!payBtn || !csrf) return;
+
+        payBtn.addEventListener('click', async () => {
+            payBtn.disabled    = true;
+            payBtn.textContent = 'Preparando pago…';
+            setStatus('Conectando con Payphone…');
+
+            try {
+                const res  = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrf,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({}),
+                });
+
+                const data = await res.json();
+
+                if (!res.ok || !data.ok) {
+                    throw new Error(data.message || 'No se pudo preparar el pago.');
+                }
+
+                if (typeof PPaymentButtonBox !== 'function') {
+                    throw new Error('El módulo de pago no cargó. Recarga la página e intenta de nuevo.');
+                }
+
+                // Ocultar botón y mostrar cajita
+                payBtn.style.display = 'none';
+                setStatus('Ingresa los datos de tu tarjeta para completar el pago.');
+
+                new PPaymentButtonBox({
+                    token:               data.token,
+                    clientTransactionId: data.clientTransactionId,
+                    amount:              data.amount,
+                    amountWithoutTax:    data.amountWithoutTax,
+                    amountWithTax:       data.amountWithTax,
+                    tax:                 data.tax,
+                    service:             0,
+                    tip:                 0,
+                    currency:            data.currency,
+                    storeId:             data.storeId,
+                    reference:           data.reference,
+                    lang:                'es',
+                    defaultMethod:       'card',
+                    timeZone:            data.timeZone,
+                }).render('pp-button');
+
+            } catch (err) {
+                console.error('PayPhone error:', err);
+                setStatus('');
+                payBtn.disabled    = false;
+                payBtn.textContent = 'Pagar ${{ number_format($total, 2) }} con PayPhone';
+                alert(err.message || 'Ocurrió un error. Intenta de nuevo.');
+            }
+        });
+    })();
+</script>
+
 </body>
 </html>

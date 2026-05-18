@@ -12,7 +12,7 @@ class TransactionController extends Controller
 {
     public function success(Request $request)
     {
-        $clientTransactionId = (string) $request->input('clientTransactionId', '');
+        $clientTransactionId = (string) ($request->input('clientTransactionId') ?: $request->input('clientTxId') ?: '');
         $orderId = session('current_order_id');
         $order = $orderId ? Order::find($orderId) : null;
 
@@ -97,7 +97,7 @@ class TransactionController extends Controller
 
     public function cancel(Request $request)
     {
-        $clientTransactionId = (string) $request->input('clientTransactionId', '');
+        $clientTransactionId = (string) ($request->input('clientTransactionId') ?: $request->input('clientTxId') ?: '');
         $orderId = session('current_order_id');
         $order = $orderId ? Order::find($orderId) : null;
 
@@ -154,10 +154,13 @@ class TransactionController extends Controller
         }
 
         try {
-            $response = Http::withHeaders([
+            $headers = [
                 'Authorization' => 'Bearer ' . config('services.payphone.token'),
                 'Content-Type' => 'application/json',
-            ])->post(config('services.payphone.base_url') . '/api/button/Confirm', [
+            ];
+
+            // 1) Confirm para boton de redireccion
+            $response = Http::withHeaders($headers)->post(config('services.payphone.base_url') . '/api/button/Confirm', [
                 'id' => $id,
                 'clientTransactionId' => $clientTransactionId,
             ]);
@@ -166,9 +169,26 @@ class TransactionController extends Controller
                 return $response->json();
             }
 
-            Log::error('Payphone confirm failed', [
+            Log::warning('Payphone button confirm failed, trying payment-box confirm', [
                 'status' => $response->status(),
                 'body' => $response->body(),
+            ]);
+
+            // 2) Fallback para cajita de pagos
+            $boxResponse = Http::withHeaders($headers)->post('https://paymentbox.payphonetodoesposible.com/api/confirm', [
+                'id' => (int) $id,
+                'clientTxId' => $clientTransactionId,
+            ]);
+
+            if ($boxResponse->successful()) {
+                return $boxResponse->json();
+            }
+
+            Log::error('Payphone confirm failed in both endpoints', [
+                'button_status' => $response->status(),
+                'button_body' => $response->body(),
+                'box_status' => $boxResponse->status(),
+                'box_body' => $boxResponse->body(),
             ]);
 
             return null;

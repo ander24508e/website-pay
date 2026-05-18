@@ -29,6 +29,7 @@ Route::delete('/carrito/limpiar', [CarritoController::class, 'limpiar'])->name('
 // Checkout y pagos publicos (invitado o autenticado)
 Route::get('/checkout', [OrderController::class, 'checkout'])->name('checkout');
 Route::post('/orden/crear', [OrderController::class, 'store'])->name('orden.store');
+Route::post('/orden/cajita', [OrderController::class, 'prepareBox'])->name('orden.cajita');
 Route::post('/reservas/catalogo', [OrderController::class, 'reservarCatalogo'])->name('reservas.catalogo');
 Route::get('/orden/{order}/confirmacion', [OrderController::class, 'confirmacion'])->name('orden.confirmacion');
 Route::get('/transaccion-exitosa', [TransactionController::class, 'success'])->name('transaccion.exitosa');
