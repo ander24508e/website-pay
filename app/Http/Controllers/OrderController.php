@@ -238,7 +238,7 @@ class OrderController extends Controller
             return view('admin.orders.show', compact('order'));
         }
 
-        return view('checkout.show', compact('order'));
+        return redirect()->route('orden.confirmacion', $order);
     }
 
     public function confirmacion(Order $order)

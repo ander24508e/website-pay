@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     @php($empresa = App\Models\Empresa::first())
-    <title>Pago Exitoso — {{ $empresa->nombre ?? 'Endara Carwash' }}</title>
+    <title>Pago Exitoso â€” {{ $empresa->nombre ?? 'Endara Carwash' }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     {{-- QR Code library --}}
@@ -12,7 +12,7 @@
     @vite(['resources/css/app.css', 'resources/scss/checkout.scss', 'resources/js/app.js'])
 
     <style>
-        /* ── Variables ─────────────────────────────────────────── */
+        /* â”€â”€ Variables â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         :root {
             --green:      #22c55e;
             --green-dark: #16a34a;
@@ -37,7 +37,7 @@
             padding: 2rem 1rem 4rem;
         }
 
-        /* ── Topbar ─────────────────────────────────────────────── */
+        /* â”€â”€ Topbar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .topbar {
             width: 100%;
             max-width: 680px;
@@ -55,7 +55,7 @@
         }
         .topbar-brand span { color: var(--green); }
 
-        /* ── Card principal ─────────────────────────────────────── */
+        /* â”€â”€ Card principal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .confirm-card {
             background: var(--card-bg);
             border: 1px solid var(--border);
@@ -69,7 +69,7 @@
             gap: 1.25rem;
         }
 
-        /* ── Ícono éxito ────────────────────────────────────────── */
+        /* â”€â”€ Ãcono Ã©xito â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .success-ring {
             width: 80px;
             height: 80px;
@@ -88,7 +88,7 @@
             100% { transform: scale(1);   opacity: 1; }
         }
 
-        /* ── Títulos ────────────────────────────────────────────── */
+        /* â”€â”€ TÃ­tulos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .order-badge {
             background: rgba(34,197,94,0.1);
             color: var(--green);
@@ -115,14 +115,14 @@
             line-height: 1.6;
         }
 
-        /* ── Divider ────────────────────────────────────────────── */
+        /* â”€â”€ Divider â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .divider {
             width: 100%;
             height: 1px;
             background: var(--border);
         }
 
-        /* ── Detalle pago ───────────────────────────────────────── */
+        /* â”€â”€ Detalle pago â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .detail-grid {
             width: 100%;
             display: grid;
@@ -155,7 +155,7 @@
         .detail-value.mono { font-family: monospace; font-size: 0.78rem; }
         .detail-value.green { color: var(--green); }
 
-        /* ── Items de la orden ──────────────────────────────────── */
+        /* â”€â”€ Items de la orden â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .items-section {
             width: 100%;
         }
@@ -202,7 +202,7 @@
             letter-spacing: 0.04em;
         }
 
-        /* ── QR Section ─────────────────────────────────────────── */
+        /* â”€â”€ QR Section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .qr-section {
             width: 100%;
             background: rgba(34,197,94,0.04);
@@ -239,7 +239,7 @@
             display: block;
         }
 
-        /* ── Botón volver ───────────────────────────────────────── */
+        /* â”€â”€ BotÃ³n volver â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .btn-home {
             display: inline-flex;
             align-items: center;
@@ -298,7 +298,7 @@
             width: 100%;
         }
 
-        /* ── Nota final ─────────────────────────────────────────── */
+        /* â”€â”€ Nota final â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .thanks-note {
             font-size: 0.75rem;
             color: var(--muted);
@@ -315,21 +315,21 @@
     <a href="{{ route('home') }}" class="topbar-brand">
         {{ strtoupper($empresa->nombre_corto ?? 'CARWASH') }}
     </a>
-    <span class="order-badge">Pago exitoso ✓</span>
+    <span class="order-badge">Pago exitoso âœ“</span>
 </header>
 
 {{-- Card principal --}}
 <div class="confirm-card">
 
-    {{-- Ícono --}}
-    <div class="success-ring">✅</div>
+    {{-- Ãcono --}}
+    <div class="success-ring">âœ…</div>
 
-    {{-- Badges y título --}}
+    {{-- Badges y tÃ­tulo --}}
     <span class="order-badge">Orden #{{ $order->id }}</span>
-    <h1 class="confirm-title">¡PAGO <span>EXITOSO</span>!</h1>
+    <h1 class="confirm-title">Â¡PAGO <span>EXITOSO</span>!</h1>
     <p class="confirm-sub">
         Tu pago fue procesado correctamente por Payphone.<br>
-        Guarda el QR como comprobante de tu transacción.
+        Guarda el QR como comprobante de tu transacciÃ³n.
     </p>
 
     <div class="divider"></div>
@@ -350,7 +350,7 @@
         </div>
         <div class="detail-item">
             <div class="detail-label">Estado</div>
-            <div class="detail-value green">Aprobado ✓</div>
+            <div class="detail-value green">Aprobado âœ“</div>
         </div>
         @if($order->transaction && $order->transaction->payphone_ref)
         <div class="detail-item" style="grid-column: 1 / -1;">
@@ -369,7 +369,7 @@
         <div class="item-row">
             <div class="item-name-wrap">
                 <span class="item-name">{{ $item->itemable->name ?? $item->item_display_name }}</span>
-                <span class="item-qty">{{ $item->item_type_label }} × {{ $item->quantity }}</span>
+                <span class="item-qty">{{ $item->item_type_label }} Ã— {{ $item->quantity }}</span>
             </div>
             <span class="item-subtotal">${{ number_format($item->unit_price * $item->quantity, 2) }}</span>
         </div>
@@ -384,10 +384,10 @@
 
     {{-- QR de respaldo --}}
     <div class="qr-section">
-        <div class="qr-title">📱 Código QR de respaldo</div>
+        <div class="qr-title">ðŸ“± CÃ³digo QR de respaldo</div>
         <div id="qr-canvas"></div>
         <div class="qr-subtitle">
-            Escanea este código para ver el detalle de tu orden.<br>
+            Escanea este cÃ³digo para ver el detalle de tu orden.<br>
             Guarda una captura de pantalla como comprobante.
         </div>
     </div>
@@ -397,18 +397,18 @@
     {{-- Acciones --}}
     <div class="actions-wrap">
         <a href="{{ route('home') }}" class="btn-home">
-            ← Volver al inicio
+            â† Volver al inicio
         </a>
         @auth
         <a href="{{ route('customer.compras') }}" class="btn-compras">
-            📋 Ver mis compras
+            ðŸ“‹ Ver mis compras
         </a>
         @endauth
     </div>
 
     <p class="thanks-note">
-        ¡Gracias por confiar en <strong>{{ $empresa->nombre ?? 'Lavadora y Lubricadora Endara' }}</strong>!<br>
-        Tu vehículo quedará en las mejores manos. 🚗✨
+        Â¡Gracias por confiar en <strong>{{ $empresa->nombre ?? 'Lavadora y Lubricadora Endara' }}</strong>!<br>
+        Tu vehÃ­culo quedarÃ¡ en las mejores manos. ðŸš—âœ¨
     </p>
 
 </div>
@@ -416,50 +416,28 @@
 @include('website.whatsapp-float')
 
 <script>
-    // Datos para el QR — todo lo relevante de la transacción
-    const qrData = {
-        orden:    '#{{ $order->id }}',
-        cliente:  '{{ addslashes($order->user->name ?? "Invitado") }}',
-        email:    '{{ addslashes($order->user->email ?? "") }}',
-        total:    '${{ number_format($order->total, 2) }}',
-        estado:   'Pagado',
-        fecha:    '{{ $order->updated_at->format("d/m/Y H:i") }}',
-        ref:      '{{ $order->transaction->payphone_ref ?? "" }}',
-        items:    @json($order->items->map(fn($i) => ($i->itemable->name ?? $i->item_display_name) . ' x' . $i->quantity)),
-        link:     '{{ route("orden.confirmacion", $order) }}',
-        empresa:  '{{ addslashes($empresa->nombre ?? "Endara Carwash") }}',
+    const qrPayload = {
+        company: @json($empresa->nombre ?? 'Endara Carwash'),
+        orderId: {{ $order->id }},
+        paidAt: @json($order->updated_at->toIso8601String()),
+        amount: {{ (float) $order->total }},
+        currency: 'USD',
+        status: 'approved',
+        payphoneRef: @json(optional($order->transaction)->payphone_ref),
+        clientTransactionId: @json(optional($order->transaction)->client_transaction_id),
+        verificationUrl: @json(route('orden.confirmacion', $order)),
     };
 
-    // Convertir a texto legible para el QR
-    const qrText = [
-        qrData.empresa,
-        '━━━━━━━━━━━━━━━━━━',
-        'Orden: ' + qrData.orden,
-        'Cliente: ' + qrData.cliente,
-        qrData.email ? 'Email: ' + qrData.email : '',
-        'Fecha: ' + qrData.fecha,
-        'Total: ' + qrData.total,
-        'Estado: ' + qrData.estado,
-        qrData.ref ? 'Ref. Payphone: ' + qrData.ref : '',
-        '━━━━━━━━━━━━━━━━━━',
-        'Servicios/Productos:',
-        ...qrData.items.map(i => '• ' + i),
-        '━━━━━━━━━━━━━━━━━━',
-        'Verificar en: ' + qrData.link,
-    ].filter(Boolean).join('\n');
-
-    // Generar QR
     document.addEventListener('DOMContentLoaded', () => {
         new QRCode(document.getElementById('qr-canvas'), {
-            text:           qrText,
-            width:          200,
-            height:         200,
-            colorDark:      '#000000',
-            colorLight:     '#ffffff',
-            correctLevel:   QRCode.CorrectLevel.M,
+            text: JSON.stringify(qrPayload),
+            width: 200,
+            height: 200,
+            colorDark: '#000000',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.M,
         });
     });
 </script>
-
 </body>
 </html>

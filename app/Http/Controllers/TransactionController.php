@@ -79,6 +79,7 @@ class TransactionController extends Controller
             ]);
 
             session()->forget(['carrito', 'current_order_id']);
+            session()->regenerateToken();
 
             return redirect()->route('orden.confirmacion', $order)
                 ->with('success', 'Pago realizado con exito.');

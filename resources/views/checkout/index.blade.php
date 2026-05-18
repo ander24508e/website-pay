@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     @php($empresa = App\Models\Empresa::first())
-    <title>Checkout — {{ $empresa->nombre ?? 'Endara Carwash' }}</title>
+    <title>Checkout â€” {{ $empresa->nombre ?? 'Endara Carwash' }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     {{-- PayPhone Box v2.0 --}}
@@ -21,12 +21,12 @@
     </a>
     <div class="steps">
         <span class="step done">Carrito</span>
-        <span class="step-sep">›</span>
+        <span class="step-sep">â€º</span>
         <span class="step active">Resumen</span>
-        <span class="step-sep">›</span>
+        <span class="step-sep">â€º</span>
         <span class="step">Pago</span>
-        <span class="step-sep">›</span>
-        <span class="step">Confirmación</span>
+        <span class="step-sep">â€º</span>
+        <span class="step">ConfirmaciÃ³n</span>
     </div>
 </header>
 
@@ -36,7 +36,7 @@
 
     <div class="checkout-grid">
 
-        {{-- Columna izquierda: datos + ítems --}}
+        {{-- Columna izquierda: datos + Ã­tems --}}
         <div>
             {{-- Datos del cliente --}}
             <div class="card">
@@ -52,17 +52,17 @@
                                 <div class="cliente-email">{{ auth()->user()->email }}</div>
                             @else
                                 <div class="cliente-name">Cliente Invitado</div>
-                                <div class="cliente-email">Compra sin iniciar sesión</div>
+                                <div class="cliente-email">Compra sin iniciar sesiÃ³n</div>
                             @endauth
                         </div>
                     </div>
                 </div>
             </div>
 
-            {{-- Ítems --}}
+            {{-- Ãtems --}}
             <div class="card">
                 <div class="card-header">
-                    <h3>Ítems del pedido ({{ count($carrito) }})</h3>
+                    <h3>Ãtems del pedido ({{ count($carrito) }})</h3>
                 </div>
                 <div class="card-body">
                     @foreach($carrito as $item)
@@ -79,13 +79,23 @@
                         <div class="item-info">
                             <div class="item-name">{{ $item['name'] }}</div>
                             <div class="item-qty">
-                                {{ $item['type_label'] ?? ($item['type'] === 'product' ? 'Producto' : ($item['type'] === 'service' ? 'Servicio' : 'Catálogo')) }}
-                                × {{ $item['quantity'] }}
+                                {{ $item['type_label'] ?? ($item['type'] === 'product' ? 'Producto' : ($item['type'] === 'service' ? 'Servicio' : 'CatÃ¡logo')) }}
+                                Ã— {{ $item['quantity'] }}
                             </div>
                         </div>
                         <div class="item-price">${{ number_format($item['price'] * $item['quantity'], 2) }}</div>
                     </div>
                     @endforeach
+                </div>
+            </div>
+
+            <div class="card" id="payphone-section" style="display:none;">
+                <div class="card-header">
+                    <h3>Completa tu pago</h3>
+                </div>
+                <div class="card-body">
+                    <div id="pp-button"></div>
+                    <div id="pay-status" style="display:none; margin-top:10px; font-size:0.8rem; color:#888; text-align:center;"></div>
                 </div>
             </div>
         </div>
@@ -96,7 +106,7 @@
 
             @foreach($carrito as $item)
             <div class="resumen-row">
-                <span>{{ Str::limit($item['name'], 22) }} ×{{ $item['quantity'] }}</span>
+                <span>{{ Str::limit($item['name'], 22) }} Ã—{{ $item['quantity'] }}</span>
                 <span>${{ number_format($item['price'] * $item['quantity'], 2) }}</span>
             </div>
             @endforeach
@@ -113,21 +123,18 @@
                 <x-heroicon-o-credit-card class="w-6 h-6 text-gray-500" />
                 <div>
                     <strong>Pago seguro con Payphone</strong><br>
-                    <span>Tarjeta de crédito o débito</span>
+                    <span>Tarjeta de crÃ©dito o dÃ©bito</span>
                 </div>
             </div>
 
-            {{-- Botón que abre la cajita --}}
+            {{-- BotÃ³n que abre la cajita --}}
             <button type="button" class="btn-pay" id="pay-btn-box">
                 <x-heroicon-o-credit-card class="w-5 h-5 inline mr-2" />
                 Pagar ${{ number_format($total, 2) }} con PayPhone
             </button>
 
-            {{-- Aquí se renderiza la cajita de PayPhone --}}
-            <div id="pp-button" style="margin-top: 12px;"></div>
-
-            {{-- Mensaje de estado --}}
-            <div id="pay-status" style="display:none; margin-top:10px; font-size:0.8rem; color:#888; text-align:center;"></div>
+            {{-- AquÃ­ se renderiza la cajita de PayPhone --}}
+            
 
             <a href="{{ route('carrito.index') }}" class="btn-back flex items-center justify-center gap-1">
                 <x-heroicon-o-arrow-left class="w-4 h-4 inline mr-1"/>
@@ -147,26 +154,27 @@
 
 <script>
     (() => {
-        const payBtn   = document.getElementById('pay-btn-box');
+        const payBtn = document.getElementById('pay-btn-box');
         const statusEl = document.getElementById('pay-status');
-        const csrf     = document.querySelector('meta[name="csrf-token"]')?.content;
+        const paymentSection = document.getElementById('payphone-section');
+        const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
         const endpoint = @json(route('orden.cajita'));
 
         function setStatus(msg) {
             if (!statusEl) return;
             statusEl.style.display = msg ? 'block' : 'none';
-            statusEl.textContent   = msg;
+            statusEl.textContent = msg;
         }
 
         if (!payBtn || !csrf) return;
 
         payBtn.addEventListener('click', async () => {
-            payBtn.disabled    = true;
-            payBtn.textContent = 'Preparando pago…';
-            setStatus('Conectando con Payphone…');
+            payBtn.disabled = true;
+            payBtn.textContent = 'Preparando pago...';
+            setStatus('Conectando con Payphone...');
 
             try {
-                const res  = await fetch(endpoint, {
+                const res = await fetch(endpoint, {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': csrf,
@@ -183,40 +191,46 @@
                 }
 
                 if (typeof PPaymentButtonBox !== 'function') {
-                    throw new Error('El módulo de pago no cargó. Recarga la página e intenta de nuevo.');
+                    throw new Error('El modulo de pago no cargo. Recarga la pagina e intenta de nuevo.');
                 }
 
-                // Ocultar botón y mostrar cajita
                 payBtn.style.display = 'none';
+                if (paymentSection) {
+                    paymentSection.style.display = 'block';
+                    paymentSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
                 setStatus('Ingresa los datos de tu tarjeta para completar el pago.');
 
                 new PPaymentButtonBox({
-                    token:               data.token,
+                    token: data.token,
                     clientTransactionId: data.clientTransactionId,
-                    amount:              data.amount,
-                    amountWithoutTax:    data.amountWithoutTax,
-                    amountWithTax:       data.amountWithTax,
-                    tax:                 data.tax,
-                    service:             0,
-                    tip:                 0,
-                    currency:            data.currency,
-                    storeId:             data.storeId,
-                    reference:           data.reference,
-                    lang:                'es',
-                    defaultMethod:       'card',
-                    timeZone:            data.timeZone,
+                    amount: data.amount,
+                    amountWithoutTax: data.amountWithoutTax,
+                    amountWithTax: data.amountWithTax,
+                    tax: data.tax,
+                    service: 0,
+                    tip: 0,
+                    currency: data.currency,
+                    storeId: data.storeId,
+                    reference: data.reference,
+                    lang: 'es',
+                    defaultMethod: 'card',
+                    timeZone: data.timeZone,
                 }).render('pp-button');
 
             } catch (err) {
                 console.error('PayPhone error:', err);
                 setStatus('');
-                payBtn.disabled    = false;
+                payBtn.disabled = false;
+                payBtn.style.display = 'inline-flex';
                 payBtn.textContent = 'Pagar ${{ number_format($total, 2) }} con PayPhone';
-                alert(err.message || 'Ocurrió un error. Intenta de nuevo.');
+                if (paymentSection) {
+                    paymentSection.style.display = 'none';
+                }
+                alert(err.message || 'Ocurrio un error. Intenta de nuevo.');
             }
         });
     })();
 </script>
-
 </body>
 </html>
