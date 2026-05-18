@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Str;
 
 class OrderController extends Controller
 {
@@ -89,12 +90,32 @@ class OrderController extends Controller
             'payphone_transaction_id' => $payphoneResponse['paymentId'] ?? null,
         ]);
 
+        Transaction::create([
+            'order_id' => $order->id,
+            'payphone_ref' => $payphoneResponse['paymentId'] ?? null,
+            'amount' => $order->total,
+            'status' => 'pending',
+            'response_payload' => $payphoneResponse,
+            'client_transaction_id' => $payphoneResponse['clientTransactionId'] ?? null,
+        ]);
+
         return redirect()->away($payphoneResponse['payWithCard']);
     }
 
     private function prepararPagoPayphone(Order $order): ?array
     {
+        $currency = (string) config('services.payphone.currency', 'USD');
+        $taxPercent = (int) config('services.payphone.tax', 0);
         $montoEnCentavos = (int) round($order->total * 100);
+        $clientTransactionId = 'order-' . $order->id . '-' . Str::uuid()->toString();
+
+        $amountWithTax = 0;
+        $amountWithoutTax = $montoEnCentavos;
+
+        if ($taxPercent > 0) {
+            $amountWithoutTax = (int) round($montoEnCentavos / (1 + ($taxPercent / 100)));
+            $amountWithTax = max(0, $montoEnCentavos - $amountWithoutTax);
+        }
 
         try {
             $response = Http::withHeaders([
@@ -102,19 +123,21 @@ class OrderController extends Controller
                 'Content-Type' => 'application/json',
             ])->post(config('services.payphone.base_url') . '/api/button/Prepare', [
                 'amount' => $montoEnCentavos,
-                'amountWithTax' => 0,
-                'amountWithoutTax' => $montoEnCentavos,
-                'tax' => 0,
-                'clientTransactionId' => 'order-' . $order->id . '-' . time(),
+                'amountWithTax' => $amountWithTax,
+                'amountWithoutTax' => $amountWithoutTax,
+                'tax' => $taxPercent,
+                'clientTransactionId' => $clientTransactionId,
                 'storeId' => config('services.payphone.store_id'),
-                'responseUrl' => route('payphone.success'),
+                'responseUrl' => route('transaccion.exitosa'),
                 'cancellationUrl' => route('payphone.cancel'),
-                'currency' => 'USD',
+                'currency' => $currency,
                 'reference' => 'Orden #' . $order->id . ' - ' . config('app.name'),
             ]);
 
             if ($response->successful()) {
-                return $response->json();
+                $payload = $response->json();
+                $payload['clientTransactionId'] = $clientTransactionId;
+                return $payload;
             }
 
             Log::error('Payphone prepare failed', [

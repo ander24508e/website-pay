@@ -10,96 +10,135 @@ use Illuminate\Support\Facades\Log;
 
 class TransactionController extends Controller
 {
-    // ══════════════════════════════════════════
-    // CALLBACK — Payphone llama aquí si el pago fue procesado
-    // ══════════════════════════════════════════
     public function success(Request $request)
     {
-        // 1. Recuperar la orden de la sesión
+        $clientTransactionId = (string) $request->input('clientTransactionId', '');
         $orderId = session('current_order_id');
+        $order = $orderId ? Order::find($orderId) : null;
 
-        if (!$orderId) {
-            Log::warning('Payphone success: no order_id en sesión', $request->all());
-            return redirect()->route('home')
-                ->with('error', 'No se encontró la orden. Contacta soporte.');
+        if (!$order && $clientTransactionId !== '') {
+            $existingTx = Transaction::query()
+                ->where('client_transaction_id', $clientTransactionId)
+                ->latest('id')
+                ->first();
+
+            if ($existingTx) {
+                $order = Order::find($existingTx->order_id);
+            }
         }
 
-        $order = Order::find($orderId);
-
         if (!$order) {
-            Log::error('Payphone success: orden no encontrada', ['order_id' => $orderId]);
+            Log::error('Payphone success: orden no encontrada', [
+                'order_id' => $orderId,
+                'client_transaction_id' => $clientTransactionId,
+                'payload' => $request->all(),
+            ]);
+
             return redirect()->route('home')
                 ->with('error', 'Orden no encontrada.');
         }
 
-        // 2. Verificar el pago con Payphone (SIEMPRE verificar — nunca confiar solo en el redirect)
         $verificacion = $this->verificarPagoPayphone(
             $request->input('id'),
-            $request->input('clientTransactionId')
+            $clientTransactionId
         );
 
-        $payload  = $verificacion ?? $request->all();
+        $payload = $verificacion ?? $request->all();
         $aprobado = ($payload['transactionStatus'] ?? '') === 'Approved';
-        $status   = $aprobado ? 'approved' : 'rejected';
+        $status = $aprobado ? 'approved' : 'rejected';
 
-        // 3. Guardar la transacción con TODOS los datos de Payphone
-        Transaction::create([
-            'order_id'              => $order->id,
-            'payphone_ref'          => $request->input('id'),
-            'amount'                => $order->total,
-            'status'                => $status,
-            'response_payload'      => $payload,
-            'client_transaction_id' => $request->input('clientTransactionId'),
-        ]);
+        $tx = null;
+        if ($clientTransactionId !== '') {
+            $tx = Transaction::query()
+                ->where('client_transaction_id', $clientTransactionId)
+                ->latest('id')
+                ->first();
+        }
 
-        // 4. Actualizar estado de la orden
+        if ($tx) {
+            $tx->update([
+                'payphone_ref' => $request->input('id'),
+                'status' => $status,
+                'response_payload' => $payload,
+            ]);
+        } else {
+            Transaction::create([
+                'order_id' => $order->id,
+                'payphone_ref' => $request->input('id'),
+                'amount' => $order->total,
+                'status' => $status,
+                'response_payload' => $payload,
+                'client_transaction_id' => $clientTransactionId !== '' ? $clientTransactionId : null,
+            ]);
+        }
+
         if ($aprobado) {
             $order->update([
-                'status'                  => 'paid',
+                'status' => 'paid',
                 'payphone_transaction_id' => $request->input('id'),
             ]);
 
-            // 5. Limpiar sesión
             session()->forget(['carrito', 'current_order_id']);
 
             return redirect()->route('orden.confirmacion', $order)
-                ->with('success', '¡Pago realizado con éxito!');
+                ->with('success', 'Pago realizado con exito.');
         }
 
-        // Pago rechazado
         $order->update(['status' => 'failed']);
 
         Log::warning('Payphone pago rechazado', [
             'order_id' => $order->id,
-            'payload'  => $payload,
+            'payload' => $payload,
         ]);
 
         return redirect()->route('carrito.index')
-            ->with('error', 'El pago fue rechazado por Payphone. Intenta de nuevo o usa otra tarjeta.');
+            ->with('error', 'El pago fue rechazado por Payphone. Intenta de nuevo.');
     }
 
-    // ══════════════════════════════════════════
-    // CALLBACK — Payphone llama aquí si el usuario cancela
-    // ══════════════════════════════════════════
     public function cancel(Request $request)
     {
+        $clientTransactionId = (string) $request->input('clientTransactionId', '');
         $orderId = session('current_order_id');
+        $order = $orderId ? Order::find($orderId) : null;
 
-        if ($orderId) {
-            $order = Order::find($orderId);
+        if (!$order && $clientTransactionId !== '') {
+            $existingTx = Transaction::query()
+                ->where('client_transaction_id', $clientTransactionId)
+                ->latest('id')
+                ->first();
 
-            if ($order) {
-                // Guardar transacción cancelada
-                Transaction::create([
-                    'order_id'         => $order->id,
-                    'payphone_ref'     => $request->input('id'),
-                    'amount'           => $order->total,
-                    'status'           => 'cancelled',
+            if ($existingTx) {
+                $order = Order::find($existingTx->order_id);
+            }
+        }
+
+        if ($order) {
+            $tx = null;
+            if ($clientTransactionId !== '') {
+                $tx = Transaction::query()
+                    ->where('client_transaction_id', $clientTransactionId)
+                    ->latest('id')
+                    ->first();
+            }
+
+            if ($tx) {
+                $tx->update([
+                    'payphone_ref' => $request->input('id'),
+                    'status' => 'cancelled',
                     'response_payload' => $request->all(),
                 ]);
-
-                $order->update(['status' => 'cancelled']);
+            } else {
+                Transaction::create([
+                    'order_id' => $order->id,
+                    'payphone_ref' => $request->input('id'),
+                    'amount' => $order->total,
+                    'status' => 'cancelled',
+                    'response_payload' => $request->all(),
+                    'client_transaction_id' => $clientTransactionId !== '' ? $clientTransactionId : null,
+                ]);
             }
+
+            $order->update(['status' => 'cancelled']);
         }
 
         session()->forget('current_order_id');
@@ -108,19 +147,18 @@ class TransactionController extends Controller
             ->with('error', 'Cancelaste el pago. Tu carrito sigue guardado.');
     }
 
-    // ══════════════════════════════════════════
-    // PRIVADO — Verificar pago con Payphone API
-    // ══════════════════════════════════════════
     private function verificarPagoPayphone(?string $id, ?string $clientTransactionId): ?array
     {
-        if (!$id || !$clientTransactionId) return null;
+        if (!$id || !$clientTransactionId) {
+            return null;
+        }
 
         try {
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . config('services.payphone.token'),
-                'Content-Type'  => 'application/json',
+                'Content-Type' => 'application/json',
             ])->post(config('services.payphone.base_url') . '/api/button/Confirm', [
-                'id'                  => $id,
+                'id' => $id,
                 'clientTransactionId' => $clientTransactionId,
             ]);
 
@@ -130,20 +168,16 @@ class TransactionController extends Controller
 
             Log::error('Payphone confirm failed', [
                 'status' => $response->status(),
-                'body'   => $response->body(),
+                'body' => $response->body(),
             ]);
 
             return null;
-
         } catch (\Exception $e) {
             Log::error('Payphone confirm exception', ['message' => $e->getMessage()]);
             return null;
         }
     }
 
-    // ══════════════════════════════════════════
-    // ADMIN — Listado de transacciones
-    // ══════════════════════════════════════════
     public function index(Request $request)
     {
         $search = trim((string) $request->query('q', ''));
@@ -171,9 +205,6 @@ class TransactionController extends Controller
         return view('admin.transactions.index', compact('transactions'));
     }
 
-    // ══════════════════════════════════════════
-    // ADMIN — Detalle de una transacción
-    // ══════════════════════════════════════════
     public function show(Transaction $transaction)
     {
         $transaction->load('order.user');

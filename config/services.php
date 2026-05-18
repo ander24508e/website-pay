@@ -39,6 +39,9 @@ return [
         'token'    => env('PAYPHONE_TOKEN'),
         'store_id' => env('PAYPHONE_STORE_ID'),
         'base_url' => env('PAYPHONE_BASE_URL', 'https://pay.payphonetodoesposible.com'),
+        'currency' => env('PAYPHONE_CURRENCY', 'USD'),
+        'tax' => (int) env('PAYPHONE_TAX_PERCENT', 0),
+        'timezone' => (int) env('PAYPHONE_TIMEZONE', -5),
     ],
 
 ];
