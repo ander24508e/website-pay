@@ -2,9 +2,10 @@
     $waUrl = $empresa->whatsapp_url;
     $waBg = '#25D366';
     $waBadge = $empresa->color_primario_hex ?? '#D82128';
+    $mostrarWhatsapp = request()->routeIs('home');
 @endphp
 
-@if($waUrl)
+@if($waUrl && $mostrarWhatsapp)
     <a
         href="{{ $waUrl }}"
         target="_blank"

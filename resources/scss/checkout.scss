@@ -35,6 +35,7 @@ h2 {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 1rem;
     position: sticky;
     inset-block-start: 0;
     z-index: 100;
@@ -55,7 +56,10 @@ h2 {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    overflow-x: auto;
+    scrollbar-width: none;
 }
+.steps::-webkit-scrollbar { display: none; }
 
 .step {
     font-size: 0.72rem;
@@ -319,6 +323,99 @@ h2 {
     font-size: 0.7rem;
     color: var(--muted);
     margin-block-start: 1rem;
+}
+
+/* PayPhone stage */
+#payphone-section {
+    display: none;
+}
+
+#payphone-section .card-body {
+    padding: 1.2rem;
+}
+
+#pp-button {
+    min-block-size: 64px;
+}
+
+@media (min-inline-size: 769px) {
+    #payphone-section {
+        position: relative;
+        inline-size: calc(100% + 360px);
+        max-inline-size: 980px;
+        margin-inline-end: -360px;
+        margin-inline-start: auto;
+        margin-block-start: 0.75rem;
+    }
+
+    #payphone-section .card-header h3 {
+        font-size: 1.25rem;
+        letter-spacing: 0.06em;
+    }
+
+    body.payment-open {
+        overflow: hidden;
+    }
+
+    body.payment-open .topbar {
+        position: static;
+        block-size: 64px;
+        min-block-size: 64px;
+    }
+
+    body.payment-open .container {
+        max-inline-size: 1280px;
+        padding: 1rem 1.25rem;
+        height: calc(100vh - 64px);
+        overflow: hidden;
+    }
+
+    body.payment-open .page-title {
+        font-size: 2rem;
+        margin-block-end: 0.15rem;
+    }
+
+    body.payment-open .page-sub {
+        margin-block-end: 0.9rem;
+    }
+
+    body.payment-open .checkout-grid {
+        grid-template-columns: 340px minmax(760px, 1fr);
+        gap: 1rem;
+        align-items: start;
+        height: calc(100% - 58px);
+    }
+
+    body.payment-open .checkout-grid > div:first-child {
+        min-width: 0;
+    }
+
+    body.payment-open .card {
+        margin-block-end: 0.8rem;
+    }
+
+    body.payment-open .card-header {
+        padding: 0.85rem 1rem;
+    }
+
+    body.payment-open .card-body {
+        padding: 0.9rem 1rem;
+    }
+
+    body.payment-open #payphone-section {
+        display: block;
+        inline-size: 100%;
+        max-inline-size: 100%;
+        margin: 0;
+    }
+
+    body.payment-open #payphone-section .card-body {
+        min-height: 520px;
+    }
+
+    body.payment-open .resumen-card {
+        display: none;
+    }
 }
 
 /* checkout/show */
@@ -625,5 +722,51 @@ body.checkout-confirmacion .status-badge {
 @media (max-inline-size: 768px) {
     .checkout-grid {
         grid-template-columns: 1fr;
+    }
+
+    .topbar {
+        padding: 0.75rem 1rem;
+        min-height: 70px;
+        height: auto;
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .topbar-brand {
+        font-size: 1.05rem;
+    }
+
+    .steps {
+        width: 100%;
+        padding-bottom: 0.2rem;
+        white-space: nowrap;
+    }
+
+    .container {
+        padding: 1.2rem 0.9rem 2rem;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        line-height: 1;
+    }
+
+    .resumen-card {
+        position: static;
+    }
+
+    .card-body {
+        padding: 1rem;
+    }
+
+    .item-name {
+        font-size: 0.8rem;
+    }
+
+    #payphone-section {
+        inline-size: 100%;
+        max-inline-size: 100%;
+        margin-inline: 0;
+        margin-block-start: 0.75rem;
     }
 }

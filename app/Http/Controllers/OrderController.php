@@ -17,12 +17,22 @@ class OrderController extends Controller
 {
     private function createOrderFromCart(array $carrito): Order
     {
-        $total = collect($carrito)->sum(fn($item) => $item['price'] * $item['quantity']);
+        $total = collect($carrito)->sum(function ($item) {
+            $price = (float) data_get($item, 'price', 0);
+            $quantity = (int) data_get($item, 'quantity', 0);
+            return $price * $quantity;
+        });
         $order = Order::create($this->buildOrderData((float) $total, auth()->id(), false));
 
         foreach ($carrito as $item) {
-            $model = $item['type'] === 'catalog'
-                ? CatalogItem::find($item['id'])
+            $itemType = (string) data_get($item, 'type', '');
+            $itemId = (int) data_get($item, 'id', 0);
+            $quantity = (int) data_get($item, 'quantity', 0);
+            $price = (float) data_get($item, 'price', 0);
+
+            /** @var CatalogItem|null $model */
+            $model = $itemType === 'catalog'
+                ? CatalogItem::query()->find($itemId)
                 : null;
 
             if (!$model) {
@@ -33,8 +43,8 @@ class OrderController extends Controller
                 'order_id' => $order->id,
                 'itemable_type' => get_class($model),
                 'itemable_id' => $model->id,
-                'quantity' => $item['quantity'],
-                'unit_price' => $item['price'],
+                'quantity' => $quantity,
+                'unit_price' => $price,
             ]);
         }
 
@@ -81,9 +91,9 @@ class OrderController extends Controller
         return $data;
     }
 
-    public function checkout()
+    public function checkout(Request $request)
     {
-        $carrito = session()->get('carrito', []);
+        $carrito = (array) $request->session()->get('carrito', []);
 
         if (empty($carrito)) {
             return redirect()->route('carrito.index');
@@ -96,7 +106,7 @@ class OrderController extends Controller
 
     public function store(Request $request)
     {
-        $carrito = session()->get('carrito', []);
+        $carrito = (array) $request->session()->get('carrito', []);
 
         if (empty($carrito)) {
             return redirect()->route('carrito.index');
@@ -104,7 +114,7 @@ class OrderController extends Controller
 
         $order = $this->createOrderFromCart($carrito);
 
-        session()->put('current_order_id', $order->id);
+        $request->session()->put('current_order_id', $order->id);
 
         $payphoneResponse = $this->prepararPagoPayphone($order);
 
@@ -134,7 +144,7 @@ class OrderController extends Controller
 
     public function prepareBox(Request $request)
     {
-        $carrito = session()->get('carrito', []);
+        $carrito = (array) $request->session()->get('carrito', []);
 
         if (empty($carrito)) {
             return response()->json([
@@ -148,7 +158,7 @@ class OrderController extends Controller
         $amounts = $this->buildPayphoneAmounts($totalCents);
         $clientTransactionId = 'order-' . $order->id . '-' . Str::uuid()->toString();
 
-        session()->put('current_order_id', $order->id);
+        $request->session()->put('current_order_id', $order->id);
 
         Transaction::create([
             'order_id' => $order->id,
@@ -164,7 +174,7 @@ class OrderController extends Controller
 
         return response()->json([
             'ok' => true,
-            'token' => config('services.payphone.token'),
+            'token' => config('services.payphone.box_token'),
             'storeId' => config('services.payphone.store_id'),
             'clientTransactionId' => $clientTransactionId,
             'amount' => $amounts['amount'],
@@ -282,6 +292,7 @@ class OrderController extends Controller
             'item_type' => ['required', Rule::in(['catalog'])],
         ]);
 
+        /** @var CatalogItem|null $model */
         $model = CatalogItem::query()
             ->with(['type', 'category', 'activeVariants'])
             ->where('active', true)
@@ -339,13 +350,13 @@ class OrderController extends Controller
 
     public function destroy(Order $order)
     {
-        $order->load('transactions');
+        Transaction::query()
+            ->where('order_id', $order->id)
+            ->delete();
 
-        foreach ($order->transactions as $transaction) {
-            $transaction->delete();
-        }
-
-        $order->delete();
+        Order::query()
+            ->whereKey($order->id)
+            ->delete();
 
         return redirect()->route('admin.orders.index')->with('success', 'Orden eliminada correctamente.');
     }

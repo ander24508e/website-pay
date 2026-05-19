@@ -37,6 +37,7 @@ return [
 
     'payphone' => [
         'token'    => env('PAYPHONE_TOKEN'),
+        'box_token' => env('PAYPHONE_BOX_TOKEN', env('PAYPHONE_TOKEN')),
         'store_id' => env('PAYPHONE_STORE_ID'),
         'base_url' => env('PAYPHONE_BASE_URL', 'https://pay.payphonetodoesposible.com'),
         'currency' => env('PAYPHONE_CURRENCY', 'USD'),

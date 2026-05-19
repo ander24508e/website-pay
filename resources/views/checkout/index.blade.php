@@ -4,13 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     @php($empresa = App\Models\Empresa::first())
-    <title>Checkout â€” {{ $empresa->nombre ?? 'Endara Carwash' }}</title>
+    @php($primario = $empresa->color_primario_hex ?? '#D82128')
+    @php($secundario = $empresa->color_secundario_hex ?? '#F0B429')
+    @php($terciario = $empresa->color_terciario_hex ?? '#666666')
+    <title>Checkout - {{ $empresa->nombre ?? 'Endara Carwash' }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     {{-- PayPhone Box v2.0 --}}
     <link rel="stylesheet" href="https://cdn.payphonetodoesposible.com/box/v2.0/payphone-payment-box.css">
     <script type="module" src="https://cdn.payphonetodoesposible.com/box/v2.0/payphone-payment-box.js"></script>
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <style>
+        :root {
+            --red: {{ $primario }};
+            --red-dark: color-mix(in srgb, {{ $primario }} 82%, black);
+            --gold: {{ $secundario }};
+            --muted: {{ $terciario }};
+        }
+    </style>
     @vite(['resources/css/app.css', 'resources/scss/checkout.scss', 'resources/js/app.js'])
 </head>
 <body>
@@ -21,12 +32,12 @@
     </a>
     <div class="steps">
         <span class="step done">Carrito</span>
-        <span class="step-sep">â€º</span>
+        <span class="step-sep">Ã¢â‚¬Âº</span>
         <span class="step active">Resumen</span>
-        <span class="step-sep">â€º</span>
+        <span class="step-sep">Ã¢â‚¬Âº</span>
         <span class="step">Pago</span>
-        <span class="step-sep">â€º</span>
-        <span class="step">ConfirmaciÃ³n</span>
+        <span class="step-sep">Ã¢â‚¬Âº</span>
+        <span class="step">ConfirmaciÃƒÂ³n</span>
     </div>
 </header>
 
@@ -36,7 +47,7 @@
 
     <div class="checkout-grid">
 
-        {{-- Columna izquierda: datos + Ã­tems --}}
+        {{-- Columna izquierda: datos + ÃƒÂ­tems --}}
         <div>
             {{-- Datos del cliente --}}
             <div class="card">
@@ -52,17 +63,17 @@
                                 <div class="cliente-email">{{ auth()->user()->email }}</div>
                             @else
                                 <div class="cliente-name">Cliente Invitado</div>
-                                <div class="cliente-email">Compra sin iniciar sesiÃ³n</div>
+                                <div class="cliente-email">Compra sin iniciar sesiÃƒÂ³n</div>
                             @endauth
                         </div>
                     </div>
                 </div>
             </div>
 
-            {{-- Ãtems --}}
+            {{-- ÃƒÂtems --}}
             <div class="card">
                 <div class="card-header">
-                    <h3>Ãtems del pedido ({{ count($carrito) }})</h3>
+                    <h3>ÃƒÂtems del pedido ({{ count($carrito) }})</h3>
                 </div>
                 <div class="card-body">
                     @foreach($carrito as $item)
@@ -79,8 +90,8 @@
                         <div class="item-info">
                             <div class="item-name">{{ $item['name'] }}</div>
                             <div class="item-qty">
-                                {{ $item['type_label'] ?? ($item['type'] === 'product' ? 'Producto' : ($item['type'] === 'service' ? 'Servicio' : 'CatÃ¡logo')) }}
-                                Ã— {{ $item['quantity'] }}
+                                {{ $item['type_label'] ?? ($item['type'] === 'product' ? 'Producto' : ($item['type'] === 'service' ? 'Servicio' : 'CatÃƒÂ¡logo')) }}
+                                Ãƒâ€” {{ $item['quantity'] }}
                             </div>
                         </div>
                         <div class="item-price">${{ number_format($item['price'] * $item['quantity'], 2) }}</div>
@@ -106,7 +117,7 @@
 
             @foreach($carrito as $item)
             <div class="resumen-row">
-                <span>{{ Str::limit($item['name'], 22) }} Ã—{{ $item['quantity'] }}</span>
+                <span>{{ Str::limit($item['name'], 22) }} Ãƒâ€”{{ $item['quantity'] }}</span>
                 <span>${{ number_format($item['price'] * $item['quantity'], 2) }}</span>
             </div>
             @endforeach
@@ -123,17 +134,17 @@
                 <x-heroicon-o-credit-card class="w-6 h-6 text-gray-500" />
                 <div>
                     <strong>Pago seguro con Payphone</strong><br>
-                    <span>Tarjeta de crÃ©dito o dÃ©bito</span>
+                    <span>Tarjeta de crÃƒÂ©dito o dÃƒÂ©bito</span>
                 </div>
             </div>
 
-            {{-- BotÃ³n que abre la cajita --}}
+            {{-- BotÃƒÂ³n que abre la cajita --}}
             <button type="button" class="btn-pay" id="pay-btn-box">
                 <x-heroicon-o-credit-card class="w-5 h-5 inline mr-2" />
                 Pagar ${{ number_format($total, 2) }} con PayPhone
             </button>
 
-            {{-- AquÃ­ se renderiza la cajita de PayPhone --}}
+            {{-- AquÃƒÂ­ se renderiza la cajita de PayPhone --}}
             
 
             <a href="{{ route('carrito.index') }}" class="btn-back flex items-center justify-center gap-1">
@@ -195,6 +206,7 @@
                 }
 
                 payBtn.style.display = 'none';
+                document.body.classList.add('payment-open');
                 if (paymentSection) {
                     paymentSection.style.display = 'block';
                     paymentSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -224,6 +236,7 @@
                 payBtn.disabled = false;
                 payBtn.style.display = 'inline-flex';
                 payBtn.textContent = 'Pagar ${{ number_format($total, 2) }} con PayPhone';
+                document.body.classList.remove('payment-open');
                 if (paymentSection) {
                     paymentSection.style.display = 'none';
                 }
