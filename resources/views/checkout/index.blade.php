@@ -1,19 +1,28 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    @php($empresa = App\Models\Empresa::first())
-    @php($primario = $empresa->color_primario_hex ?? '#D82128')
-    @php($secundario = $empresa->color_secundario_hex ?? '#F0B429')
-    @php($terciario = $empresa->color_terciario_hex ?? '#666666')
+
+    @php
+        $empresa = App\Models\Empresa::first();
+        $primario = $empresa->color_primario_hex ?? '#D82128';
+        $secundario = $empresa->color_secundario_hex ?? '#F0B429';
+        $terciario = $empresa->color_terciario_hex ?? '#666666';
+    @endphp
+
     <title>Checkout - {{ $empresa->nombre ?? 'Endara Carwash' }}</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-    {{-- PayPhone Box v2.0 --}}
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
     <link rel="stylesheet" href="https://cdn.payphonetodoesposible.com/box/v2.0/payphone-payment-box.css">
     <script type="module" src="https://cdn.payphonetodoesposible.com/box/v2.0/payphone-payment-box.js"></script>
+
     <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <style>
         :root {
             --red: {{ $primario }};
@@ -22,228 +31,277 @@
             --muted: {{ $terciario }};
         }
     </style>
+
     @vite(['resources/css/app.css', 'resources/scss/checkout.scss', 'resources/js/app.js'])
 </head>
-<body>
 
-<header class="topbar">
-    <a href="{{ route('home') }}" class="topbar-brand">
-        {{ strtoupper($empresa->nombre_corto ?? 'CARWASH') }}
-    </a>
-    <div class="steps">
-        <span class="step done">Carrito</span>
-        <span class="step-sep">Ã¢â‚¬Âº</span>
-        <span class="step active">Resumen</span>
-        <span class="step-sep">Ã¢â‚¬Âº</span>
-        <span class="step">Pago</span>
-        <span class="step-sep">Ã¢â‚¬Âº</span>
-        <span class="step">ConfirmaciÃƒÂ³n</span>
-    </div>
-</header>
+<body class="checkout-page">
 
-<div class="container">
-    <h1 class="page-title">RESUMEN DEL <span>PEDIDO</span></h1>
-    <p class="page-sub">Revisa tu pedido antes de proceder al pago</p>
+    <header class="checkout-topbar">
+        <a href="{{ route('home') }}" class="checkout-brand">
+            {{ strtoupper($empresa->nombre_corto ?? 'LAVADORA Y LUBRICADORA ENDARA') }}
+        </a>
 
-    <div class="checkout-grid">
+        <nav class="checkout-steps">
+            <span class="step done">Carrito</span>
+            <span class="step-sep">›</span>
+            <span class="step active">Resumen</span>
+            <span class="step-sep">›</span>
+            <span class="step">Pago</span>
+            <span class="step-sep">›</span>
+            <span class="step">Confirmación</span>
+        </nav>
+    </header>
 
-        {{-- Columna izquierda: datos + ÃƒÂ­tems --}}
-        <div>
-            {{-- Datos del cliente --}}
-            <div class="card">
-                <div class="card-header"><h3>Datos del cliente</h3></div>
-                <div class="card-body">
-                    <div class="cliente-row">
-                        <div class="cliente-avatar">
-                            <x-heroicon-o-user class="w-8 h-8 text-gray-500" />
+    <main class="checkout-shell">
+
+        <section class="checkout-summary-panel">
+
+            <div class="checkout-heading">
+                <h1>Resumen del <span>pedido</span></h1>
+                <p>Revisa tu pedido antes de proceder al pago.</p>
+            </div>
+
+            <div class="checkout-card">
+                <div class="checkout-card-header">
+                    <h3>Datos del cliente</h3>
+                </div>
+
+                <div class="checkout-card-body">
+                    <div class="client-row">
+                        <div class="client-icon">
+                            <x-heroicon-o-user class="w-7 h-7" />
                         </div>
+
                         <div>
                             @auth
-                                <div class="cliente-name">{{ auth()->user()->name }}</div>
-                                <div class="cliente-email">{{ auth()->user()->email }}</div>
+                                <div class="client-name">{{ auth()->user()->name }}</div>
+                                <div class="client-email">{{ auth()->user()->email }}</div>
                             @else
-                                <div class="cliente-name">Cliente Invitado</div>
-                                <div class="cliente-email">Compra sin iniciar sesiÃƒÂ³n</div>
+                                <div class="client-name">Cliente Invitado</div>
+                                <div class="client-email">Compra sin iniciar sesión</div>
                             @endauth
                         </div>
                     </div>
                 </div>
             </div>
 
-            {{-- ÃƒÂtems --}}
-            <div class="card">
-                <div class="card-header">
-                    <h3>ÃƒÂtems del pedido ({{ count($carrito) }})</h3>
+            <div class="checkout-card">
+                <div class="checkout-card-header">
+                    <h3>Ítems del pedido ({{ count($carrito) }})</h3>
                 </div>
-                <div class="card-body">
-                    @foreach($carrito as $item)
-                    <div class="item-row">
-                        <div class="item-emoji">
-                            @if($item['type'] === 'product')
-                                <x-heroicon-o-cube class="w-6 h-6 text-gray-500" />
-                            @elseif($item['type'] === 'service')
-                                <x-heroicon-o-wrench class="w-6 h-6 text-gray-500" />
-                            @else
-                                <x-heroicon-o-archive-box class="w-6 h-6 text-gray-500" />
-                            @endif
-                        </div>
-                        <div class="item-info">
-                            <div class="item-name">{{ $item['name'] }}</div>
-                            <div class="item-qty">
-                                {{ $item['type_label'] ?? ($item['type'] === 'product' ? 'Producto' : ($item['type'] === 'service' ? 'Servicio' : 'CatÃƒÂ¡logo')) }}
-                                Ãƒâ€” {{ $item['quantity'] }}
+
+                <div class="checkout-card-body">
+                    @foreach ($carrito as $item)
+                        <div class="checkout-item">
+                            <div class="checkout-item-icon">
+                                @if ($item['type'] === 'product')
+                                    <x-heroicon-o-cube class="w-5 h-5" />
+                                @elseif($item['type'] === 'service')
+                                    <x-heroicon-o-wrench class="w-5 h-5" />
+                                @else
+                                    <x-heroicon-o-archive-box class="w-5 h-5" />
+                                @endif
+                            </div>
+
+                            <div class="checkout-item-info">
+                                <div class="checkout-item-name">{{ $item['name'] }}</div>
+                                <div class="checkout-item-meta">
+                                    {{ $item['type_label'] ?? ($item['type'] === 'product' ? 'Producto' : ($item['type'] === 'service' ? 'Servicio' : 'Catálogo')) }}
+                                    × {{ $item['quantity'] }}
+                                </div>
+                            </div>
+
+                            <div class="checkout-item-price">
+                                ${{ number_format($item['price'] * $item['quantity'], 2) }}
                             </div>
                         </div>
-                        <div class="item-price">${{ number_format($item['price'] * $item['quantity'], 2) }}</div>
-                    </div>
                     @endforeach
                 </div>
             </div>
 
-            <div class="card" id="payphone-section" style="display:none;">
-                <div class="card-header">
-                    <h3>Completa tu pago</h3>
+            <div class="checkout-card total-card">
+                <div class="checkout-card-header">
+                    <h3>Total a pagar</h3>
                 </div>
-                <div class="card-body">
-                    <div id="pp-button"></div>
-                    <div id="pay-status" style="display:none; margin-top:10px; font-size:0.8rem; color:#888; text-align:center;"></div>
+
+                <div class="checkout-card-body">
+                    @foreach ($carrito as $item)
+                        <div class="total-row">
+                            <span>{{ Str::limit($item['name'], 26) }} ×{{ $item['quantity'] }}</span>
+                            <strong>${{ number_format($item['price'] * $item['quantity'], 2) }}</strong>
+                        </div>
+                    @endforeach
+
+                    <div class="total-divider"></div>
+
+                    <div class="total-final">
+                        <span>Total</span>
+                        <strong>${{ number_format($total, 2) }}</strong>
+                    </div>
                 </div>
-            </div>
-        </div>
 
-        {{-- Columna derecha: resumen + cajita --}}
-        <div class="resumen-card">
-            <div class="resumen-title">Total a Pagar</div>
-
-            @foreach($carrito as $item)
-            <div class="resumen-row">
-                <span>{{ Str::limit($item['name'], 22) }} Ãƒâ€”{{ $item['quantity'] }}</span>
-                <span>${{ number_format($item['price'] * $item['quantity'], 2) }}</span>
-            </div>
-            @endforeach
-
-            <hr class="resumen-divider">
-
-            <div class="resumen-total">
-                <span class="resumen-total-label">Total</span>
-                <span class="resumen-total-value">${{ number_format($total, 2) }}</span>
-            </div>
-
-            {{-- Badge seguridad --}}
-            <div class="payphone-badge">
-                <x-heroicon-o-credit-card class="w-6 h-6 text-gray-500" />
-                <div>
-                    <strong>Pago seguro con Payphone</strong><br>
-                    <span>Tarjeta de crÃƒÂ©dito o dÃƒÂ©bito</span>
+                <div class="checkout-actions mx-auto">
+                    <a href="{{ route('home') }}#catalogo"
+                        style="background:var(--red);color:white;padding:0.85rem 2rem;border-radius:8px;font-weight:700;font-size:0.82rem;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;display:inline-block;transition:all 0.2s;">
+                        Comprar Más
+                    </a>
                 </div>
             </div>
+        </section>
 
-            {{-- BotÃƒÂ³n que abre la cajita --}}
-            <button type="button" class="btn-pay" id="pay-btn-box">
-                <x-heroicon-o-credit-card class="w-5 h-5 inline mr-2" />
-                Pagar ${{ number_format($total, 2) }} con PayPhone
-            </button>
+        <section class="payment-panel">
+            <div class="payment-card">
 
-            {{-- AquÃƒÂ­ se renderiza la cajita de PayPhone --}}
-            
+                <div class="payment-header">
+                    <div>
+                        <h2>Completar Pago Seguro</h2>
+                        <p>Selecciona tu método de pago y finaliza tu compra.</p>
+                    </div>
 
-            <a href="{{ route('carrito.index') }}" class="btn-back flex items-center justify-center gap-1">
-                <x-heroicon-o-arrow-left class="w-4 h-4 inline mr-1"/>
-                Volver al carrito
-            </a>
+                    <div class="secure-mini">
+                        <x-heroicon-o-lock-closed class="w-4 h-4" />
+                        Seguro
+                    </div>
+                </div>
 
-            <p class="secure-note">
-                <x-heroicon-o-lock-closed class="w-4 h-4 inline mr-1" />
-                Pago 100% seguro procesado por Payphone
-            </p>
-        </div>
+                <div class="payment-body">
 
-    </div>
-</div>
+                    <div class="payment-empty" id="payment-empty">
+                        <div class="payment-methods-preview">
+                            <span>VISA</span>
+                            <span>Mastercard</span>
+                            <span>Amex</span>
+                            <span>PayPhone</span>
+                        </div>
 
-@include('website.whatsapp-float')
+                        <div class="payment-placeholder">
+                            <x-heroicon-o-credit-card class="w-10 h-10" />
+                            <h3>Pago con PayPhone</h3>
+                            <p>Presiona el botón para cargar la cajita de pago segura.</p>
+                        </div>
+                    </div>
 
-<script>
-    (() => {
-        const payBtn = document.getElementById('pay-btn-box');
-        const statusEl = document.getElementById('pay-status');
-        const paymentSection = document.getElementById('payphone-section');
-        const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
-        const endpoint = @json(route('orden.cajita'));
+                    <div id="payphone-section" class="payphone-box-wrap">
+                        <div id="pp-button"></div>
+                        <div id="pay-status"></div>
+                    </div>
 
-        function setStatus(msg) {
-            if (!statusEl) return;
-            statusEl.style.display = msg ? 'block' : 'none';
-            statusEl.textContent = msg;
-        }
+                </div>
 
-        if (!payBtn || !csrf) return;
+                <div class="payment-footer">
+                    <p class="secure-note">
+                        <x-heroicon-o-lock-closed class="w-4 h-4" />
+                        Pago 100% seguro procesado por PayPhone
+                    </p>
+                </div>
 
-        payBtn.addEventListener('click', async () => {
-            payBtn.disabled = true;
-            payBtn.textContent = 'Preparando pago...';
-            setStatus('Conectando con Payphone...');
+            </div>
+        </section>
 
-            try {
-                const res = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': csrf,
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({}),
-                });
+    </main>
 
-                const data = await res.json();
+    @include('website.whatsapp-float')
 
-                if (!res.ok || !data.ok) {
-                    throw new Error(data.message || 'No se pudo preparar el pago.');
-                }
+    <script>
+        (() => {
 
-                if (typeof PPaymentButtonBox !== 'function') {
-                    throw new Error('El modulo de pago no cargo. Recarga la pagina e intenta de nuevo.');
-                }
+            const statusEl = document.getElementById('pay-status');
+            const paymentSection = document.getElementById('payphone-section');
+            const paymentEmpty = document.getElementById('payment-empty');
 
-                payBtn.style.display = 'none';
-                document.body.classList.add('payment-open');
-                if (paymentSection) {
-                    paymentSection.style.display = 'block';
-                    paymentSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-                setStatus('Ingresa los datos de tu tarjeta para completar el pago.');
+            const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+            const endpoint = @json(route('orden.cajita'));
 
-                new PPaymentButtonBox({
-                    token: data.token,
-                    clientTransactionId: data.clientTransactionId,
-                    amount: data.amount,
-                    amountWithoutTax: data.amountWithoutTax,
-                    amountWithTax: data.amountWithTax,
-                    tax: data.tax,
-                    service: 0,
-                    tip: 0,
-                    currency: data.currency,
-                    storeId: data.storeId,
-                    reference: data.reference,
-                    lang: 'es',
-                    defaultMethod: 'card',
-                    timeZone: data.timeZone,
-                }).render('pp-button');
+            function setStatus(message) {
+                if (!statusEl) return;
 
-            } catch (err) {
-                console.error('PayPhone error:', err);
-                setStatus('');
-                payBtn.disabled = false;
-                payBtn.style.display = 'inline-flex';
-                payBtn.textContent = 'Pagar ${{ number_format($total, 2) }} con PayPhone';
-                document.body.classList.remove('payment-open');
-                if (paymentSection) {
-                    paymentSection.style.display = 'none';
-                }
-                alert(err.message || 'Ocurrio un error. Intenta de nuevo.');
+                statusEl.style.display = message ? 'block' : 'none';
+                statusEl.textContent = message || '';
             }
-        });
-    })();
-</script>
+
+            async function loadPaymentBox() {
+
+                try {
+
+                    document.body.classList.add('payment-open');
+
+                    setStatus('Conectando con PayPhone...');
+
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': csrf,
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({})
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok || !data.ok) {
+                        throw new Error(data.message || 'No se pudo iniciar el pago.');
+                    }
+
+                    if (typeof PPaymentButtonBox !== 'function') {
+                        throw new Error('PayPhone no cargó correctamente.');
+                    }
+
+                    if (paymentEmpty) {
+                        paymentEmpty.style.display = 'none';
+                    }
+
+                    if (paymentSection) {
+                        paymentSection.style.display = 'block';
+                    }
+
+                    setStatus('Ingresa los datos de tu tarjeta.');
+
+                    new PPaymentButtonBox({
+                        token: data.token,
+                        clientTransactionId: data.clientTransactionId,
+                        amount: data.amount,
+                        amountWithoutTax: data.amountWithoutTax,
+                        amountWithTax: data.amountWithTax,
+                        tax: data.tax,
+                        service: 0,
+                        tip: 0,
+                        currency: data.currency,
+                        storeId: data.storeId,
+                        reference: data.reference,
+                        lang: 'es',
+                        defaultMethod: 'card',
+                        timeZone: data.timeZone,
+                    }).render('pp-button');
+
+                } catch (error) {
+
+                    console.error('PayPhone Error:', error);
+
+                    document.body.classList.remove('payment-open');
+
+                    setStatus('');
+
+                    if (paymentEmpty) {
+                        paymentEmpty.style.display = 'flex';
+                    }
+
+                    if (paymentSection) {
+                        paymentSection.style.display = 'none';
+                    }
+
+                    alert(error.message || 'Error cargando PayPhone.');
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                loadPaymentBox();
+            });
+
+        })();
+    </script>
+
 </body>
+
 </html>
