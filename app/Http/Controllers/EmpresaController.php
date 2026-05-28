@@ -11,7 +11,7 @@ class EmpresaController extends Controller
     public function edit()
     {
         $empresa = Empresa::query()->first() ?? new Empresa();
-        return view('profile.empresa.index', compact('empresa'));
+        return view('admin.empresa.index', compact('empresa'));
     }
 
     public function update(Request $request)

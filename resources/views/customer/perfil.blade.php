@@ -2,10 +2,49 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Perfil — Endara Carwash</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Mi Perfil</title>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/scss/profile/customer-perfil.scss', 'resources/js/app.js'])
+    <style>
+        /* Estilos responsive adicionales (no altera colores ni funcionalidades) */
+        @media (max-width: 768px) {
+            .topbar {
+                flex-direction: column;
+                gap: 0.75rem;
+                padding: 0.75rem 1rem;
+                height: auto;
+            }
+            .topbar-nav {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 0.75rem;
+            }
+            .avatar-section {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            .card form {
+                width: 100%;
+            }
+            .container {
+                padding: 1rem;
+            }
+            .form-group input, .form-group button {
+                width: 100%;
+                box-sizing: border-box;
+            }
+        }
+        @media (max-width: 480px) {
+            .page-title {
+                font-size: 2rem;
+            }
+            .btn-save {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -15,7 +54,7 @@
         <a href="{{ route('home') }}">Inicio</a>
         <a href="{{ route('customer.compras') }}">Mis Compras</a>
         <a href="{{ route('customer.perfil') }}" class="active">Mi Perfil</a>
-        <form method="POST" action="{{ route('logout') }}">
+        <form method="POST" action="{{ route('logout') }}" style="display: inline;">
             @csrf
             <button class="btn-logout">Salir</button>
         </form>

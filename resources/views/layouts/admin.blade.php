@@ -18,14 +18,17 @@
     <!-- Sidebar (Colapsable al hacer clic) -->
     <aside class="sidebar flex flex-col h-full" id="sidebar">
         <div class="sidebar-header">
-            <h1>âš¡ Admin Panel</h1>
+            <div class="flex items-center gap-2">
+                <x-heroicon-o-building-library class="w-5 h-5" />
+                <span>Admin Panel</span>
+            </div>
             <p>{{ auth()->user()?->name ?? 'Administrador' }}</p>
         </div>
 
         <nav class="sidebar-nav flex-1">
             <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}">
                 <span><x-heroicon-o-globe-alt class="w-5 h-5" /></span>
-                <span>Pagina web</span>
+                <span>Página web</span>
             </a>
             <a href="{{ route('admin.dashboard') }}"
                 class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
@@ -91,8 +94,11 @@
             <span></span>
         </div>
 
-        <div class="bottom-sheet-header">
-            <h2>âš¡ Panel de Control</h2>
+        <div class="sidebar-header">
+            <div class="flex items-center gap-2">
+                <x-heroicon-o-building-library class="w-5 h-5" />
+                <span>Admin Panel</span>
+            </div>
             <p>{{ auth()->user()?->name ?? 'Administrador' }}</p>
         </div>
 
@@ -119,7 +125,7 @@
             <a href="{{ route('admin.orders.index') }}"
                 class="{{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
                 <span><x-heroicon-o-shopping-bag class="w-5 h-5" /></span>
-                <span>Ã“rdenes</span>
+                <span>Órdenes</span>
             </a>
             <a href="{{ route('admin.empresa.edit') }}"
                 class="{{ request()->routeIs('admin.empresa.*') ? 'active' : '' }}">

@@ -7,6 +7,17 @@
     --dark-3: #0a0a0a;
     --muted: #666666;
     --auth-navbar-h: 70px;
+    --brand-primary: var(--red);
+    --brand-primary-dark: var(--red-dark);
+    --brand-secondary: var(--gold);
+    --brand-tertiary: #9ca3af;
+    --brand-action: var(--brand-primary);
+    --brand-highlight: var(--brand-secondary);
+    --brand-support: var(--brand-tertiary);
+    --soft-primary: color-mix(in srgb, var(--brand-primary) 14%, transparent);
+    --soft-highlight: color-mix(in srgb, var(--brand-secondary) 12%, transparent);
+    --soft-support: color-mix(in srgb, var(--brand-tertiary) 14%, transparent);
+    --line-support: color-mix(in srgb, var(--brand-tertiary) 24%, transparent);
 }
 
 * {
@@ -28,6 +39,9 @@ body.auth-register {
     position: relative;
     overflow-x: hidden;
     overflow-y: auto;
+    --red: var(--brand-primary);
+    --red-dark: var(--brand-primary-dark);
+    --gold: var(--brand-secondary);
 }
 
 @media (min-width: 769px) {
@@ -412,6 +426,18 @@ body.auth-register .card {
     font-size: 0.7rem;
     color: var(--muted);
     margin-block-start: 0.25rem;
+}
+
+.strength-text.is-weak {
+    color: #d82128;
+}
+
+.strength-text.is-medium {
+    color: #f0b429;
+}
+
+.strength-text.is-strong {
+    color: #28a745;
 }
 
 /* ===== RESPONSIVE ===== */

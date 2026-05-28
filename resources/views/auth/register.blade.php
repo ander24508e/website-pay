@@ -23,22 +23,10 @@
     @vite(['resources/css/app.css', 'resources/scss/website.scss', 'resources/scss/auth.scss', 'resources/js/app.js'])
 </head>
 <body class="auth-register"
-    style="
-    --brand-primary: {{ $primary }};
-    --brand-primary-dark: {{ $darkenHex($primary) }};
-    --brand-secondary: {{ $secondary }};
-    --brand-tertiary: {{ $tertiary }};
-    --brand-action: var(--brand-primary);
-    --brand-highlight: var(--brand-secondary);
-    --brand-support: var(--brand-tertiary);
-    --soft-primary: color-mix(in srgb, var(--brand-primary) 14%, transparent);
-    --soft-highlight: color-mix(in srgb, var(--brand-secondary) 12%, transparent);
-    --soft-support: color-mix(in srgb, var(--brand-tertiary) 14%, transparent);
-    --line-support: color-mix(in srgb, var(--brand-tertiary) 24%, transparent);
-    --red: var(--brand-primary);
-    --red-dark: var(--brand-primary-dark);
-    --gold: var(--brand-secondary);
-">
+    data-brand-primary="{{ $primary }}"
+    data-brand-primary-dark="{{ $darkenHex($primary) }}"
+    data-brand-secondary="{{ $secondary }}"
+    data-brand-tertiary="{{ $tertiary }}">
 
 <div class="bg-layer"></div>
 
@@ -114,6 +102,20 @@
 </main>
 
 <script>
+function initAuthBrandVars() {
+    const root = document.body;
+    const primary = root.dataset.brandPrimary;
+    const primaryDark = root.dataset.brandPrimaryDark;
+    const secondary = root.dataset.brandSecondary;
+    const tertiary = root.dataset.brandTertiary;
+    if (!primary || !primaryDark || !secondary || !tertiary) return;
+
+    root.style.setProperty('--brand-primary', primary);
+    root.style.setProperty('--brand-primary-dark', primaryDark);
+    root.style.setProperty('--brand-secondary', secondary);
+    root.style.setProperty('--brand-tertiary', tertiary);
+}
+
 function togglePass(inputId, iconId) {
     const input = document.getElementById(inputId);
     const icon = document.getElementById(iconId);
@@ -131,6 +133,7 @@ function checkStrength(val) {
 
     if (!val) {
         text.textContent = '';
+        text.classList.remove('is-weak', 'is-medium', 'is-strong');
         return;
     }
 
@@ -143,17 +146,22 @@ function checkStrength(val) {
     if (score <= 1) {
         bar.classList.add('weak');
         text.textContent = 'Contrasena debil';
-        text.style.color = '#d82128';
+        text.classList.remove('is-medium', 'is-strong');
+        text.classList.add('is-weak');
     } else if (score <= 2) {
         bar.classList.add('medium');
         text.textContent = 'Contrasena moderada';
-        text.style.color = '#f0b429';
+        text.classList.remove('is-weak', 'is-strong');
+        text.classList.add('is-medium');
     } else {
         bar.classList.add('strong');
         text.textContent = 'Contrasena fuerte';
-        text.style.color = '#28a745';
+        text.classList.remove('is-weak', 'is-medium');
+        text.classList.add('is-strong');
     }
 }
+
+document.addEventListener('DOMContentLoaded', initAuthBrandVars);
 </script>
 
 </body>

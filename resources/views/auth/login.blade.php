@@ -23,22 +23,10 @@
     @vite(['resources/css/app.css', 'resources/scss/website.scss', 'resources/scss/auth.scss', 'resources/js/app.js'])
 </head>
 <body class="auth-login"
-    style="
-    --brand-primary: {{ $primary }};
-    --brand-primary-dark: {{ $darkenHex($primary) }};
-    --brand-secondary: {{ $secondary }};
-    --brand-tertiary: {{ $tertiary }};
-    --brand-action: var(--brand-primary);
-    --brand-highlight: var(--brand-secondary);
-    --brand-support: var(--brand-tertiary);
-    --soft-primary: color-mix(in srgb, var(--brand-primary) 14%, transparent);
-    --soft-highlight: color-mix(in srgb, var(--brand-secondary) 12%, transparent);
-    --soft-support: color-mix(in srgb, var(--brand-tertiary) 14%, transparent);
-    --line-support: color-mix(in srgb, var(--brand-tertiary) 24%, transparent);
-    --red: var(--brand-primary);
-    --red-dark: var(--brand-primary-dark);
-    --gold: var(--brand-secondary);
-">
+    data-brand-primary="{{ $primary }}"
+    data-brand-primary-dark="{{ $darkenHex($primary) }}"
+    data-brand-secondary="{{ $secondary }}"
+    data-brand-tertiary="{{ $tertiary }}">
 
 <div class="bg-layer"></div>
 
@@ -102,6 +90,20 @@
 </main>
 
 <script>
+function initAuthBrandVars() {
+    const root = document.body;
+    const primary = root.dataset.brandPrimary;
+    const primaryDark = root.dataset.brandPrimaryDark;
+    const secondary = root.dataset.brandSecondary;
+    const tertiary = root.dataset.brandTertiary;
+    if (!primary || !primaryDark || !secondary || !tertiary) return;
+
+    root.style.setProperty('--brand-primary', primary);
+    root.style.setProperty('--brand-primary-dark', primaryDark);
+    root.style.setProperty('--brand-secondary', secondary);
+    root.style.setProperty('--brand-tertiary', tertiary);
+}
+
 function togglePassword() {
     const input = document.getElementById('password');
     const icon = document.getElementById('eye-icon');
@@ -110,6 +112,8 @@ function togglePassword() {
     icon.classList.toggle('bi-eye-slash');
     icon.classList.toggle('bi-eye');
 }
+
+document.addEventListener('DOMContentLoaded', initAuthBrandVars);
 </script>
 </body>
 </html>
