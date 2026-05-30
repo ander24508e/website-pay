@@ -4,17 +4,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @php
+        $empresa = App\Models\Empresa::first() ?? new App\Models\Empresa();
+        $primary = $empresa->color_primario_hex;
+        $secondary = $empresa->color_secundario_hex;
+        $tertiary = $empresa->color_terciario_hex;
+        $darkenHex = function (string $hex, int $steps = 26): string {
+            $hex = ltrim($hex, '#');
+            $r = max(0, hexdec(substr($hex, 0, 2)) - $steps);
+            $g = max(0, hexdec(substr($hex, 2, 2)) - $steps);
+            $b = max(0, hexdec(substr($hex, 4, 2)) - $steps);
+            return sprintf('#%02X%02X%02X', $r, $g, $b);
+        };
+        $brandName = strtoupper($empresa->nombre_corto ?? $empresa->nombre ?? 'ENDARA CARWASH');
+        $brandParts = preg_split('/\s+/', trim($brandName));
+        $brandMain = implode(' ', array_slice($brandParts, 0, 1));
+        $brandAccent = implode(' ', array_slice($brandParts, 1));
+    @endphp
     <title>Mi Perfil — {{ $empresa->nombre ?? 'Endara Carwash' }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/scss/profile/profile-edit.scss', 'resources/js/app.js'])
 </head>
 
-<body>
+<body
+    data-brand-primary="{{ $primary }}"
+    data-brand-primary-dark="{{ $darkenHex($primary) }}"
+    data-brand-secondary="{{ $secondary }}"
+    data-brand-tertiary="{{ $tertiary }}">
     <div class="bg-layer"></div>
 
     <header class="topbar">
-        <a href="{{ route('home') }}" class="topbar-brand">ENDARA <span>CARWASH</span></a>
+        <a href="{{ route('home') }}" class="topbar-brand">
+            {{ $brandMain }}
+            @if ($brandAccent)
+                <span>{{ $brandAccent }}</span>
+            @endif
+        </a>
         <nav class="topbar-nav">
             <a href="{{ route('home') }}" class="flex items-center gap-1">
                 <x-heroicon-o-home class="w-4 h-4" />
@@ -124,7 +150,22 @@
             input.type = input.type === 'password' ? 'text' : 'password';
         }
 
+        function initProfileBrandVars() {
+            const root = document.body;
+            const primary = root.dataset.brandPrimary;
+            const primaryDark = root.dataset.brandPrimaryDark;
+            const secondary = root.dataset.brandSecondary;
+            const tertiary = root.dataset.brandTertiary;
+            if (!primary || !primaryDark || !secondary || !tertiary) return;
+
+            root.style.setProperty('--brand-primary', primary);
+            root.style.setProperty('--brand-primary-dark', primaryDark);
+            root.style.setProperty('--brand-secondary', secondary);
+            root.style.setProperty('--brand-tertiary', tertiary);
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
+            initProfileBrandVars();
             const notif = document.getElementById('notif');
             if (notif) {
                 setTimeout(() => {

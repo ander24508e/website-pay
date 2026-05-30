@@ -63,7 +63,7 @@
         </nav>
 
         <div class="sidebar-footer mt-auto">
-            <details class="sidebar-settings {{ request()->routeIs('profile.edit') ? 'open' : '' }}" {{ request()->routeIs('profile.edit') ? 'open' : '' }}>
+            <details class="sidebar-settings" {{ request()->routeIs('profile.edit') ? 'open' : '' }}>
                 <summary class="sidebar-settings-summary">
                     <span><x-heroicon-o-cog-6-tooth class="w-5 h-5" /></span>
                     <span>Configuracion</span>
@@ -147,7 +147,7 @@
         </nav>
 
         <div class="bottom-sheet-footer">
-            <details class="sidebar-settings {{ request()->routeIs('profile.edit') ? 'open' : '' }}" {{ request()->routeIs('profile.edit') ? 'open' : '' }}>
+            <details class="sidebar-settings" {{ request()->routeIs('profile.edit') ? 'open' : '' }}>
                 <summary class="sidebar-settings-summary">
                     <span><x-heroicon-o-cog-6-tooth class="w-5 h-5" /></span>
                     <span>Configuracion</span>
@@ -216,7 +216,7 @@
         });
 
         // Prevenir que los clics en elementos interactivos propaguen al sidebar
-        document.querySelectorAll('#sidebar a, #sidebar button, #sidebar .sidebar-header').forEach(el => {
+        document.querySelectorAll('#sidebar a, #sidebar button, #sidebar .sidebar-header, #sidebar details, #sidebar summary').forEach(el => {
             el.addEventListener('click', (e) => {
                 e.stopPropagation();
             });
