@@ -111,7 +111,7 @@
             </section>
 
             <section class="profile-card profile-card--security {{ ($activeTab ?? 'account') === 'account' ? 'is-hidden' : '' }}">
-                @include('profile.partials.form-security')
+                @includeIf('profile.partials.form-security')
 
                 <div class="save-row">
                     <button type="submit" class="btn-save">

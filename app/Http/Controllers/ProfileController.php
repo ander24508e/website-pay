@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -7,6 +7,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
@@ -28,22 +29,38 @@ class ProfileController extends Controller
     public function update(Request $request): RedirectResponse
     {
         $user = $request->user();
+        $hasTelefono = Schema::hasColumn('users', 'telefono');
+        $hasDireccion = Schema::hasColumn('users', 'direccion');
 
-        $request->validate([
-            'name'       => 'required|string|max:255',
-            'email'      => 'required|email|unique:users,email,' . $user->id,
-            'telefono'   => 'required|string|max:50',
-            'direccion'  => 'nullable|string|max:500',
-            'foto_perfil'=> 'nullable|image|mimes:jpeg,png,jpg|max:4096',
+        $rules = [
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'foto_perfil' => 'nullable|image|mimes:jpeg,png,jpg|max:4096',
             'current_password' => 'nullable|string',
-            'password'   => 'nullable|min:8|confirmed',
-        ]);
+            'password' => 'nullable|min:8|confirmed',
+        ];
 
-        // 1. Información personal
-        $user->name  = $request->name;
+        if ($hasTelefono) {
+            $rules['telefono'] = 'required|string|max:50';
+        }
+
+        if ($hasDireccion) {
+            $rules['direccion'] = 'nullable|string|max:500';
+        }
+
+        $request->validate($rules);
+
+        // 1. Informacion personal
+        $user->name = $request->name;
         $user->email = $request->email;
-        $user->telefono = trim((string) $request->telefono) !== '' ? $request->telefono : null;
-        $user->direccion = trim((string) $request->direccion) !== '' ? $request->direccion : null;
+
+        if ($hasTelefono) {
+            $user->telefono = trim((string) $request->telefono) !== '' ? $request->telefono : null;
+        }
+
+        if ($hasDireccion) {
+            $user->direccion = trim((string) $request->direccion) !== '' ? $request->direccion : null;
+        }
 
         // 2. Foto de perfil
         if ($request->hasFile('foto_perfil') && $request->file('foto_perfil')->isValid()) {
@@ -54,17 +71,17 @@ class ProfileController extends Controller
             $user->foto_perfil = $request->foto_perfil->storeAs('fotos_perfil', $fileName, 'public');
         }
 
-        // 3. Contraseña opcional
+        // 3. Contrasena opcional
         if ($request->filled('current_password')) {
             if (!Hash::check($request->current_password, $user->password)) {
-                return back()->withErrors(['current_password' => 'La contraseña actual no es correcta.']);
+                return back()->withErrors(['current_password' => 'La contrasena actual no es correcta.']);
             }
             if ($request->filled('password')) {
                 $user->password = Hash::make($request->password);
             }
         }
 
-        // 4. Invalidar email si cambió
+        // 4. Invalidar email si cambio
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
         }
