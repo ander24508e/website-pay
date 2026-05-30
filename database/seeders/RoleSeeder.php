@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace Database\Seeders;
 
@@ -10,37 +10,37 @@ class RoleSeeder extends Seeder
 {
     public function run(): void
     {
-        // Limpiar caché de permisos
+        // Limpiar cache de permisos
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
         // Crear roles
-        Role::firstOrCreate(['name' => 'admin',   'guard_name' => 'web']);
+        Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
         Role::firstOrCreate(['name' => 'cliente', 'guard_name' => 'web']);
 
         // Usuario administrador
-        $admin = User::firstOrCreate(
-            ['email' => 'admin@endara.com'],
+        $admin = User::updateOrCreate(
+            ['email' => 'admin.endara@gmail.com'],
             [
-                'name'              => 'Anderson Endara',
-                'password'          => bcrypt('Admin123'),
+                'name' => 'Anderson Endara',
+                'password' => bcrypt('Admin123'),
                 'email_verified_at' => now(),
             ]
         );
-        $admin->assignRole('admin');
+        $admin->syncRoles(['admin']);
 
         // Usuario cliente de ejemplo
-        $cliente = User::firstOrCreate(
-            ['email' => 'cliente@test.com'],
+        $cliente = User::updateOrCreate(
+            ['email' => 'cliente.endara@gmail.com'],
             [
-                'name'              => 'Daniel',
-                'password'          => bcrypt('Cliente123'),
+                'name' => 'Daniel',
+                'password' => bcrypt('Cliente123'),
                 'email_verified_at' => now(),
             ]
         );
-        $cliente->assignRole('cliente');
+        $cliente->syncRoles(['cliente']);
 
-        $this->command->info('✅ Roles creados: admin, cliente');
-        $this->command->info('✅ Admin: admin@endara.com / Admin123');
-        $this->command->info('✅ Cliente: cliente@test.com / Cliente123');
+        $this->command->info('Roles creados: admin, cliente');
+        $this->command->info('Admin: admin.endara@gmail.com / Admin123');
+        $this->command->info('Cliente: cliente.endara@gmail.com / Cliente123');
     }
 }

@@ -14,8 +14,14 @@ class ProfileController extends Controller
 {
     public function edit(Request $request): View
     {
+        $activeTab = $request->query('tab', 'account');
+        if (!in_array($activeTab, ['account', 'security'], true)) {
+            $activeTab = 'account';
+        }
+
         return view('profile.index', [
             'user' => $request->user(),
+            'activeTab' => $activeTab,
         ]);
     }
 
@@ -24,8 +30,10 @@ class ProfileController extends Controller
         $user = $request->user();
 
         $request->validate([
-            'name'       => 'nullable|string|max:255',
-            'email'      => 'nullable|email|unique:users,email,' . $user->id,
+            'name'       => 'required|string|max:255',
+            'email'      => 'required|email|unique:users,email,' . $user->id,
+            'telefono'   => 'required|string|max:50',
+            'direccion'  => 'nullable|string|max:500',
             'foto_perfil'=> 'nullable|image|mimes:jpeg,png,jpg|max:4096',
             'current_password' => 'nullable|string',
             'password'   => 'nullable|min:8|confirmed',
@@ -34,6 +42,8 @@ class ProfileController extends Controller
         // 1. Información personal
         $user->name  = $request->name;
         $user->email = $request->email;
+        $user->telefono = trim((string) $request->telefono) !== '' ? $request->telefono : null;
+        $user->direccion = trim((string) $request->direccion) !== '' ? $request->direccion : null;
 
         // 2. Foto de perfil
         if ($request->hasFile('foto_perfil') && $request->file('foto_perfil')->isValid()) {

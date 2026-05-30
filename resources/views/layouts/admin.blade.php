@@ -60,13 +60,20 @@
                 <span><x-heroicon-o-building-office class="w-5 h-5" /></span>
                 <span>Mi Empresa</span>
             </a>
-            <a href="{{ route('profile.edit') }}" class="{{ request()->routeIs('profile.edit') ? 'active' : '' }}">
-                <span><x-heroicon-o-user class="w-5 h-5" /></span>
-                <span>Mi Perfil</span>
-            </a>
         </nav>
 
         <div class="sidebar-footer mt-auto">
+            <details class="sidebar-settings {{ request()->routeIs('profile.edit') ? 'open' : '' }}" {{ request()->routeIs('profile.edit') ? 'open' : '' }}>
+                <summary class="sidebar-settings-summary">
+                    <span><x-heroicon-o-cog-6-tooth class="w-5 h-5" /></span>
+                    <span>Configuracion</span>
+                </summary>
+                <div class="sidebar-settings-links">
+                    <a href="{{ route('profile.edit', ['tab' => 'account']) }}" class="{{ request()->routeIs('profile.edit') && request('tab', 'account') === 'account' ? 'active' : '' }}">Cuenta</a>
+                    <a href="{{ route('profile.edit', ['tab' => 'security']) }}" class="{{ request()->routeIs('profile.edit') && request('tab') === 'security' ? 'active' : '' }}">Seguridad</a>
+                </div>
+            </details>
+
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit"
@@ -137,13 +144,20 @@
                 <span><x-heroicon-o-credit-card class="w-5 h-5" /></span>
                 <span>Transacciones</span>
             </a>
-            <a href="{{ route('profile.edit') }}" class="{{ request()->routeIs('profile.edit') ? 'active' : '' }}">
-                <span><x-heroicon-o-user class="w-5 h-5" /></span>
-                <span>Mi Perfil</span>
-            </a>
         </nav>
 
         <div class="bottom-sheet-footer">
+            <details class="sidebar-settings {{ request()->routeIs('profile.edit') ? 'open' : '' }}" {{ request()->routeIs('profile.edit') ? 'open' : '' }}>
+                <summary class="sidebar-settings-summary">
+                    <span><x-heroicon-o-cog-6-tooth class="w-5 h-5" /></span>
+                    <span>Configuracion</span>
+                </summary>
+                <div class="sidebar-settings-links">
+                    <a href="{{ route('profile.edit', ['tab' => 'account']) }}" class="{{ request()->routeIs('profile.edit') && request('tab', 'account') === 'account' ? 'active' : '' }}">Cuenta</a>
+                    <a href="{{ route('profile.edit', ['tab' => 'security']) }}" class="{{ request()->routeIs('profile.edit') && request('tab') === 'security' ? 'active' : '' }}">Seguridad</a>
+                </div>
+            </details>
+
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit" class="flex items-center gap-3 w-full">
@@ -248,7 +262,7 @@
         bottomSheetOverlay?.addEventListener('click', closeBottomSheet);
 
         // Cerrar bottom sheet al hacer clic en enlaces
-        document.querySelectorAll('.bottom-sheet-nav a, .bottom-sheet-footer button').forEach(el => {
+        document.querySelectorAll('.bottom-sheet-nav a, .bottom-sheet-footer button, .bottom-sheet-footer a').forEach(el => {
             el.addEventListener('click', () => {
                 if (window.innerWidth < 768) {
                     closeBottomSheet();

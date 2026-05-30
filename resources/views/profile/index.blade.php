@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Perfil � {{ $empresa->nombre ?? 'Endara Carwash' }}</title>
+    <title>Mi Perfil — {{ $empresa->nombre ?? 'Endara Carwash' }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/scss/profile/profile-edit.scss', 'resources/js/app.js'])
@@ -58,11 +58,16 @@
     @endif
 
     <main class="page-wrap">
+        <div class="profile-switch">
+            <a href="{{ route('profile.edit', ['tab' => 'account']) }}" class="profile-switch-link {{ ($activeTab ?? 'account') === 'account' ? 'active' : '' }}">Cuenta</a>
+            <a href="{{ route('profile.edit', ['tab' => 'security']) }}" class="profile-switch-link {{ ($activeTab ?? 'account') === 'security' ? 'active' : '' }}">Seguridad</a>
+        </div>
+
         <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data" class="profile-form-grid">
             @csrf
             @method('PATCH')
 
-            <section class="profile-left-stack">
+            <section class="profile-left-stack {{ ($activeTab ?? 'account') === 'security' ? 'is-hidden' : '' }}">
                 <article class="profile-card profile-card--avatar">
                     @include('profile.partials.form-avatar', ['user' => $user])
                 </article>
@@ -70,9 +75,16 @@
                 <article class="profile-card profile-card--info">
                     @include('profile.partials.form-account', ['user' => $user])
                 </article>
+
+                <div class="save-row save-row-inline">
+                    <button type="submit" class="btn-save">
+                        <x-heroicon-o-check class="w-4 h-4" />
+                        Guardar Cambios
+                    </button>
+                </div>
             </section>
 
-            <section class="profile-card profile-card--security">
+            <section class="profile-card profile-card--security {{ ($activeTab ?? 'account') === 'account' ? 'is-hidden' : '' }}">
                 @include('profile.partials.form-security')
 
                 <div class="save-row">

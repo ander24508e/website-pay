@@ -159,11 +159,39 @@ body {
     padding: 2rem 1rem 2.5rem;
 }
 
+.profile-switch {
+    display: inline-flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.profile-switch-link {
+    text-decoration: none;
+    color: rgba(255, 255, 255, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 999px;
+    padding: 0.45rem 0.95rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.profile-switch-link.active {
+    background: var(--red);
+    color: #fff;
+    border-color: var(--red);
+}
+
 .profile-form-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 0.9rem;
     align-items: start;
+}
+
+.is-hidden {
+    display: none !important;
 }
 
 .profile-left-stack {
@@ -362,6 +390,10 @@ body {
 
 .save-row {
     padding: 0.95rem 1.05rem 1.1rem;
+}
+
+.save-row-inline {
+    padding: 0.2rem 0.1rem 0;
 }
 
 .btn-save {
