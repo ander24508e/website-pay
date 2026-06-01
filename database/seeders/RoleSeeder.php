@@ -19,7 +19,7 @@ class RoleSeeder extends Seeder
 
         // Usuario administrador
         $admin = User::updateOrCreate(
-            ['email' => 'admin.endara@gmail.com'],
+            ['email' => 'admin@endara.com'],
             [
                 'name' => 'Anderson Endara',
                 'password' => bcrypt('Admin123'),
@@ -30,7 +30,7 @@ class RoleSeeder extends Seeder
 
         // Usuario cliente de ejemplo
         $cliente = User::updateOrCreate(
-            ['email' => 'cliente.endara@gmail.com'],
+            ['email' => 'cliente@endara.com'],
             [
                 'name' => 'Daniel',
                 'password' => bcrypt('Cliente123'),
@@ -40,7 +40,7 @@ class RoleSeeder extends Seeder
         $cliente->syncRoles(['cliente']);
 
         $this->command->info('Roles creados: admin, cliente');
-        $this->command->info('Admin: admin.endara@gmail.com / Admin123');
-        $this->command->info('Cliente: cliente.endara@gmail.com / Cliente123');
+        $this->command->info('Admin: admin@endara.com / Admin123');
+        $this->command->info('Cliente: cliente@endara.com / Cliente123');
     }
 }

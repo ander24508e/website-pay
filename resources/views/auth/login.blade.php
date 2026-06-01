@@ -81,7 +81,7 @@
         </button>
     </form>
 
-    <div class="divider"><span>o</span></div>
+    <div class="divider"></div>
 
     <a href="{{ route('register') }}" class="btn-register">
         <i class="bi bi-person-plus"></i> Crear una cuenta
