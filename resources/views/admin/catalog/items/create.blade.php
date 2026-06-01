@@ -85,6 +85,16 @@
                     </div>
                 </label>
 
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" name="uses_inventory" value="1" form="catalog-item-form"
+                           {{ old('uses_inventory') ? 'checked' : '' }}
+                           class="rounded border-gray-300 text-gray-900 focus:ring-gray-400">
+                    <div>
+                        <p class="text-sm font-semibold text-gray-700">Usa inventario</p>
+                        <p class="text-xs text-gray-400">Este item descontara o controlara stock por variante</p>
+                    </div>
+                </label>
+
                 <div class="rounded-lg bg-gray-50 border border-gray-200 p-3 text-xs text-gray-500">
                     Un item puede ser solo comprable, solo reservable o ambas cosas segun el flujo del negocio.
                 </div>

@@ -23,6 +23,7 @@ class CatalogItem extends Model
         'featured',
         'purchasable',
         'reservable',
+        'uses_inventory',
         'sort_order',
         'metadata',
     ];
@@ -33,6 +34,7 @@ class CatalogItem extends Model
         'featured' => 'boolean',
         'purchasable' => 'boolean',
         'reservable' => 'boolean',
+        'uses_inventory' => 'boolean',
         'sort_order' => 'integer',
         'metadata' => 'array',
     ];

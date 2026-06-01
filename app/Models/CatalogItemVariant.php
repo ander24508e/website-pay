@@ -35,6 +35,11 @@ class CatalogItemVariant extends Model
         return $this->belongsTo(CatalogItem::class, 'catalog_item_id');
     }
 
+    public function inventoryMovements()
+    {
+        return $this->hasMany(InventoryMovement::class, 'catalog_item_variant_id');
+    }
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('active', true);

@@ -1,6 +1,11 @@
 <?php
 
 use App\Http\Controllers\BannerController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\ClientesController;
+use App\Http\Controllers\Admin\VentasController;
+use App\Http\Controllers\Admin\UsuariosController;
+use App\Http\Controllers\Admin\InventarioController;
 use App\Http\Controllers\CatalogTypeController;
 use App\Http\Controllers\CatalogCategoryController;
 use App\Http\Controllers\CatalogItemController;
@@ -69,7 +74,22 @@ Route::middleware(['auth', 'role:admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-        Route::get('/dashboard', fn() => view('admin.dashboard'))->name('dashboard');
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::resource('/ventas', VentasController::class)
+            ->parameters(['ventas' => 'venta'])
+            ->only(['index', 'show', 'create', 'store', 'edit', 'update', 'destroy']);
+        Route::resource('/clientes', ClientesController::class)
+            ->parameters(['clientes' => 'cliente'])
+            ->only(['index', 'show', 'create', 'store', 'edit', 'update', 'destroy']);
+        Route::resource('/usuarios', UsuariosController::class)
+            ->parameters(['usuarios' => 'usuario'])
+            ->only(['index', 'show', 'create', 'store', 'edit', 'update', 'destroy']);
+        Route::get('/inventario', [InventarioController::class, 'index'])->name('inventario.index');
+        Route::get('/inventario/create', [InventarioController::class, 'create'])->name('inventario.create');
+        Route::post('/inventario/movimientos', [InventarioController::class, 'storeMovement'])->name('inventario.movements.store');
+        Route::get('/inventario/movimientos/{movement}/edit', [InventarioController::class, 'edit'])->name('inventario.movements.edit');
+        Route::put('/inventario/movimientos/{movement}', [InventarioController::class, 'update'])->name('inventario.movements.update');
+        Route::delete('/inventario/movimientos/{movement}', [InventarioController::class, 'destroy'])->name('inventario.movements.destroy');
         Route::view('/catalogo', 'admin.catalog.index')->name('catalog.index');
         Route::resource('/catalogo/tipos', CatalogTypeController::class)
             ->parameters(['tipos' => 'catalogType'])

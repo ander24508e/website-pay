@@ -18,14 +18,17 @@
     <!-- Sidebar (Colapsable al hacer clic) -->
     <aside class="sidebar flex flex-col h-full" id="sidebar">
         <div class="sidebar-header">
-            <div class="flex items-center gap-2">
-                <x-heroicon-o-building-library class="w-5 h-5" />
-                <span>Admin Panel</span>
+            <div class="sidebar-panel-box">
+                <div class="flex items-center gap-2">
+                    <span class="panel-icon-wrap"><x-heroicon-o-building-library class="w-5 h-5" /></span>
+                    <span>Admin Panel</span>
+                </div>
+                <p>{{ auth()->user()?->name ?? 'Administrador' }}</p>
             </div>
-            <p>{{ auth()->user()?->name ?? 'Administrador' }}</p>
         </div>
 
         <nav class="sidebar-nav flex-1">
+            <p class="px-4 pt-1 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">Navegacion</p>
             <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}">
                 <span><x-heroicon-o-globe-alt class="w-5 h-5" /></span>
                 <span>Página web</span>
@@ -35,15 +38,17 @@
                 <span><x-heroicon-o-chart-bar class="w-5 h-5" /></span>
                 <span>Dashboard</span>
             </a>
-            <a href="{{ route('admin.banners.index') }}"
-                class="{{ request()->routeIs('admin.banners.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-rectangle-group class="w-5 h-5" /></span>
-                <span>Banners</span>
+
+            <p class="px-4 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">Comercial</p>
+            <a href="{{ route('admin.ventas.index') }}"
+                class="{{ request()->routeIs('admin.ventas.*') ? 'active' : '' }}">
+                <span><x-heroicon-o-banknotes class="w-5 h-5" /></span>
+                <span>Ventas</span>
             </a>
-            <a href="{{ route('admin.catalog.index') }}"
-                class="{{ request()->routeIs('admin.catalog.*') || request()->routeIs('admin.catalog-types.*') || request()->routeIs('admin.catalog-categories.*') || request()->routeIs('admin.catalog-items.*') || request()->routeIs('admin.catalog-variants.*') || request()->routeIs('admin.catalog.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-squares-2x2 class="w-5 h-5" /></span>
-                <span>Catálogo</span>
+            <a href="{{ route('admin.clientes.index') }}"
+                class="{{ request()->routeIs('admin.clientes.*') ? 'active' : '' }}">
+                <span><x-heroicon-o-users class="w-5 h-5" /></span>
+                <span>Clientes</span>
             </a>
             <a href="{{ route('admin.orders.index') }}"
                 class="{{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
@@ -55,6 +60,30 @@
                 <span><x-heroicon-o-credit-card class="w-5 h-5" /></span>
                 <span>Transacciones</span>
             </a>
+
+            <p class="px-4 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">Catalogo e inventario</p>
+            <a href="{{ route('admin.usuarios.index') }}"
+                class="{{ request()->routeIs('admin.usuarios.*') ? 'active' : '' }}">
+                <span><x-heroicon-o-user-group class="w-5 h-5" /></span>
+                <span>Usuarios</span>
+            </a>
+            <a href="{{ route('admin.banners.index') }}"
+                class="{{ request()->routeIs('admin.banners.*') ? 'active' : '' }}">
+                <span><x-heroicon-o-rectangle-group class="w-5 h-5" /></span>
+                <span>Banners</span>
+            </a>
+            <a href="{{ route('admin.catalog.index') }}"
+                class="{{ request()->routeIs('admin.catalog.*') || request()->routeIs('admin.catalog-types.*') || request()->routeIs('admin.catalog-categories.*') || request()->routeIs('admin.catalog-items.*') || request()->routeIs('admin.catalog-variants.*') || request()->routeIs('admin.catalog.*') ? 'active' : '' }}">
+                <span><x-heroicon-o-squares-2x2 class="w-5 h-5" /></span>
+                <span>Catálogo</span>
+            </a>
+            <a href="{{ route('admin.inventario.index') }}"
+                class="{{ request()->routeIs('admin.inventario.*') ? 'active' : '' }}">
+                <span><x-heroicon-o-archive-box class="w-5 h-5" /></span>
+                <span>Inventario</span>
+            </a>
+
+            <p class="px-4 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">Administracion</p>
             <a href="{{ route('admin.empresa.edit') }}"
                 class="{{ request()->routeIs('admin.empresa.*') ? 'active' : '' }}">
                 <span><x-heroicon-o-building-office class="w-5 h-5" /></span>
@@ -102,14 +131,17 @@
         </div>
 
         <div class="sidebar-header">
-            <div class="flex items-center gap-2">
-                <x-heroicon-o-building-library class="w-5 h-5" />
-                <span>Admin Panel</span>
+            <div class="sidebar-panel-box">
+                <div class="flex items-center gap-2">
+                    <span class="panel-icon-wrap"><x-heroicon-o-building-library class="w-5 h-5" /></span>
+                    <span>Admin Panel</span>
+                </div>
+                <p>{{ auth()->user()?->name ?? 'Administrador' }}</p>
             </div>
-            <p>{{ auth()->user()?->name ?? 'Administrador' }}</p>
         </div>
 
         <nav class="bottom-sheet-nav">
+            <p class="px-3 pt-1 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">Navegacion</p>
             <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}">
                 <span><x-heroicon-o-globe-alt class="w-5 h-5" /></span>
                 <span>Pagina web</span>
@@ -118,6 +150,35 @@
                 class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                 <span><x-heroicon-o-chart-bar class="w-5 h-5" /></span>
                 <span>Dashboard</span>
+            </a>
+
+            <p class="px-3 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">Comercial</p>
+            <a href="{{ route('admin.ventas.index') }}"
+                class="{{ request()->routeIs('admin.ventas.*') ? 'active' : '' }}">
+                <span><x-heroicon-o-banknotes class="w-5 h-5" /></span>
+                <span>Ventas</span>
+            </a>
+            <a href="{{ route('admin.clientes.index') }}"
+                class="{{ request()->routeIs('admin.clientes.*') ? 'active' : '' }}">
+                <span><x-heroicon-o-users class="w-5 h-5" /></span>
+                <span>Clientes</span>
+            </a>
+            <a href="{{ route('admin.orders.index') }}"
+                class="{{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
+                <span><x-heroicon-o-shopping-bag class="w-5 h-5" /></span>
+                <span>Órdenes</span>
+            </a>
+            <a href="{{ route('admin.transactions.index') }}"
+                class="{{ request()->routeIs('admin.transactions.*') ? 'active' : '' }}">
+                <span><x-heroicon-o-credit-card class="w-5 h-5" /></span>
+                <span>Transacciones</span>
+            </a>
+
+            <p class="px-3 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">Catalogo e inventario</p>
+            <a href="{{ route('admin.usuarios.index') }}"
+                class="{{ request()->routeIs('admin.usuarios.*') ? 'active' : '' }}">
+                <span><x-heroicon-o-user-group class="w-5 h-5" /></span>
+                <span>Usuarios</span>
             </a>
             <a href="{{ route('admin.banners.index') }}"
                 class="{{ request()->routeIs('admin.banners.*') ? 'active' : '' }}">
@@ -129,20 +190,17 @@
                 <span><x-heroicon-o-squares-2x2 class="w-5 h-5" /></span>
                 <span>Catálogo</span>
             </a>
-            <a href="{{ route('admin.orders.index') }}"
-                class="{{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-shopping-bag class="w-5 h-5" /></span>
-                <span>Órdenes</span>
+            <a href="{{ route('admin.inventario.index') }}"
+                class="{{ request()->routeIs('admin.inventario.*') ? 'active' : '' }}">
+                <span><x-heroicon-o-archive-box class="w-5 h-5" /></span>
+                <span>Inventario</span>
             </a>
+
+            <p class="px-3 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">Administracion</p>
             <a href="{{ route('admin.empresa.edit') }}"
                 class="{{ request()->routeIs('admin.empresa.*') ? 'active' : '' }}">
                 <span><x-heroicon-o-building-office class="w-5 h-5" /></span>
                 <span>Mi Empresa</span>
-            </a>
-            <a href="{{ route('admin.transactions.index') }}"
-                class="{{ request()->routeIs('admin.transactions.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-credit-card class="w-5 h-5" /></span>
-                <span>Transacciones</span>
             </a>
         </nav>
 

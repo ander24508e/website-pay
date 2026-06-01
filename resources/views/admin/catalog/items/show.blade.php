@@ -98,6 +98,9 @@
                         @if($catalogItem->reservable)
                             <span class="bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-medium">Reservable</span>
                         @endif
+                        @if($catalogItem->uses_inventory)
+                            <span class="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-xs font-medium">Usa inventario</span>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -114,6 +117,10 @@
                 <div>
                     <p class="text-xs text-gray-400 uppercase tracking-wide">Origen legado</p>
                     <p class="text-gray-700">{{ $catalogItem->legacy_source_type && $catalogItem->legacy_source_id ? $catalogItem->legacy_source_type . ' #' . $catalogItem->legacy_source_id : 'Aun no migrado' }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-400 uppercase tracking-wide">Control de inventario</p>
+                    <p class="text-gray-700 font-semibold">{{ $catalogItem->uses_inventory ? 'Activo' : 'No aplica' }}</p>
                 </div>
             </div>
 

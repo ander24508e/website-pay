@@ -15,6 +15,7 @@ class RoleSeeder extends Seeder
 
         // Crear roles
         Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
+        Role::firstOrCreate(['name' => 'empleado', 'guard_name' => 'web']);
         Role::firstOrCreate(['name' => 'cliente', 'guard_name' => 'web']);
 
         // Usuario administrador
@@ -39,7 +40,7 @@ class RoleSeeder extends Seeder
         );
         $cliente->syncRoles(['cliente']);
 
-        $this->command->info('Roles creados: admin, cliente');
+        $this->command->info('Roles creados: admin, empleado, cliente');
         $this->command->info('Admin: admin@endara.com / Admin123');
         $this->command->info('Cliente: cliente@endara.com / Cliente123');
     }

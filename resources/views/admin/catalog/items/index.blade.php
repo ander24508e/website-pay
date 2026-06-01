@@ -129,6 +129,9 @@
                                     @if($item->featured)
                                         <span class="bg-amber-50 text-amber-700 px-2 py-0.5 rounded text-xs font-medium">Destacado</span>
                                     @endif
+                                    @if($item->uses_inventory)
+                                        <span class="bg-purple-50 text-purple-700 px-2 py-0.5 rounded text-xs font-medium">Inventario</span>
+                                    @endif
                                 </div>
                             </td>
                             <td class="px-4 sm:px-6 py-3 sm:py-4 font-semibold text-gray-800">

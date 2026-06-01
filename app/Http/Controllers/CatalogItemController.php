@@ -129,6 +129,7 @@ class CatalogItemController extends Controller
             'featured' => ['nullable', 'boolean'],
             'purchasable' => ['nullable', 'boolean'],
             'reservable' => ['nullable', 'boolean'],
+            'uses_inventory' => ['nullable', 'boolean'],
         ]);
 
         $type = CatalogType::query()
@@ -150,6 +151,7 @@ class CatalogItemController extends Controller
             'featured' => $request->boolean('featured'),
             'purchasable' => $request->boolean('purchasable', true),
             'reservable' => $request->boolean('reservable'),
+            'uses_inventory' => $request->boolean('uses_inventory'),
             'sort_order' => (int) ($data['sort_order'] ?? 0),
         ];
 
@@ -205,6 +207,7 @@ class CatalogItemController extends Controller
             'featured' => ['nullable', 'boolean'],
             'purchasable' => ['nullable', 'boolean'],
             'reservable' => ['nullable', 'boolean'],
+            'uses_inventory' => ['nullable', 'boolean'],
         ]);
 
         $type = CatalogType::query()
@@ -225,6 +228,7 @@ class CatalogItemController extends Controller
             'featured' => $request->boolean('featured'),
             'purchasable' => $request->boolean('purchasable'),
             'reservable' => $request->boolean('reservable'),
+            'uses_inventory' => $request->boolean('uses_inventory'),
             'sort_order' => (int) ($data['sort_order'] ?? 0),
         ];
 
