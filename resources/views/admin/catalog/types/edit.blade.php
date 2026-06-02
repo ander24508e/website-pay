@@ -1,16 +1,16 @@
 @extends('layouts.admin')
 
-@section('title', 'Editar Tipo de Catalogo')
+@section('title', 'Editar Sección')
 
 @section('content')
 <div class="container mx-auto px-4 sm:px-6">
     <div class="flex flex-wrap items-center gap-3 mb-6">
-        <a href="{{ route('admin.catalog-types.index') }}"
+        <a href="{{ route('admin.catalog-types.show', $catalogType) }}"
            class="flex items-center justify-center w-9 h-9 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition text-gray-500 hover:text-gray-800">
             <span aria-hidden="true">&larr;</span>
         </a>
         <div>
-            <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Editar Tipo de Catalogo</h2>
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Editar Sección</h2>
             <p class="text-gray-400 text-sm">Modificando <strong class="text-gray-600">{{ $catalogType->name }}</strong></p>
         </div>
     </div>
@@ -73,7 +73,7 @@
                     <div class="flex items-center pt-8">
                         <label class="inline-flex items-center gap-3 text-sm text-gray-700">
                             <input type="checkbox" name="active" value="1" {{ old('active', $catalogType->active) ? 'checked' : '' }} class="rounded border-gray-300 text-gray-900 focus:ring-gray-400">
-                            Tipo activo
+                            Sección activa
                         </label>
                     </div>
                 </div>
@@ -81,9 +81,9 @@
                 <div class="flex flex-wrap gap-3 pt-2">
                     <button type="submit"
                             class="bg-gray-900 text-white px-6 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-sm">
-                        Actualizar Tipo
+                        Actualizar Sección
                     </button>
-                    <a href="{{ route('admin.catalog-types.index') }}"
+                    <a href="{{ route('admin.catalog-types.show', $catalogType) }}"
                        class="bg-gray-100 text-gray-700 px-6 py-2.5 rounded-lg hover:bg-gray-200 transition font-medium text-sm text-center">
                         Cancelar
                     </a>

@@ -13,31 +13,7 @@ class CatalogTypeController extends Controller
 {
     public function index(Request $request)
     {
-        $empresa = $this->getOrCreateEmpresa();
-        $search = trim((string) $request->query('q', ''));
-        $baseQuery = CatalogType::query()->where('empresa_id', $empresa->id);
-
-        $types = (clone $baseQuery)
-            ->when($search !== '', function ($query) use ($search) {
-                $query->where(function ($subQuery) use ($search) {
-                    $subQuery->where('name', 'like', "%{$search}%")
-                        ->orWhere('description', 'like', "%{$search}%")
-                        ->orWhere('slug', 'like', "%{$search}%");
-                });
-            })
-            ->withCount(['categories', 'items'])
-            ->ordered()
-            ->paginate(12)
-            ->withQueryString();
-
-        $stats = [
-            'total' => (clone $baseQuery)->count(),
-            'active' => (clone $baseQuery)->where('active', true)->count(),
-            'categories' => \App\Models\CatalogCategory::query()->where('empresa_id', $empresa->id)->count(),
-            'items' => \App\Models\CatalogItem::query()->where('empresa_id', $empresa->id)->count(),
-        ];
-
-        return view('admin.catalog.types.index', compact('empresa', 'types', 'stats'));
+        return redirect()->route('admin.catalog.index');
     }
 
     public function create()
@@ -62,7 +38,7 @@ class CatalogTypeController extends Controller
 
         $slug = $this->resolveSlug($empresa->id, $data['name'], $data['slug'] ?? null);
 
-        CatalogType::create([
+        $catalogType = CatalogType::create([
             'empresa_id' => $empresa->id,
             'name' => trim($data['name']),
             'slug' => $slug,
@@ -72,9 +48,9 @@ class CatalogTypeController extends Controller
             'active' => $request->boolean('active', true),
         ]);
 
-        NotificationHelper::success('Tipo de catalogo creado correctamente.');
+        NotificationHelper::success('Seccion creada correctamente. Continua agregando categorias o productos.');
 
-        return redirect()->route('admin.catalog-types.index');
+        return redirect()->route('admin.catalog-types.show', $catalogType);
     }
 
     public function show(CatalogType $catalogType)
@@ -117,7 +93,7 @@ class CatalogTypeController extends Controller
 
         NotificationHelper::success('Tipo de catalogo actualizado correctamente.');
 
-        return redirect()->route('admin.catalog-types.index');
+        return redirect()->route('admin.catalog-types.show', $catalogType);
     }
 
     public function destroy(CatalogType $catalogType)
@@ -126,7 +102,7 @@ class CatalogTypeController extends Controller
 
         NotificationHelper::success('Tipo de catalogo eliminado correctamente.');
 
-        return redirect()->route('admin.catalog-types.index');
+        return redirect()->route('admin.catalog.index');
     }
 
     private function getOrCreateEmpresa(): Empresa

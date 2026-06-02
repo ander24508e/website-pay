@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Detalle Item Universal')
+@section('title', 'Detalle Producto o Servicio')
 
 @section('content')
 <div class="container mx-auto px-4 sm:px-6">
@@ -25,23 +25,23 @@
         </a>
         <div>
             <h2 class="text-xl sm:text-2xl font-bold text-gray-800">{{ $catalogItem->name }}</h2>
-            <p class="text-gray-400 text-sm">Detalle del item universal</p>
+            <p class="text-gray-400 text-sm">Detalle del producto o servicio</p>
         </div>
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <a href="{{ $catalogItem->type ? route('admin.catalog-types.show', $catalogItem->type) : route('admin.catalog.index') }}" class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:border-gray-300 transition">
-            <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Catalogo</p>
-            <p class="text-lg font-bold text-gray-800 mt-2">{{ $catalogItem->type->name ?? 'Sin tipo' }}</p>
-            <p class="text-xs text-gray-400 mt-1">Volver al subnegocio</p>
+            <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Sección</p>
+            <p class="text-lg font-bold text-gray-800 mt-2">{{ $catalogItem->type->name ?? 'Sin sección' }}</p>
+            <p class="text-xs text-gray-400 mt-1">Volver a la sección</p>
         </a>
         <a href="{{ $catalogItem->category ? route('admin.catalog-categories.show', $catalogItem->category) : route('admin.catalog-items.index', ['catalog_type_id' => $catalogItem->catalog_type_id]) }}" class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:border-gray-300 transition">
             <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Categoria</p>
             <p class="text-lg font-bold text-gray-800 mt-2">{{ $catalogItem->category->name ?? 'Sin categoria' }}</p>
-            <p class="text-xs text-gray-400 mt-1">Ver contexto del item</p>
+            <p class="text-xs text-gray-400 mt-1">Ver contexto del producto o servicio</p>
         </a>
         <a href="{{ route('admin.catalog-variants.index', ['catalog_item_id' => $catalogItem->id]) }}" class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:border-gray-300 transition">
-            <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Variantes</p>
+            <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Presentaciones</p>
             <p class="text-lg font-bold text-gray-800 mt-2">{{ $catalogItem->variants->count() }}</p>
             <p class="text-xs text-gray-400 mt-1">Gestionar presentaciones</p>
         </a>
@@ -61,8 +61,8 @@
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <p class="text-xs text-gray-400 uppercase tracking-wide">Tipo</p>
-                            <p class="text-gray-700">{{ $catalogItem->type->name ?? 'Sin tipo' }}</p>
+                            <p class="text-xs text-gray-400 uppercase tracking-wide">Sección</p>
+                            <p class="text-gray-700">{{ $catalogItem->type->name ?? 'Sin sección' }}</p>
                         </div>
                         <div>
                             <p class="text-xs text-gray-400 uppercase tracking-wide">Categoria</p>
@@ -93,13 +93,13 @@
                             <span class="bg-amber-50 text-amber-700 px-3 py-1 rounded-full text-xs font-medium">Destacado</span>
                         @endif
                         @if($catalogItem->purchasable)
-                            <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-medium">Comprable</span>
+                            <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-medium">Se puede vender</span>
                         @endif
                         @if($catalogItem->reservable)
-                            <span class="bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-medium">Reservable</span>
+                            <span class="bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-medium">Se puede reservar</span>
                         @endif
                         @if($catalogItem->uses_inventory)
-                            <span class="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-xs font-medium">Usa inventario</span>
+                            <span class="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-xs font-medium">Controla stock</span>
                         @endif
                     </div>
                 </div>
@@ -111,11 +111,11 @@
                     <p class="text-gray-700 font-semibold">{{ $catalogItem->sort_order }}</p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-400 uppercase tracking-wide">Variantes</p>
+                    <p class="text-xs text-gray-400 uppercase tracking-wide">Presentaciones</p>
                     <p class="text-gray-700 font-semibold">{{ $catalogItem->variants->count() }}</p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-400 uppercase tracking-wide">Origen legado</p>
+                    <p class="text-xs text-gray-400 uppercase tracking-wide">Origen anterior</p>
                     <p class="text-gray-700">{{ $catalogItem->legacy_source_type && $catalogItem->legacy_source_id ? $catalogItem->legacy_source_type . ' #' . $catalogItem->legacy_source_id : 'Aun no migrado' }}</p>
                 </div>
                 <div>
@@ -127,12 +127,12 @@
             <div class="mb-8">
                 <div class="flex items-center justify-between gap-3 mb-3">
                     <div>
-                        <p class="text-sm font-semibold text-gray-800">Variantes del item</p>
-                        <p class="text-xs text-gray-400">Gestiona presentaciones y precios derivados.</p>
+                        <p class="text-sm font-semibold text-gray-800">Presentaciones</p>
+                        <p class="text-xs text-gray-400">Gestiona tamaños, versiones y precios derivados.</p>
                     </div>
                     <a href="{{ route('admin.catalog-variants.create', ['catalog_item_id' => $catalogItem->id]) }}"
                        class="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition text-sm font-medium">
-                        + Nueva Variante
+                        + Nueva Presentación
                     </a>
                 </div>
 
@@ -182,7 +182,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5" class="px-4 py-6 text-center text-gray-400">Este item aun no tiene variantes.</td>
+                                        <td colspan="5" class="px-4 py-6 text-center text-gray-400">Este producto o servicio aún no tiene presentaciones.</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -198,10 +198,10 @@
                 </a>
                 <a href="{{ route('admin.catalog-variants.create', ['catalog_item_id' => $catalogItem->id]) }}"
                    class="bg-gray-100 text-gray-700 px-5 py-2.5 rounded-lg hover:bg-gray-200 transition font-medium text-sm">
-                    + Variante
+                    + Presentación
                 </a>
                 <form action="{{ route('admin.catalog-items.destroy', $catalogItem) }}" method="POST"
-                      onsubmit="return confirm('¿Eliminar este item universal?')">
+                      onsubmit="return confirm('¿Eliminar este producto o servicio?')">
                     @csrf
                     @method('DELETE')
                     <button class="bg-red-50 text-red-600 px-5 py-2.5 rounded-lg hover:bg-red-100 transition font-medium text-sm border border-red-200">

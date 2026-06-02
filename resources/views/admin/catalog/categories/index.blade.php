@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Categorias Universales')
+@section('title', 'Categorías')
 
 @section('content')
 <div class="container mx-auto px-4 sm:px-6">
@@ -12,12 +12,12 @@
                     <span aria-hidden="true">&larr;</span>
                 </a>
                 <div>
-                    <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Categorias Universales</h2>
+                    <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Categorías</h2>
                     <p class="text-gray-500 text-sm mt-1">
                         @if(isset($selectedType) && $selectedType)
-                            Estas viendo las categorias del catalogo {{ $selectedType->name }}.
+                            Estas viendo las categorías de la sección {{ $selectedType->name }}.
                         @else
-                            Organiza items dentro de cada tipo del catalogo universal.
+                            Organiza productos y servicios dentro de cada sección.
                         @endif
                     </p>
                 </div>
@@ -30,7 +30,7 @@
             @endif
             <div class="relative">
                 <x-heroicon-o-magnifying-glass class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input type="search" name="q" value="{{ request('q') }}" placeholder="Buscar por nombre, tipo, slug o descripcion..." class="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm text-gray-700 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none focus:ring-0">
+                <input type="search" name="q" value="{{ request('q') }}" placeholder="Buscar por nombre, sección, slug o descripcion..." class="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm text-gray-700 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none focus:ring-0">
             </div>
         </form>
 
@@ -94,7 +94,7 @@
                             </td>
                             <td class="px-4 sm:px-6 py-3 sm:py-4">
                                 <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-                                    {{ $category->type->name ?? 'Sin tipo' }}
+                                    {{ $category->type->name ?? 'Sin sección' }}
                                 </span>
                             </td>
                             <td class="px-4 sm:px-6 py-3 sm:py-4 text-gray-500 font-mono text-xs">
@@ -129,7 +129,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center py-10 text-gray-400">No hay categorias universales registradas</td>
+                            <td colspan="7" class="text-center py-10 text-gray-400">No hay categorías registradas</td>
                         </tr>
                     @endforelse
                 </tbody>

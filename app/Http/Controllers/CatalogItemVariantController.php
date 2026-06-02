@@ -50,14 +50,18 @@ class CatalogItemVariantController extends Controller
     public function create(Request $request)
     {
         $empresa = $this->getOrCreateEmpresa();
+        $selectedItemId = (int) $request->query('catalog_item_id', 0);
+        $selectedTypeId = (int) $request->query('catalog_type_id', 0);
         $items = CatalogItem::query()
             ->where('empresa_id', $empresa->id)
+            ->when($selectedItemId > 0, fn ($query) => $query->whereKey($selectedItemId))
+            ->when($selectedTypeId > 0, fn ($query) => $query->where('catalog_type_id', $selectedTypeId))
             ->with(['type', 'category'])
             ->ordered()
             ->get();
-        $selectedItemId = (int) $request->query('catalog_item_id', 0);
+        $returnToType = (bool) $request->boolean('return_to_type', $selectedTypeId > 0);
 
-        return view('admin.catalog.variants.create', compact('empresa', 'items', 'selectedItemId'));
+        return view('admin.catalog.variants.create', compact('empresa', 'items', 'selectedItemId', 'selectedTypeId', 'returnToType'));
     }
 
     public function store(Request $request)
@@ -97,6 +101,10 @@ class CatalogItemVariantController extends Controller
         $this->syncDefaultVariant($variant);
 
         NotificationHelper::success('Variante universal creada correctamente.');
+
+        if ($request->boolean('redirect_to_type')) {
+            return redirect()->route('admin.catalog-types.show', $item->catalog_type_id);
+        }
 
         return redirect()->route('admin.catalog-variants.index');
     }

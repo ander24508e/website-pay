@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Nueva Categoria Universal')
+@section('title', 'Nueva Categoría')
 
 @section('content')
 <div class="container mx-auto px-4 sm:px-6">
@@ -10,8 +10,8 @@
             <span aria-hidden="true">&larr;</span>
         </a>
         <div>
-            <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Nueva Categoria Universal</h2>
-            <p class="text-gray-400 text-sm">Crea una categoria dentro de un tipo del catalogo universal.</p>
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Nueva Categoría</h2>
+            <p class="text-gray-400 text-sm">Crea una categoría dentro de una sección del negocio.</p>
         </div>
     </div>
 
@@ -19,11 +19,11 @@
         <div class="bg-white rounded-xl shadow-sm p-4 sm:p-8">
             @if($types->isEmpty())
                 <div class="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800">
-                    Primero necesitas crear al menos un tipo de catalogo para poder registrar categorias universales.
+                    Primero necesitas crear al menos una sección para poder registrar categorías.
                 </div>
                 <div class="mt-5">
                     <a href="{{ route('admin.catalog-types.create') }}" class="bg-gray-900 text-white px-5 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-sm inline-block">
-                        Crear Tipo de Catalogo
+                        Crear Sección
                     </a>
                 </div>
             @else
@@ -32,10 +32,12 @@
                     <input type="hidden" name="redirect_to_type" value="{{ ($returnToType ?? false) ? 1 : 0 }}">
 
                     <div class="mb-5">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Tipo *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Sección *</label>
                         <select name="catalog_type_id"
                                 class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-400 @error('catalog_type_id') border-red-400 bg-red-50 @enderror">
-                            <option value="">Selecciona un tipo</option>
+                            @unless(($returnToType ?? false) && ($selectedTypeId ?? 0) > 0)
+                                <option value="">Selecciona una sección</option>
+                            @endunless
                             @foreach($types as $type)
                                 <option value="{{ $type->id }}" {{ (old('catalog_type_id', $selectedTypeId ?? null) == $type->id) ? 'selected' : '' }}>{{ $type->name }}</option>
                             @endforeach
@@ -96,7 +98,7 @@
                     <div class="flex flex-wrap gap-3 pt-2">
                         <button type="submit"
                                 class="bg-gray-900 text-white px-6 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-sm">
-                            Guardar Categoria
+                        Guardar Categoría
                         </button>
                         <a href="{{ ($returnToType ?? false) && ($selectedTypeId ?? 0) > 0 ? route('admin.catalog-types.show', $selectedTypeId) : route('admin.catalog-categories.index') }}"
                            class="bg-gray-100 text-gray-700 px-6 py-2.5 rounded-lg hover:bg-gray-200 transition font-medium text-sm text-center">

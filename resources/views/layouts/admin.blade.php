@@ -28,7 +28,8 @@
         </div>
 
         <nav class="sidebar-nav flex-1">
-            <p class="px-4 pt-1 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">Navegacion</p>
+            <p class="px-4 pt-1 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">Navegacion
+            </p>
             <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}">
                 <span><x-heroicon-o-globe-alt class="w-5 h-5" /></span>
                 <span>Página web</span>
@@ -39,16 +40,17 @@
                 <span>Dashboard</span>
             </a>
 
+            <a href="{{ route('admin.banners.index') }}"
+                class="{{ request()->routeIs('admin.banners.*') ? 'active' : '' }}">
+                <span><x-heroicon-o-rectangle-group class="w-5 h-5" /></span>
+                <span>Banners</span>
+            </a>
+
             <p class="px-4 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">Comercial</p>
             <a href="{{ route('admin.ventas.index') }}"
                 class="{{ request()->routeIs('admin.ventas.*') ? 'active' : '' }}">
                 <span><x-heroicon-o-banknotes class="w-5 h-5" /></span>
                 <span>Ventas</span>
-            </a>
-            <a href="{{ route('admin.clientes.index') }}"
-                class="{{ request()->routeIs('admin.clientes.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-users class="w-5 h-5" /></span>
-                <span>Clientes</span>
             </a>
             <a href="{{ route('admin.orders.index') }}"
                 class="{{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
@@ -61,17 +63,9 @@
                 <span>Transacciones</span>
             </a>
 
-            <p class="px-4 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">Catalogo e inventario</p>
-            <a href="{{ route('admin.usuarios.index') }}"
-                class="{{ request()->routeIs('admin.usuarios.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-user-group class="w-5 h-5" /></span>
-                <span>Usuarios</span>
-            </a>
-            <a href="{{ route('admin.banners.index') }}"
-                class="{{ request()->routeIs('admin.banners.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-rectangle-group class="w-5 h-5" /></span>
-                <span>Banners</span>
-            </a>
+            <p class="px-4 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">Catalogo e
+                inventario</p>
+
             <a href="{{ route('admin.catalog.index') }}"
                 class="{{ request()->routeIs('admin.catalog.*') || request()->routeIs('admin.catalog-types.*') || request()->routeIs('admin.catalog-categories.*') || request()->routeIs('admin.catalog-items.*') || request()->routeIs('admin.catalog-variants.*') || request()->routeIs('admin.catalog.*') ? 'active' : '' }}">
                 <span><x-heroicon-o-squares-2x2 class="w-5 h-5" /></span>
@@ -83,12 +77,26 @@
                 <span>Inventario</span>
             </a>
 
-            <p class="px-4 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">Administracion</p>
+            <p class="px-4 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">
+                Administracion</p>
             <a href="{{ route('admin.empresa.edit') }}"
                 class="{{ request()->routeIs('admin.empresa.*') ? 'active' : '' }}">
                 <span><x-heroicon-o-building-office class="w-5 h-5" /></span>
                 <span>Mi Empresa</span>
             </a>
+
+            <a href="{{ route('admin.clientes.index') }}"
+                class="{{ request()->routeIs('admin.clientes.*') ? 'active' : '' }}">
+                <span><x-heroicon-o-users class="w-5 h-5" /></span>
+                <span>Clientes</span>
+            </a>
+
+            <a href="{{ route('admin.usuarios.index') }}"
+                class="{{ request()->routeIs('admin.usuarios.*') ? 'active' : '' }}">
+                <span><x-heroicon-o-user-group class="w-5 h-5" /></span>
+                <span>Usuarios</span>
+            </a>
+
         </nav>
 
         <div class="sidebar-footer mt-auto">
@@ -98,8 +106,10 @@
                     <span>Configuracion</span>
                 </summary>
                 <div class="sidebar-settings-links">
-                    <a href="{{ route('profile.edit', ['tab' => 'account']) }}" class="{{ request()->routeIs('profile.edit') && request('tab', 'account') === 'account' ? 'active' : '' }}">Cuenta</a>
-                    <a href="{{ route('profile.edit', ['tab' => 'security']) }}" class="{{ request()->routeIs('profile.edit') && request('tab') === 'security' ? 'active' : '' }}">Seguridad</a>
+                    <a href="{{ route('profile.edit', ['tab' => 'account']) }}"
+                        class="{{ request()->routeIs('profile.edit') && request('tab', 'account') === 'account' ? 'active' : '' }}">Cuenta</a>
+                    <a href="{{ route('profile.edit', ['tab' => 'security']) }}"
+                        class="{{ request()->routeIs('profile.edit') && request('tab') === 'security' ? 'active' : '' }}">Seguridad</a>
                 </div>
             </details>
 
@@ -141,15 +151,23 @@
         </div>
 
         <nav class="bottom-sheet-nav">
-            <p class="px-3 pt-1 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">Navegacion</p>
+            <p class="px-3 pt-1 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">Navegacion
+            </p>
             <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}">
                 <span><x-heroicon-o-globe-alt class="w-5 h-5" /></span>
                 <span>Pagina web</span>
             </a>
+            
             <a href="{{ route('admin.dashboard') }}"
                 class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                 <span><x-heroicon-o-chart-bar class="w-5 h-5" /></span>
                 <span>Dashboard</span>
+            </a>
+
+            <a href="{{ route('admin.banners.index') }}"
+                class="{{ request()->routeIs('admin.banners.*') ? 'active' : '' }}">
+                <span><x-heroicon-o-rectangle-group class="w-5 h-5" /></span>
+                <span>Banners</span>
             </a>
 
             <p class="px-3 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">Comercial</p>
@@ -158,49 +176,52 @@
                 <span><x-heroicon-o-banknotes class="w-5 h-5" /></span>
                 <span>Ventas</span>
             </a>
-            <a href="{{ route('admin.clientes.index') }}"
-                class="{{ request()->routeIs('admin.clientes.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-users class="w-5 h-5" /></span>
-                <span>Clientes</span>
-            </a>
+
             <a href="{{ route('admin.orders.index') }}"
                 class="{{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
                 <span><x-heroicon-o-shopping-bag class="w-5 h-5" /></span>
                 <span>Órdenes</span>
             </a>
+
             <a href="{{ route('admin.transactions.index') }}"
                 class="{{ request()->routeIs('admin.transactions.*') ? 'active' : '' }}">
                 <span><x-heroicon-o-credit-card class="w-5 h-5" /></span>
                 <span>Transacciones</span>
             </a>
 
-            <p class="px-3 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">Catalogo e inventario</p>
-            <a href="{{ route('admin.usuarios.index') }}"
-                class="{{ request()->routeIs('admin.usuarios.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-user-group class="w-5 h-5" /></span>
-                <span>Usuarios</span>
-            </a>
-            <a href="{{ route('admin.banners.index') }}"
-                class="{{ request()->routeIs('admin.banners.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-rectangle-group class="w-5 h-5" /></span>
-                <span>Banners</span>
-            </a>
+            <p class="px-3 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">Catalogo e
+                inventario</p>
+
             <a href="{{ route('admin.catalog.index') }}"
                 class="{{ request()->routeIs('admin.catalog.*') || request()->routeIs('admin.catalog-types.*') || request()->routeIs('admin.catalog-categories.*') || request()->routeIs('admin.catalog-items.*') || request()->routeIs('admin.catalog-variants.*') || request()->routeIs('admin.catalog.*') ? 'active' : '' }}">
                 <span><x-heroicon-o-squares-2x2 class="w-5 h-5" /></span>
                 <span>Catálogo</span>
             </a>
+
             <a href="{{ route('admin.inventario.index') }}"
                 class="{{ request()->routeIs('admin.inventario.*') ? 'active' : '' }}">
                 <span><x-heroicon-o-archive-box class="w-5 h-5" /></span>
                 <span>Inventario</span>
             </a>
 
-            <p class="px-3 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">Administracion</p>
+            <p class="px-3 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">
+                Administracion</p>
             <a href="{{ route('admin.empresa.edit') }}"
                 class="{{ request()->routeIs('admin.empresa.*') ? 'active' : '' }}">
                 <span><x-heroicon-o-building-office class="w-5 h-5" /></span>
                 <span>Mi Empresa</span>
+            </a>
+
+            <a href="{{ route('admin.clientes.index') }}"
+                class="{{ request()->routeIs('admin.clientes.*') ? 'active' : '' }}">
+                <span><x-heroicon-o-users class="w-5 h-5" /></span>
+                <span>Clientes</span>
+            </a>
+
+            <a href="{{ route('admin.usuarios.index') }}"
+                class="{{ request()->routeIs('admin.usuarios.*') ? 'active' : '' }}">
+                <span><x-heroicon-o-user-group class="w-5 h-5" /></span>
+                <span>Usuarios</span>
             </a>
         </nav>
 
@@ -211,8 +232,10 @@
                     <span>Configuracion</span>
                 </summary>
                 <div class="sidebar-settings-links">
-                    <a href="{{ route('profile.edit', ['tab' => 'account']) }}" class="{{ request()->routeIs('profile.edit') && request('tab', 'account') === 'account' ? 'active' : '' }}">Cuenta</a>
-                    <a href="{{ route('profile.edit', ['tab' => 'security']) }}" class="{{ request()->routeIs('profile.edit') && request('tab') === 'security' ? 'active' : '' }}">Seguridad</a>
+                    <a href="{{ route('profile.edit', ['tab' => 'account']) }}"
+                        class="{{ request()->routeIs('profile.edit') && request('tab', 'account') === 'account' ? 'active' : '' }}">Cuenta</a>
+                    <a href="{{ route('profile.edit', ['tab' => 'security']) }}"
+                        class="{{ request()->routeIs('profile.edit') && request('tab') === 'security' ? 'active' : '' }}">Seguridad</a>
                 </div>
             </details>
 
@@ -274,7 +297,8 @@
         });
 
         // Prevenir que los clics en elementos interactivos propaguen al sidebar
-        document.querySelectorAll('#sidebar a, #sidebar button, #sidebar .sidebar-header, #sidebar details, #sidebar summary').forEach(el => {
+        document.querySelectorAll(
+            '#sidebar a, #sidebar button, #sidebar .sidebar-header, #sidebar details, #sidebar summary').forEach(el => {
             el.addEventListener('click', (e) => {
                 e.stopPropagation();
             });
@@ -320,13 +344,14 @@
         bottomSheetOverlay?.addEventListener('click', closeBottomSheet);
 
         // Cerrar bottom sheet al hacer clic en enlaces
-        document.querySelectorAll('.bottom-sheet-nav a, .bottom-sheet-footer button, .bottom-sheet-footer a').forEach(el => {
-            el.addEventListener('click', () => {
-                if (window.innerWidth < 768) {
-                    closeBottomSheet();
-                }
+        document.querySelectorAll('.bottom-sheet-nav a, .bottom-sheet-footer button, .bottom-sheet-footer a').forEach(
+            el => {
+                el.addEventListener('click', () => {
+                    if (window.innerWidth < 768) {
+                        closeBottomSheet();
+                    }
+                });
             });
-        });
 
         // Cerrar con tecla ESC
         document.addEventListener('keydown', (e) => {

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Helpers\NotificationHelper;
 use App\Models\CatalogCategory;
 use App\Models\CatalogItem;
+use App\Models\CatalogItemVariant;
 use App\Models\CatalogType;
 use App\Models\Empresa;
 use Illuminate\Http\Request;
@@ -78,28 +79,40 @@ class CatalogItemController extends Controller
     public function create(Request $request)
     {
         $empresa = $this->getOrCreateEmpresa();
-        $types = CatalogType::query()
-            ->where('empresa_id', $empresa->id)
-            ->ordered()
-            ->get();
-        $categories = CatalogCategory::query()
-            ->where('empresa_id', $empresa->id)
-            ->with('type')
-            ->ordered()
-            ->get();
         $selectedTypeId = (int) $request->query('catalog_type_id', old('catalog_type_id', 0));
         $selectedCategoryId = (int) $request->query('catalog_category_id', old('catalog_category_id', 0));
+        $selectedType = null;
+        $selectedCategory = null;
 
         if ($selectedCategoryId > 0 && $selectedTypeId === 0) {
             $selectedCategory = CatalogCategory::query()
                 ->where('empresa_id', $empresa->id)
+                ->with('type')
                 ->find($selectedCategoryId);
 
             if ($selectedCategory) {
                 $selectedTypeId = (int) $selectedCategory->catalog_type_id;
+                $selectedType = $selectedCategory->type;
             }
         }
 
+        if ($selectedTypeId > 0 && !$selectedType) {
+            $selectedType = CatalogType::query()
+                ->where('empresa_id', $empresa->id)
+                ->find($selectedTypeId);
+        }
+
+        $types = CatalogType::query()
+            ->where('empresa_id', $empresa->id)
+            ->when($selectedType, fn ($query) => $query->whereKey($selectedType->id))
+            ->ordered()
+            ->get();
+        $categories = CatalogCategory::query()
+            ->where('empresa_id', $empresa->id)
+            ->when($selectedType, fn ($query) => $query->where('catalog_type_id', $selectedType->id))
+            ->with('type')
+            ->ordered()
+            ->get();
         $returnToType = (bool) $request->boolean('return_to_type', $selectedTypeId > 0);
 
         return view('admin.catalog.items.create', compact(
@@ -108,6 +121,8 @@ class CatalogItemController extends Controller
             'categories',
             'selectedTypeId',
             'selectedCategoryId',
+            'selectedType',
+            'selectedCategory',
             'returnToType'
         ));
     }
@@ -130,6 +145,13 @@ class CatalogItemController extends Controller
             'purchasable' => ['nullable', 'boolean'],
             'reservable' => ['nullable', 'boolean'],
             'uses_inventory' => ['nullable', 'boolean'],
+            'create_presentation' => ['nullable', 'boolean'],
+            'variant_name' => ['nullable', 'required_if:create_presentation,1', 'string', 'max:255'],
+            'variant_presentation' => ['nullable', 'string', 'max:255'],
+            'variant_specification' => ['nullable', 'string', 'max:255'],
+            'variant_sku' => ['nullable', 'string', 'max:255'],
+            'variant_price' => ['nullable', 'numeric', 'min:0'],
+            'variant_stock' => ['nullable', 'integer', 'min:0'],
         ]);
 
         $type = CatalogType::query()
@@ -161,7 +183,22 @@ class CatalogItemController extends Controller
 
         $item = CatalogItem::create($payload);
 
-        NotificationHelper::success('Item universal creado correctamente.');
+        if ($request->boolean('create_presentation')) {
+            CatalogItemVariant::create([
+                'catalog_item_id' => $item->id,
+                'name' => trim((string) $data['variant_name']),
+                'presentation' => $this->cleanInput($data['variant_presentation'] ?? null),
+                'specification' => $this->cleanInput($data['variant_specification'] ?? null),
+                'sku' => $this->cleanInput($data['variant_sku'] ?? null),
+                'price' => $data['variant_price'] ?? $item->base_price,
+                'stock' => $data['variant_stock'] ?? null,
+                'active' => true,
+                'is_default' => true,
+                'sort_order' => 0,
+            ]);
+        }
+
+        NotificationHelper::success('Producto o servicio creado correctamente.');
 
         if ($request->boolean('redirect_to_type')) {
             return redirect()->route('admin.catalog-types.show', $item->catalog_type_id);

@@ -59,14 +59,26 @@ class CatalogCategoryController extends Controller
     public function create(Request $request)
     {
         $empresa = $this->getOrCreateEmpresa();
+        $selectedTypeId = (int) $request->query('catalog_type_id', old('catalog_type_id', 0));
+        $selectedType = null;
         $types = CatalogType::query()
             ->where('empresa_id', $empresa->id)
             ->ordered()
             ->get();
-        $selectedTypeId = (int) $request->query('catalog_type_id', old('catalog_type_id', 0));
+
+        if ($selectedTypeId > 0) {
+            $selectedType = CatalogType::query()
+                ->where('empresa_id', $empresa->id)
+                ->find($selectedTypeId);
+
+            if ($selectedType) {
+                $types = collect([$selectedType]);
+            }
+        }
+
         $returnToType = (bool) $request->boolean('return_to_type', $selectedTypeId > 0);
 
-        return view('admin.catalog.categories.create', compact('empresa', 'types', 'selectedTypeId', 'returnToType'));
+        return view('admin.catalog.categories.create', compact('empresa', 'types', 'selectedTypeId', 'selectedType', 'returnToType'));
     }
 
     public function store(Request $request)
