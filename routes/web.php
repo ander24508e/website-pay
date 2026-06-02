@@ -78,6 +78,7 @@ Route::middleware(['auth', 'role:admin'])
         Route::resource('/ventas', VentasController::class)
             ->parameters(['ventas' => 'venta'])
             ->only(['index', 'show', 'create', 'store', 'edit', 'update', 'destroy']);
+        Route::post('/clientes/quick-store', [ClientesController::class, 'quickStore'])->name('clientes.quick-store');
         Route::resource('/clientes', ClientesController::class)
             ->parameters(['clientes' => 'cliente'])
             ->only(['index', 'show', 'create', 'store', 'edit', 'update', 'destroy']);

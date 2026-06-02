@@ -63,6 +63,28 @@ class ClientesController extends Controller
 
     public function store(Request $request)
     {
+        $cliente = $this->createClienteFromRequest($request);
+
+        return redirect()->route('admin.clientes.show', $cliente)->with('success', 'Cliente creado correctamente.');
+    }
+
+    public function quickStore(Request $request)
+    {
+        $cliente = $this->createClienteFromRequest($request);
+
+        return response()->json([
+            'message' => 'Cliente creado correctamente.',
+            'cliente' => [
+                'id' => $cliente->id,
+                'name' => $cliente->name,
+                'email' => $cliente->email,
+                'label' => "{$cliente->name} ({$cliente->email})",
+            ],
+        ], 201);
+    }
+
+    private function createClienteFromRequest(Request $request): User
+    {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
@@ -82,7 +104,7 @@ class ClientesController extends Controller
         $role = Role::firstOrCreate(['name' => 'cliente', 'guard_name' => 'web']);
         $cliente->assignRole($role);
 
-        return redirect()->route('admin.clientes.show', $cliente)->with('success', 'Cliente creado correctamente.');
+        return $cliente;
     }
 
     public function edit(User $cliente)
