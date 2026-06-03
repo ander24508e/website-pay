@@ -57,7 +57,7 @@ class CatalogTypeController extends Controller
     {
         $catalogType->loadCount(['categories', 'items']);
         $catalogType->load([
-            'categories' => fn ($query) => $query->ordered(),
+            'categories' => fn ($query) => $query->withCount('items')->ordered(),
             'items' => fn ($query) => $query->with(['category'])->withCount('variants')->ordered()->limit(12),
         ]);
 

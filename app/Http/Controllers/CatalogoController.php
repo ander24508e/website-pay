@@ -44,23 +44,29 @@ class CatalogoController extends Controller
 
         if (Schema::hasTable('catalog_items') && Schema::hasTable('catalog_types')) {
             $universalesQuery = CatalogItem::query()
+                ->select('catalog_items.*')
+                ->join('catalog_types', 'catalog_types.id', '=', 'catalog_items.catalog_type_id')
                 ->with(['type', 'category', 'activeVariants'])
-                ->where('active', true)
+                ->where('catalog_items.active', true)
                 ->when($universalFilterSlug, function ($query) use ($universalFilterSlug) {
-                    $query->whereHas('type', function ($typeQuery) use ($universalFilterSlug) {
-                        $typeQuery->where('slug', $universalFilterSlug);
-                    });
+                    $query->where('catalog_types.slug', $universalFilterSlug);
                 })
                 ->when($search !== '', function ($query) use ($search) {
                     $query->where(function ($q) use ($search) {
-                        $q->where('name', 'LIKE', "%{$search}%")
-                            ->orWhere('description', 'LIKE', "%{$search}%")
-                            ->orWhereHas('type', fn($tq) => $tq->where('name', 'LIKE', "%{$search}%"))
+                        $q->where('catalog_items.name', 'LIKE', "%{$search}%")
+                            ->orWhere('catalog_items.description', 'LIKE', "%{$search}%")
+                            ->orWhere('catalog_types.name', 'LIKE', "%{$search}%")
                             ->orWhereHas('category', fn($cq) => $cq->where('name', 'LIKE', "%{$search}%"));
                     });
-                });
+                })
+                ->orderByRaw('CASE WHEN catalog_types.sort_order > 0 THEN 0 ELSE 1 END')
+                ->orderBy('catalog_types.sort_order')
+                ->orderBy('catalog_types.name')
+                ->orderByRaw('CASE WHEN catalog_items.sort_order > 0 THEN 0 ELSE 1 END')
+                ->orderBy('catalog_items.sort_order')
+                ->orderBy('catalog_items.name');
 
-            $catalogoUniversales = $universalesQuery->latest()->get()->map(function ($item) {
+            $catalogoUniversales = $universalesQuery->get()->map(function ($item) {
                 return [
                     'id' => $item->id,
                     'nombre' => $item->name,
@@ -91,9 +97,7 @@ class CatalogoController extends Controller
             });
         }
 
-        $catalogo = $catalogoUniversales
-            ->sortBy('nombre', SORT_NATURAL | SORT_FLAG_CASE)
-            ->values();
+        $catalogo = $catalogoUniversales->values();
 
         $total = $catalogo->count();
         $lastPage = max(1, (int) ceil($total / $perPage));

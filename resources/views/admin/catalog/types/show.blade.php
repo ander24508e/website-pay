@@ -3,222 +3,243 @@
 @section('title', 'Detalle de Sección')
 
 @section('content')
-<div class="container mx-auto px-4 sm:px-6">
-    <div class="flex flex-wrap items-center gap-2 text-xs text-gray-400 uppercase tracking-wide mb-4">
-        <a href="{{ route('admin.catalog.index') }}" class="hover:text-gray-600 transition">Catalogo</a>
-        <span>/</span>
-        <span>Secciones</span>
-        <span>/</span>
-        <span class="text-gray-600 font-semibold">{{ $catalogType->name }}</span>
-    </div>
-
-    <div class="flex flex-wrap items-center gap-3 mb-6">
-        <a href="{{ route('admin.catalog.index') }}"
-           class="flex items-center justify-center w-9 h-9 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition text-gray-500 hover:text-gray-800">
-            <span aria-hidden="true">&larr;</span>
-        </a>
-        <div>
-            <h2 class="text-xl sm:text-2xl font-bold text-gray-800">{{ $catalogType->name }}</h2>
-            <p class="text-gray-400 text-sm">Administra esta sección y lo que se mostrará en tu página web.</p>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-            <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Sección</p>
-            <p class="text-lg font-bold text-gray-800 mt-2">{{ $catalogType->name }}</p>
-            <p class="text-xs text-gray-400 mt-1">Área principal del catálogo público</p>
-        </div>
-        <a href="{{ route('admin.catalog-categories.index', ['catalog_type_id' => $catalogType->id]) }}" class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:border-gray-300 transition">
-            <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Categorias</p>
-            <p class="text-lg font-bold text-gray-800 mt-2">{{ $catalogType->categories_count }}</p>
-            <p class="text-xs text-gray-400 mt-1">Ver categorías de esta sección</p>
-        </a>
-        <a href="{{ route('admin.catalog-items.index', ['catalog_type_id' => $catalogType->id]) }}" class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:border-gray-300 transition">
-            <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Productos/Servicios</p>
-            <p class="text-lg font-bold text-gray-800 mt-2">{{ $catalogType->items_count }}</p>
-            <p class="text-xs text-gray-400 mt-1">Ver productos y servicios de esta sección</p>
-        </a>
-    </div>
-
-    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        <div class="xl:col-span-1">
-            <div class="bg-white rounded-xl shadow-sm p-4 sm:p-8">
-                <div class="flex flex-wrap gap-3 mb-6">
-                    <a href="{{ route('admin.catalog-items.create', ['catalog_type_id' => $catalogType->id, 'return_to_type' => 1]) }}"
-                       class="bg-gray-900 text-white px-5 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-sm">
-                        + Nuevo Producto o Servicio
-                    </a>
-                    <a href="{{ route('admin.catalog-categories.create', ['catalog_type_id' => $catalogType->id, 'return_to_type' => 1]) }}"
-                       class="bg-gray-100 text-gray-700 px-5 py-2.5 rounded-lg hover:bg-gray-200 transition font-medium text-sm">
-                        + Categoria
-                    </a>
-                </div>
-
-                <div class="space-y-4 mb-8">
-                    <div>
-                        <p class="text-xs text-gray-400 uppercase tracking-wide">Nombre</p>
-                        <p class="font-semibold text-gray-800 break-words">{{ $catalogType->name }}</p>
-                    </div>
-                    <div>
-                        <p class="text-xs text-gray-400 uppercase tracking-wide">Slug</p>
-                        <p class="text-gray-700 font-mono text-sm">{{ $catalogType->slug ?: '-' }}</p>
-                    </div>
-                    <div>
-                        <p class="text-xs text-gray-400 uppercase tracking-wide">Icono</p>
-                        <p class="text-gray-700">{{ $catalogType->icon ?: '-' }}</p>
-                    </div>
-                    <div>
-                        <p class="text-xs text-gray-400 uppercase tracking-wide">Descripcion</p>
-                        <p class="text-gray-700">{{ $catalogType->description ?: 'Sin descripcion adicional.' }}</p>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div>
-                            <p class="text-xs text-gray-400 uppercase tracking-wide">Orden</p>
-                            <p class="text-gray-700 font-semibold">{{ $catalogType->sort_order }}</p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-400 uppercase tracking-wide">Categorias</p>
-                            <p class="text-gray-700 font-semibold">{{ $catalogType->categories_count }}</p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-400 uppercase tracking-wide">Productos/Servicios</p>
-                            <p class="text-gray-700 font-semibold">{{ $catalogType->items_count }}</p>
-                        </div>
-                    </div>
-                    <div>
-                        <p class="text-xs text-gray-400 uppercase tracking-wide">Estado</p>
-                        @if($catalogType->active)
-                            <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-medium inline-flex">Activo</span>
-                        @else
-                            <span class="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-medium inline-flex">Oculto</span>
-                        @endif
-                    </div>
-                </div>
-
-                <div class="flex flex-wrap gap-3 pt-2 border-t border-gray-100">
-                    <a href="{{ route('admin.catalog-types.edit', $catalogType) }}"
-                       class="bg-gray-900 text-white px-5 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-sm">
-                        Editar
-                    </a>
-                    <form action="{{ route('admin.catalog-types.destroy', $catalogType) }}" method="POST"
-                          onsubmit="return confirm('¿Eliminar esta sección?')">
-                        @csrf
-                        @method('DELETE')
-                        <button class="bg-red-50 text-red-600 px-5 py-2.5 rounded-lg hover:bg-red-100 transition font-medium text-sm border border-red-200">
-                            Eliminar
-                        </button>
-                    </form>
-                </div>
+    <div class="container mx-auto px-4 sm:px-6 h-[calc(100vh-2rem)] xl:h-[calc(100vh-3rem)] min-h-0 overflow-hidden flex flex-col">
+        <div class="flex flex-wrap items-center gap-3 mb-4 shrink-0">
+            <a href="{{ route('admin.catalog.index') }}"
+                class="flex items-center justify-center w-9 h-9 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition text-gray-500 hover:text-gray-800">
+                <span aria-hidden="true">&larr;</span>
+            </a>
+            <div>
+                <h2 class="text-xl sm:text-2xl font-bold text-gray-800">{{ $catalogType->name }}</h2>
+                <p class="text-gray-400 text-sm">Administra esta sección y lo que se mostrará en tu página web.</p>
             </div>
         </div>
 
-        <div class="xl:col-span-2 space-y-6">
-            <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-                <div class="flex items-center justify-between gap-3 mb-4">
-                    <div>
-                        <h3 class="text-lg font-bold text-gray-800">Categorías de esta sección</h3>
-                        <p class="text-sm text-gray-400">Te ayudan a organizar productos y servicios.</p>
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-4 min-h-0 flex-1">
+            <aside class="xl:col-span-4 min-h-0">
+                <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6 h-full xl:max-h-full xl:overflow-y-auto">
+                    <div class="flex flex-wrap gap-3 mb-5">
+                        <h3 class="text-lg font-bold text-gray-800">Informacion del Negocio</h3>
                     </div>
-                    <a href="{{ route('admin.catalog-categories.create', ['catalog_type_id' => $catalogType->id, 'return_to_type' => 1]) }}"
-                       class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition text-sm font-medium">
-                        + Nueva Categoria
-                    </a>
+
+                    <div class="space-y-4 mb-6">
+                        <div>
+                            <p class="text-xs text-gray-400 uppercase tracking-wide">Nombre</p>
+                            <p class="font-semibold text-gray-800 break-words">{{ $catalogType->name }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-400 uppercase tracking-wide">Slug</p>
+                            <p class="text-gray-700 font-mono text-sm break-all">{{ $catalogType->slug ?: '-' }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-400 uppercase tracking-wide">Icono</p>
+                            <p class="text-gray-700">{{ $catalogType->icon ?: '-' }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-400 uppercase tracking-wide">Descripcion</p>
+                            <p class="text-gray-700">{{ $catalogType->description ?: 'Sin descripcion adicional.' }}</p>
+                        </div>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div>
+                                <p class="text-xs text-gray-400 uppercase tracking-wide">Orden</p>
+                                <p class="text-gray-700 font-semibold">{{ $catalogType->sort_order }}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-400 uppercase tracking-wide">Categorias</p>
+                                <p class="text-gray-700 font-semibold">{{ $catalogType->categories_count }}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-400 uppercase tracking-wide">Productos</p>
+                                <p class="text-gray-700 font-semibold">{{ $catalogType->items_count }}</p>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-400 uppercase tracking-wide">Estado</p>
+                            @if ($catalogType->active)
+                                <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-medium inline-flex">Activo</span>
+                            @else
+                                <span class="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-medium inline-flex">Oculto</span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
+                        <a href="{{ route('admin.catalog-types.edit', $catalogType) }}"
+                            class="bg-gray-900 text-white px-5 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-sm">
+                            Editar
+                        </a>
+                        <form action="{{ route('admin.catalog-types.destroy', $catalogType) }}" method="POST"
+                            onsubmit="return confirm('¿Eliminar esta sección?')">
+                            @csrf
+                            @method('DELETE')
+                            <button
+                                class="bg-red-50 text-red-600 px-5 py-2.5 rounded-lg hover:bg-red-100 transition font-medium text-sm border border-red-200">
+                                Eliminar
+                            </button>
+                        </form>
+                    </div>
                 </div>
+            </aside>
 
-                @if($catalogType->categories->isEmpty())
-                    <div class="rounded-lg border border-dashed border-gray-200 bg-gray-50 p-5 text-sm text-gray-500">
-                        Esta sección aún no tiene categorías. Puedes crear productos o servicios sin categoría, o agregar una para ordenar mejor.
-                    </div>
-                @else
-                    <div class="flex flex-wrap gap-2">
-                        @foreach($catalogType->categories as $category)
-                            <a href="{{ route('admin.catalog-categories.show', $category) }}" class="inline-flex items-center rounded-full bg-gray-100 text-gray-700 px-3 py-1 text-sm font-medium hover:bg-gray-200 transition">
-                                {{ $category->name }}
-                            </a>
-                        @endforeach
-                    </div>
-                @endif
-            </div>
-
-            <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-                <div class="p-4 sm:p-6 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                        <h3 class="text-lg font-bold text-gray-800">Productos y servicios dentro de {{ $catalogType->name }}</h3>
-                        <p class="text-sm text-gray-400">Estos son los elementos que podrán mostrarse en la web o usarse en ventas.</p>
-                    </div>
-                    <div class="flex flex-wrap items-center gap-2">
-                        <a href="{{ route('admin.catalog-items.create', ['catalog_type_id' => $catalogType->id, 'return_to_type' => 1]) }}"
-                           class="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition text-sm font-medium">
-                            + Agregar
-                        </a>
-                        <a href="{{ route('admin.catalog-items.index', ['catalog_type_id' => $catalogType->id]) }}"
-                           class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition text-sm font-medium">
-                            Mostrar Todo
+            <section class="xl:col-span-8 min-h-0 grid grid-rows-2 gap-4">
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden min-h-0 flex flex-col">
+                    <div class="p-4 sm:p-5 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3 shrink-0">
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800">Categorías de esta sección</h3>
+                            <p class="text-sm text-gray-400">Te ayudan a organizar productos y servicios.</p>
+                        </div>
+                        <a href="{{ route('admin.catalog-categories.create', ['catalog_type_id' => $catalogType->id, 'return_to_type' => 1]) }}"
+                            class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition text-sm font-medium">
+                            + Nueva Categoria
                         </a>
                     </div>
-                </div>
 
-                @if($catalogType->items->isEmpty())
-                    <div class="p-6 sm:p-8 text-center text-gray-500">
-                        <p class="font-medium text-gray-700 mb-2">Todavía no hay productos o servicios en esta sección.</p>
-                        <p class="text-sm mb-5">Empieza creando el primero para que luego se vea en la web o pueda venderse.</p>
-                        <a href="{{ route('admin.catalog-items.create', ['catalog_type_id' => $catalogType->id, 'return_to_type' => 1]) }}"
-                           class="bg-gray-900 text-white px-5 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-sm inline-block">
-                            Crear Primer Producto o Servicio
-                        </a>
-                    </div>
-                @else
-                    <div class="overflow-x-auto">
-                        <table class="min-w-[720px] w-full text-sm text-left">
-                            <thead class="bg-gray-50 border-b">
-                                <tr>
-                                    <th class="px-4 sm:px-6 py-3">Producto/Servicio</th>
-                                    <th class="px-4 sm:px-6 py-3">Categoria</th>
-                                    <th class="px-4 sm:px-6 py-3">Precio</th>
-                                    <th class="px-4 sm:px-6 py-3">Presentaciones</th>
-                                    <th class="px-4 sm:px-6 py-3">Estado</th>
-                                    <th class="px-4 sm:px-6 py-3">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y">
-                                @foreach($catalogType->items as $item)
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="px-4 sm:px-6 py-4">
-                                            <p class="font-semibold text-gray-800">{{ $item->name }}</p>
-                                            <p class="text-xs text-gray-400 mt-0.5">{{ \Illuminate\Support\Str::limit($item->description, 80) ?: 'Sin descripcion adicional' }}</p>
-                                        </td>
-                                        <td class="px-4 sm:px-6 py-4 text-gray-600">
-                                            {{ $item->category?->name ?: 'Sin categoria' }}
-                                        </td>
-                                        <td class="px-4 sm:px-6 py-4 font-semibold text-gray-800">
-                                            {{ $item->base_price !== null ? '$' . number_format((float) $item->base_price, 2) : '-' }}
-                                        </td>
-                                        <td class="px-4 sm:px-6 py-4 text-gray-700">
-                                            {{ $item->variants_count }}
-                                        </td>
-                                        <td class="px-4 sm:px-6 py-4">
-                                            @if($item->active)
-                                                <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-medium">Activo</span>
-                                            @else
-                                                <span class="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-medium">Oculto</span>
-                                            @endif
-                                        </td>
-                                        <td class="px-4 sm:px-6 py-4">
-                                            <div class="flex flex-wrap gap-2">
-                                                <a href="{{ route('admin.catalog-items.show', $item) }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Ver</a>
-                                                <a href="{{ route('admin.catalog-items.edit', $item) }}" class="text-yellow-600 hover:text-yellow-800 text-sm font-medium">Editar</a>
-                                                <a href="{{ route('admin.catalog-variants.create', ['catalog_item_id' => $item->id, 'catalog_type_id' => $catalogType->id, 'return_to_type' => 1]) }}" class="text-gray-700 hover:text-gray-900 text-sm font-medium">+ Presentacion</a>
-                                            </div>
-                                        </td>
+                    @if ($catalogType->categories->isEmpty())
+                        <div class="m-4 sm:m-5 rounded-lg border border-dashed border-gray-200 bg-gray-50 p-5 text-sm text-gray-500">
+                            Esta sección aún no tiene categorías. Puedes crear productos o servicios sin categoría, o agregar una para ordenar mejor.
+                        </div>
+                    @else
+                        <div class="overflow-y-auto overflow-x-hidden max-h-[320px] xl:max-h-none xl:min-h-0 flex-1">
+                            <table class="w-full table-fixed text-xs sm:text-sm text-left">
+                                <thead class="bg-gray-50 border-b sticky top-0 z-10">
+                                    <tr>
+                                        <th class="w-[28%] px-3 py-2.5 text-gray-600 font-semibold">Categoria</th>
+                                        <th class="w-[18%] px-3 py-2.5 text-gray-600 font-semibold hidden sm:table-cell">Slug</th>
+                                        <th class="w-[12%] px-3 py-2.5 text-gray-600 font-semibold text-center">Prod.</th>
+                                        <th class="w-[10%] px-3 py-2.5 text-gray-600 font-semibold text-center hidden md:table-cell">Orden</th>
+                                        <th class="w-[14%] px-3 py-2.5 text-gray-600 font-semibold">Estado</th>
+                                        <th class="w-[18%] px-3 py-2.5 text-gray-600 font-semibold text-center">Acciones</th>
                                     </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody class="divide-y">
+                                    @foreach ($catalogType->categories as $category)
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-3 py-2.5 align-top">
+                                                <p class="font-semibold text-gray-800 truncate">{{ $category->name }}</p>
+                                                <p class="text-[11px] text-gray-400 mt-0.5 leading-tight line-clamp-2">
+                                                    {{ \Illuminate\Support\Str::limit($category->description, 55) ?: 'Sin descripcion adicional' }}
+                                                </p>
+                                            </td>
+                                            <td class="px-3 py-2.5 text-gray-600 truncate hidden sm:table-cell">{{ $category->slug ?: '-' }}</td>
+                                            <td class="px-3 py-2.5 text-gray-700 text-center">{{ $category->items_count }}</td>
+                                            <td class="px-3 py-2.5 text-gray-700 text-center hidden md:table-cell">{{ $category->sort_order }}</td>
+                                            <td class="px-3 py-2.5">
+                                                @if ($category->active)
+                                                    <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-[11px] font-medium">Activo</span>
+                                                @else
+                                                    <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-[11px] font-medium">Oculto</span>
+                                                @endif
+                                            </td>
+                                            <td class="px-3 py-2.5">
+                                                <div class="flex items-center justify-center gap-1">
+                                                    <a href="{{ route('admin.catalog-categories.show', $category) }}"
+                                                        class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition"
+                                                        title="Ver categoria" aria-label="Ver categoria">
+                                                        <x-heroicon-o-eye class="w-4 h-4" />
+                                                    </a>
+                                                    <a href="{{ route('admin.catalog-categories.edit', $category) }}"
+                                                        class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-yellow-600 hover:text-yellow-800 hover:bg-yellow-50 transition"
+                                                        title="Editar categoria" aria-label="Editar categoria">
+                                                        <x-heroicon-o-pencil-square class="w-4 h-4" />
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden min-h-0 flex flex-col">
+                    <div class="p-4 sm:p-5 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3 shrink-0">
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800">Productos y servicios dentro de {{ $catalogType->name }}</h3>
+                            <p class="text-sm text-gray-400">Estos son los elementos que podrán mostrarse en la web o usarse en ventas.</p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <a href="{{ route('admin.catalog-items.create', ['catalog_type_id' => $catalogType->id, 'return_to_type' => 1]) }}"
+                                class="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition text-sm font-medium">
+                                + Agregar
+                            </a>
+                            <a href="{{ route('admin.catalog-items.index', ['catalog_type_id' => $catalogType->id]) }}"
+                                class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition text-sm font-medium">
+                                Mostrar Todo
+                            </a>
+                        </div>
                     </div>
-                @endif
-            </div>
+
+                    @if ($catalogType->items->isEmpty())
+                        <div class="p-6 sm:p-8 text-center text-gray-500">
+                            <p class="font-medium text-gray-700 mb-2">Todavía no hay productos o servicios en esta sección.</p>
+                            <p class="text-sm mb-5">Empieza creando el primero para que luego se vea en la web o pueda venderse.</p>
+                            <a href="{{ route('admin.catalog-items.create', ['catalog_type_id' => $catalogType->id, 'return_to_type' => 1]) }}"
+                                class="bg-gray-900 text-white px-5 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-sm inline-block">
+                                Crear Primer Producto o Servicio
+                            </a>
+                        </div>
+                    @else
+                        <div class="overflow-y-auto overflow-x-hidden max-h-[320px] xl:max-h-none xl:min-h-0 flex-1">
+                            <table class="w-full table-fixed text-xs sm:text-sm text-left">
+                                <thead class="bg-gray-50 border-b sticky top-0 z-10">
+                                    <tr>
+                                        <th class="w-[30%] px-3 py-2.5 text-gray-600 font-semibold">Producto</th>
+                                        <th class="w-[20%] px-3 py-2.5 text-gray-600 font-semibold hidden sm:table-cell">Categoria</th>
+                                        <th class="w-[13%] px-3 py-2.5 text-gray-600 font-semibold">Precio</th>
+                                        <th class="w-[10%] px-3 py-2.5 text-gray-600 font-semibold text-center hidden md:table-cell">Pres.</th>
+                                        <th class="w-[12%] px-3 py-2.5 text-gray-600 font-semibold">Estado</th>
+                                        <th class="w-[15%] px-3 py-2.5 text-gray-600 font-semibold text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y">
+                                    @foreach ($catalogType->items as $item)
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-3 py-2.5 align-top">
+                                                <p class="font-semibold text-gray-800 truncate">{{ $item->name }}</p>
+                                                <p class="text-[11px] text-gray-400 mt-0.5 leading-tight line-clamp-2">
+                                                    {{ \Illuminate\Support\Str::limit($item->description, 55) ?: 'Sin descripcion adicional' }}
+                                                </p>
+                                            </td>
+                                            <td class="px-3 py-2.5 text-gray-600 truncate hidden sm:table-cell">{{ $item->category?->name ?: 'Sin categoria' }}</td>
+                                            <td class="px-3 py-2.5 font-semibold text-gray-800 whitespace-nowrap">
+                                                {{ $item->base_price !== null ? '$' . number_format((float) $item->base_price, 2) : '-' }}
+                                            </td>
+                                            <td class="px-3 py-2.5 text-gray-700 text-center hidden md:table-cell">{{ $item->variants_count }}</td>
+                                            <td class="px-3 py-2.5">
+                                                @if ($item->active)
+                                                    <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-[11px] font-medium">Activo</span>
+                                                @else
+                                                    <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-[11px] font-medium">Oculto</span>
+                                                @endif
+                                            </td>
+                                            <td class="px-3 py-2.5">
+                                                <div class="flex items-center justify-center gap-1">
+                                                    <a href="{{ route('admin.catalog-items.show', $item) }}"
+                                                        class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition"
+                                                        title="Ver producto o servicio" aria-label="Ver producto o servicio">
+                                                        <x-heroicon-o-eye class="w-4 h-4" />
+                                                    </a>
+                                                    <a href="{{ route('admin.catalog-items.edit', $item) }}"
+                                                        class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-yellow-600 hover:text-yellow-800 hover:bg-yellow-50 transition"
+                                                        title="Editar producto o servicio" aria-label="Editar producto o servicio">
+                                                        <x-heroicon-o-pencil-square class="w-4 h-4" />
+                                                    </a>
+                                                    <a href="{{ route('admin.catalog-variants.create', ['catalog_item_id' => $item->id, 'catalog_type_id' => $catalogType->id, 'return_to_type' => 1]) }}"
+                                                        class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition"
+                                                        title="Agregar presentacion" aria-label="Agregar presentacion">
+                                                        <x-heroicon-o-rectangle-stack class="w-4 h-4" />
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </div>
+            </section>
         </div>
     </div>
-</div>
 @endsection

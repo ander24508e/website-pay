@@ -131,7 +131,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Nombre de la empresa *</label>
-                            <input type="text" name="nombre" id="nombre" value="{{ old('nombre') }}"
+                            <input type="text" name="nombre" id="nombre" value="{{ old('nombre', $empresa->nombre) }}"
                                 class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm @error('nombre') border-red-400 @enderror"
                                 placeholder="Ej: Mi negocio">
                             @error('nombre')
