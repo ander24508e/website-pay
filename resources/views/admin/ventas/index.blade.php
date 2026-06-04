@@ -12,7 +12,11 @@
             </div>
             <p class="text-gray-500 text-sm mt-1">Control de ventas del negocio basado en ordenes y pagos.</p>
         </div>
-        <a href="{{ route('admin.ventas.create') }}" class="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold">+ Nueva Venta</a>
+        <a href="{{ route('admin.ventas.create') }}"
+            class="inline-flex items-center justify-center bg-gray-900 text-white w-11 h-11 rounded-lg hover:bg-gray-700 transition"
+            title="Nueva venta" aria-label="Nueva venta">
+            <x-heroicon-o-plus class="w-5 h-5" />
+        </a>
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
@@ -52,28 +56,93 @@
         </form>
     </div>
 
-    <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full min-w-[900px] text-sm">
+    <div class="md:hidden space-y-3">
+        @forelse($ventas as $venta)
+            @php
+                $statusClass = [
+                    'pending' => 'bg-yellow-100 text-yellow-700',
+                    'paid' => 'bg-green-100 text-green-700',
+                    'reserved' => 'bg-blue-100 text-blue-700',
+                    'failed' => 'bg-red-100 text-red-700',
+                    'cancelled' => 'bg-gray-100 text-gray-600',
+                ][$venta->status] ?? 'bg-gray-100 text-gray-600';
+            @endphp
+            <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 space-y-4">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <p class="font-semibold text-gray-800">#{{ $venta->id }}</p>
+                        <p class="text-sm text-gray-500 break-words">{{ $venta->user->name ?? 'Invitado' }}</p>
+                    </div>
+                    <span class="shrink-0 inline-flex px-2 py-0.5 rounded-full text-xs font-semibold {{ $statusClass }}">{{ ucfirst($venta->status) }}</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                        <p class="text-xs uppercase text-gray-400 font-semibold">Tipo</p>
+                        <p class="text-gray-700 break-words">{{ $venta->order_type ?? 'purchase' }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs uppercase text-gray-400 font-semibold">Items</p>
+                        <p class="text-gray-700">{{ $venta->items->count() }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs uppercase text-gray-400 font-semibold">Total</p>
+                        <p class="font-semibold text-gray-800">${{ number_format($venta->total, 2) }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs uppercase text-gray-400 font-semibold">Fecha</p>
+                        <p class="text-gray-700">{{ $venta->created_at?->format('d/m/Y H:i') ?? '-' }}</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-1">
+                    <a href="{{ route('admin.ventas.show', $venta) }}"
+                        class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition"
+                        title="Ver venta" aria-label="Ver venta">
+                        <x-heroicon-o-eye class="w-5 h-5" />
+                    </a>
+                    <a href="{{ route('admin.ventas.edit', $venta) }}"
+                        class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gray-50 text-gray-700 hover:bg-gray-100 transition"
+                        title="Editar venta" aria-label="Editar venta">
+                        <x-heroicon-o-pencil-square class="w-5 h-5" />
+                    </a>
+                    <form method="POST" action="{{ route('admin.ventas.destroy', $venta) }}" onsubmit="return confirm('¿Eliminar venta?');">
+                        @csrf
+                        @method('DELETE')
+                        <button class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition"
+                            title="Eliminar venta" aria-label="Eliminar venta">
+                            <x-heroicon-o-trash class="w-5 h-5" />
+                        </button>
+                    </form>
+                </div>
+            </div>
+        @empty
+            <div class="bg-white rounded-xl border border-gray-100 px-4 py-8 text-center text-gray-400">No hay ventas registradas.</div>
+        @endforelse
+    </div>
+
+    <div class="hidden md:block bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <div class="overflow-x-hidden">
+            <table class="w-full table-fixed text-sm">
                 <thead class="bg-gray-50 text-xs uppercase text-gray-500">
                     <tr>
-                        <th class="px-4 py-3 text-left"># Orden</th>
-                        <th class="px-4 py-3 text-left">Cliente</th>
-                        <th class="px-4 py-3 text-left">Tipo</th>
-                        <th class="px-4 py-3 text-left">Estado</th>
-                        <th class="px-4 py-3 text-left">Items</th>
-                        <th class="px-4 py-3 text-left">Total</th>
-                        <th class="px-4 py-3 text-left">Fecha</th>
-                        <th class="px-4 py-3 text-right">Acciones</th>
+                        <th class="px-4 py-3 text-center w-[10%]"># Orden</th>
+                        <th class="px-4 py-3 text-center w-[22%]">Cliente</th>
+                        <th class="px-4 py-3 text-center w-[12%]">Tipo</th>
+                        <th class="px-4 py-3 text-center w-[13%]">Estado</th>
+                        <th class="px-4 py-3 text-center w-[8%]">Items</th>
+                        <th class="px-4 py-3 text-center w-[12%]">Total</th>
+                        <th class="px-4 py-3 text-center w-[13%]">Fecha</th>
+                        <th class="px-4 py-3 text-center w-[10%]">Acc.</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($ventas as $venta)
                         <tr class="border-t border-gray-100">
-                            <td class="px-4 py-3 font-semibold text-gray-700">#{{ $venta->id }}</td>
-                            <td class="px-4 py-3 text-gray-600">{{ $venta->user->name ?? 'Invitado' }}</td>
-                            <td class="px-4 py-3 text-gray-600">{{ $venta->order_type ?? 'purchase' }}</td>
-                            <td class="px-4 py-3">
+                            <td class="px-4 py-3 font-semibold text-gray-700 text-center truncate">#{{ $venta->id }}</td>
+                            <td class="px-4 py-3 text-gray-600 text-center truncate">{{ $venta->user->name ?? 'Invitado' }}</td>
+                            <td class="px-4 py-3 text-gray-600 text-center truncate">{{ $venta->order_type ?? 'purchase' }}</td>
+                            <td class="px-4 py-3 text-center">
                                 @php
                                     $statusClass = [
                                         'pending' => 'bg-yellow-100 text-yellow-700',
@@ -85,17 +154,30 @@
                                 @endphp
                                 <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold {{ $statusClass }}">{{ ucfirst($venta->status) }}</span>
                             </td>
-                            <td class="px-4 py-3 text-gray-600">{{ $venta->items->count() }}</td>
-                            <td class="px-4 py-3 font-semibold text-gray-800">${{ number_format($venta->total, 2) }}</td>
-                            <td class="px-4 py-3 text-gray-500">{{ $venta->created_at->format('d/m/Y H:i') }}</td>
-                            <td class="px-4 py-3 text-right">
-                                <a href="{{ route('admin.ventas.show', $venta) }}" class="text-blue-600 hover:text-blue-700 font-medium mr-3">Ver</a>
-                                <a href="{{ route('admin.ventas.edit', $venta) }}" class="text-gray-700 hover:text-gray-900 font-medium mr-3">Editar</a>
-                                <form method="POST" action="{{ route('admin.ventas.destroy', $venta) }}" class="inline" onsubmit="return confirm('¿Eliminar venta?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button class="text-red-600 hover:text-red-800 font-medium">Eliminar</button>
-                                </form>
+                            <td class="px-4 py-3 text-gray-600 text-center">{{ $venta->items->count() }}</td>
+                            <td class="px-4 py-3 font-semibold text-gray-800 text-center truncate">${{ number_format($venta->total, 2) }}</td>
+                            <td class="px-4 py-3 text-gray-500 text-center truncate">{{ $venta->created_at?->format('d/m/Y H:i') ?? '-' }}</td>
+                            <td class="px-4 py-3 text-center">
+                                <div class="flex items-center justify-end gap-1">
+                                    <a href="{{ route('admin.ventas.show', $venta) }}"
+                                        class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-blue-600 hover:bg-blue-50 transition"
+                                        title="Ver venta" aria-label="Ver venta">
+                                        <x-heroicon-o-eye class="w-4 h-4" />
+                                    </a>
+                                    <a href="{{ route('admin.ventas.edit', $venta) }}"
+                                        class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-gray-700 hover:bg-gray-100 transition"
+                                        title="Editar venta" aria-label="Editar venta">
+                                        <x-heroicon-o-pencil-square class="w-4 h-4" />
+                                    </a>
+                                    <form method="POST" action="{{ route('admin.ventas.destroy', $venta) }}" onsubmit="return confirm('¿Eliminar venta?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-red-600 hover:bg-red-50 transition"
+                                            title="Eliminar venta" aria-label="Eliminar venta">
+                                            <x-heroicon-o-trash class="w-4 h-4" />
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     @empty

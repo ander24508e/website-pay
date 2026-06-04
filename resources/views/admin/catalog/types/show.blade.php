@@ -144,34 +144,34 @@
                             <table class="w-full table-fixed text-sm text-left">
                                 <thead class="bg-gray-50 border-b sticky top-0 z-10">
                                     <tr>
-                                        <th class="w-[28%] px-3 py-2.5 text-gray-600 font-semibold">Categoria</th>
-                                        <th class="w-[18%] px-3 py-2.5 text-gray-600 font-semibold hidden sm:table-cell">Slug</th>
+                                    <th class="w-[28%] px-3 py-2.5 text-gray-600 font-semibold text-center">Categoria</th>
+                                    <th class="w-[18%] px-3 py-2.5 text-gray-600 font-semibold text-center hidden sm:table-cell">Slug</th>
                                         <th class="w-[12%] px-3 py-2.5 text-gray-600 font-semibold text-center">Prod.</th>
                                         <th class="w-[10%] px-3 py-2.5 text-gray-600 font-semibold text-center hidden md:table-cell">Orden</th>
-                                        <th class="w-[14%] px-3 py-2.5 text-gray-600 font-semibold">Estado</th>
+                                    <th class="w-[14%] px-3 py-2.5 text-gray-600 font-semibold text-center">Estado</th>
                                         <th class="w-[18%] px-3 py-2.5 text-gray-600 font-semibold text-center">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y">
                                     @foreach ($catalogType->categories as $category)
                                         <tr class="hover:bg-gray-50">
-                                            <td class="px-3 py-2.5 align-top">
+                                    <td class="px-3 py-2.5 align-top text-center">
                                                 <p class="font-semibold text-gray-800 truncate">{{ $category->name }}</p>
                                                 <p class="text-[11px] text-gray-400 mt-0.5 leading-tight line-clamp-2">
                                                     {{ \Illuminate\Support\Str::limit($category->description, 55) ?: 'Sin descripcion adicional' }}
                                                 </p>
                                             </td>
-                                            <td class="px-3 py-2.5 text-gray-600 truncate hidden sm:table-cell">{{ $category->slug ?: '-' }}</td>
+                                    <td class="px-3 py-2.5 text-gray-600 text-center truncate hidden sm:table-cell">{{ $category->slug ?: '-' }}</td>
                                             <td class="px-3 py-2.5 text-gray-700 text-center">{{ $category->items_count }}</td>
                                             <td class="px-3 py-2.5 text-gray-700 text-center hidden md:table-cell">{{ $category->sort_order }}</td>
-                                            <td class="px-3 py-2.5">
+                                    <td class="px-3 py-2.5 text-center">
                                                 @if ($category->active)
                                                     <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-[11px] font-medium">Activo</span>
                                                 @else
                                                     <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-[11px] font-medium">Oculto</span>
                                                 @endif
                                             </td>
-                                            <td class="px-3 py-2.5">
+                                    <td class="px-3 py-2.5 text-center">
                                                 <div class="flex items-center justify-center gap-1">
                                                     <a href="{{ route('admin.catalog-categories.show', $category) }}"
                                                         class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition"
@@ -271,36 +271,36 @@
                             <table class="w-full table-fixed text-sm text-left">
                                 <thead class="bg-gray-50 border-b sticky top-0 z-10">
                                     <tr>
-                                        <th class="w-[30%] px-3 py-2.5 text-gray-600 font-semibold">Producto</th>
-                                        <th class="w-[20%] px-3 py-2.5 text-gray-600 font-semibold hidden sm:table-cell">Categoria</th>
-                                        <th class="w-[13%] px-3 py-2.5 text-gray-600 font-semibold">Precio</th>
+                                    <th class="w-[30%] px-3 py-2.5 text-gray-600 font-semibold text-center">Producto</th>
+                                    <th class="w-[20%] px-3 py-2.5 text-gray-600 font-semibold text-center hidden sm:table-cell">Categoria</th>
+                                    <th class="w-[13%] px-3 py-2.5 text-gray-600 font-semibold text-center">Precio</th>
                                         <th class="w-[10%] px-3 py-2.5 text-gray-600 font-semibold text-center hidden md:table-cell">Pres.</th>
-                                        <th class="w-[12%] px-3 py-2.5 text-gray-600 font-semibold">Estado</th>
+                                    <th class="w-[12%] px-3 py-2.5 text-gray-600 font-semibold text-center">Estado</th>
                                         <th class="w-[15%] px-3 py-2.5 text-gray-600 font-semibold text-center">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y">
                                     @foreach ($catalogType->items as $item)
                                         <tr class="hover:bg-gray-50">
-                                            <td class="px-3 py-2.5 align-top">
+                                    <td class="px-3 py-2.5 align-top text-center">
                                                 <p class="font-semibold text-gray-800 truncate">{{ $item->name }}</p>
                                                 <p class="text-[11px] text-gray-400 mt-0.5 leading-tight line-clamp-2">
                                                     {{ \Illuminate\Support\Str::limit($item->description, 55) ?: 'Sin descripcion adicional' }}
                                                 </p>
                                             </td>
-                                            <td class="px-3 py-2.5 text-gray-600 truncate hidden sm:table-cell">{{ $item->category?->name ?: 'Sin categoria' }}</td>
-                                            <td class="px-3 py-2.5 font-semibold text-gray-800 whitespace-nowrap">
+                                    <td class="px-3 py-2.5 text-gray-600 text-center truncate hidden sm:table-cell">{{ $item->category?->name ?: 'Sin categoria' }}</td>
+                                    <td class="px-3 py-2.5 font-semibold text-gray-800 text-center whitespace-nowrap">
                                                 {{ $item->base_price !== null ? '$' . number_format((float) $item->base_price, 2) : '-' }}
                                             </td>
                                             <td class="px-3 py-2.5 text-gray-700 text-center hidden md:table-cell">{{ $item->variants_count }}</td>
-                                            <td class="px-3 py-2.5">
+                                    <td class="px-3 py-2.5 text-center">
                                                 @if ($item->active)
                                                     <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-[11px] font-medium">Activo</span>
                                                 @else
                                                     <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-[11px] font-medium">Oculto</span>
                                                 @endif
                                             </td>
-                                            <td class="px-3 py-2.5">
+                                    <td class="px-3 py-2.5 text-center">
                                                 <div class="flex items-center justify-center gap-1">
                                                     <a href="{{ route('admin.catalog-items.show', $item) }}"
                                                         class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition"

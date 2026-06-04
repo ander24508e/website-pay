@@ -4,21 +4,21 @@
 
 @section('content')
 <div class="space-y-6">
-    <div class="flex items-center justify-between">
-        <div>
-            <h2 class="text-2xl font-bold text-gray-800">{{ $usuario->name }}</h2>
-            <p class="text-gray-500 text-sm">Detalle de usuario, rol y actividad comercial.</p>
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div class="min-w-0">
+            <h2 class="text-2xl font-bold text-gray-800 break-words">{{ $usuario->name }}</h2>
+            <p class="text-gray-500 text-sm leading-relaxed">Detalle de usuario, rol y actividad comercial.</p>
         </div>
-        <div class="flex gap-2">
-            <a href="{{ route('admin.usuarios.edit', $usuario) }}" class="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium">Editar</a>
+        <div class="flex flex-wrap gap-2 sm:flex-nowrap">
+            <a href="{{ route('admin.usuarios.edit', $usuario) }}" class="inline-flex items-center justify-center bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium">Editar</a>
             @if(auth()->id() !== $usuario->id)
                 <form method="POST" action="{{ route('admin.usuarios.destroy', $usuario) }}" onsubmit="return confirm('¿Eliminar usuario?');">
                     @csrf
                     @method('DELETE')
-                    <button class="bg-red-100 text-red-700 px-4 py-2 rounded-lg text-sm font-medium">Eliminar</button>
+                    <button class="inline-flex items-center justify-center bg-red-100 text-red-700 px-4 py-2 rounded-lg text-sm font-medium">Eliminar</button>
                 </form>
             @endif
-            <a href="{{ route('admin.usuarios.index') }}" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium">Volver</a>
+            <a href="{{ route('admin.usuarios.index') }}" class="inline-flex items-center justify-center bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium">Volver</a>
         </div>
     </div>
 

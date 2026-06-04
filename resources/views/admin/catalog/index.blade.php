@@ -101,22 +101,22 @@
                 <table class="w-full table-fixed text-sm">
                     <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
                         <tr>
-                            <th class="w-[22%] px-4 py-3 text-left">Seccion</th>
-                            <th class="w-[28%] px-4 py-3 text-left">Descripcion</th>
+                            <th class="w-[22%] px-4 py-3 text-center">Seccion</th>
+                            <th class="w-[28%] px-4 py-3 text-center">Descripcion</th>
                             <th class="w-[12%] px-4 py-3 text-center">Categorias</th>
                             <th class="w-[16%] px-4 py-3 text-center">Productos</th>
-                            <th class="w-[12%] px-4 py-3 text-left">Estado</th>
+                            <th class="w-[12%] px-4 py-3 text-center">Estado</th>
                             <th class="w-[10%] px-4 py-3 text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         @forelse($sections as $section)
                             <tr class="hover:bg-gray-50">
-                                <td class="px-4 py-4">
+                            <td class="px-4 py-4 text-center">
                                     <p class="font-semibold text-gray-800 truncate">{{ $section->name }}</p>
                                     <p class="text-xs text-gray-400 mt-0.5 truncate">{{ $section->slug ?: 'Sin slug' }}</p>
                                 </td>
-                                <td class="px-4 py-4 text-gray-500">
+                            <td class="px-4 py-4 text-gray-500 text-center">
                                     {{ \Illuminate\Support\Str::limit($section->description, 80) ?: 'Sin descripcion adicional' }}
                                 </td>
                                 <td class="px-4 py-4 text-center">
@@ -125,13 +125,13 @@
                                 <td class="px-4 py-4 text-center">
                                     <span class="font-semibold text-gray-800">{{ $section->items_count }}</span>
                                 </td>
-                                <td class="px-4 py-4">
+                            <td class="px-4 py-4 text-center">
                                     <span
                                         class="inline-flex px-2.5 py-1 rounded-full border text-xs font-medium {{ $statusBadge($section->active) }}">
                                         {{ $section->active ? 'Activo' : 'Inactivo' }}
                                     </span>
                                 </td>
-                                <td class="px-4 py-4">
+                            <td class="px-4 py-4 text-center">
                                     <div class="flex items-center justify-center">
                                         <a href="{{ route('admin.catalog-types.show', $section) }}"
                                             class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gray-900 text-white hover:bg-gray-700 transition"

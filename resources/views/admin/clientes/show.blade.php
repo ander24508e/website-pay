@@ -4,19 +4,19 @@
 
 @section('content')
 <div class="space-y-6">
-    <div class="flex items-center justify-between">
-        <div>
-            <h2 class="text-2xl font-bold text-gray-800">{{ $cliente->name }}</h2>
-            <p class="text-gray-500 text-sm">Detalle completo del cliente e historial de compras.</p>
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div class="min-w-0">
+            <h2 class="text-2xl font-bold text-gray-800 break-words">{{ $cliente->name }}</h2>
+            <p class="text-gray-500 text-sm leading-relaxed">Detalle completo del cliente e historial de compras.</p>
         </div>
-        <div class="flex gap-2">
-            <a href="{{ route('admin.clientes.edit', $cliente) }}" class="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium">Editar</a>
+        <div class="flex flex-wrap gap-2 sm:flex-nowrap">
+            <a href="{{ route('admin.clientes.edit', $cliente) }}" class="inline-flex items-center justify-center bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium">Editar</a>
             <form method="POST" action="{{ route('admin.clientes.destroy', $cliente) }}" onsubmit="return confirm('¿Eliminar cliente?');">
                 @csrf
                 @method('DELETE')
-                <button class="bg-red-100 text-red-700 px-4 py-2 rounded-lg text-sm font-medium">Eliminar</button>
+                <button class="inline-flex items-center justify-center bg-red-100 text-red-700 px-4 py-2 rounded-lg text-sm font-medium">Eliminar</button>
             </form>
-            <a href="{{ route('admin.clientes.index') }}" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium">Volver</a>
+            <a href="{{ route('admin.clientes.index') }}" class="inline-flex items-center justify-center bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium">Volver</a>
         </div>
     </div>
 
