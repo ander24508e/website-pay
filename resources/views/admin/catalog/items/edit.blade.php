@@ -3,6 +3,12 @@
 @section('title', 'Editar Producto o Servicio')
 
 @section('content')
+@php
+    $currentType = $catalogItem->type ? $types->firstWhere('id', old('catalog_type_id', $catalogItem->catalog_type_id)) : null;
+    $isProductContext = $currentType && (($currentType->business_model ?? 'services') === \App\Models\CatalogType::BUSINESS_MODEL_PRODUCTS);
+    $itemSingular = $currentType ? ($isProductContext ? 'Producto' : 'Servicio') : 'Producto o Servicio';
+@endphp
+
 <div class="container mx-auto px-4 sm:px-6">
     <div class="flex flex-wrap items-center gap-3 mb-6">
         <a href="{{ route('admin.catalog-items.show', $catalogItem) }}"
@@ -10,7 +16,7 @@
             <span aria-hidden="true">&larr;</span>
         </a>
         <div>
-            <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Editar Producto o Servicio</h2>
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Editar {{ $itemSingular }}</h2>
             <p class="text-gray-400 text-sm">Modificando <strong class="text-gray-600">{{ $catalogItem->name }}</strong></p>
         </div>
     </div>
@@ -52,7 +58,7 @@
                     <section class="space-y-5">
                         <div>
                             <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Informacion basica</p>
-                            <p class="text-sm text-gray-500 mt-1">Nombre, ubicacion dentro del catalogo y precio principal.</p>
+                            <p class="text-sm text-gray-500 mt-1">Nombre, ubicación dentro del catálogo y precio principal.</p>
                         </div>
 
                         <div>
@@ -66,7 +72,7 @@
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Seccion *</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Sección *</label>
                                 <select name="catalog_type_id" id="catalog_type_id"
                                         class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-gray-50 @error('catalog_type_id') border-red-400 bg-red-50 @enderror">
                                     @foreach($types as $type)
@@ -79,10 +85,10 @@
                             </div>
 
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
                                 <select name="catalog_category_id" id="catalog_category_id"
                                         class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-gray-50 @error('catalog_category_id') border-red-400 bg-red-50 @enderror">
-                                    <option value="">Sin categoria</option>
+                                    <option value="">Sin categoría</option>
                                     @foreach($categories as $category)
                                         <option value="{{ $category->id }}" data-type="{{ $category->catalog_type_id }}" {{ old('catalog_category_id', $catalogItem->catalog_category_id) == $category->id ? 'selected' : '' }}>
                                             {{ $category->type->name }} / {{ $category->name }}
@@ -111,7 +117,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Descripcion</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
                             <textarea name="description" rows="4"
                                       class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-gray-50 resize-none @error('description') border-red-400 bg-red-50 @enderror">{{ old('description', $catalogItem->description) }}</textarea>
                             @error('description')
@@ -122,8 +128,8 @@
 
                     <section class="mt-8 border-t border-gray-100 pt-6 space-y-4">
                         <div>
-                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Como se usara</p>
-                            <p class="text-sm text-gray-500 mt-1">Define si se muestra, se vende, se reserva o controla stock.</p>
+                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Como se usar?</p>
+                            <p class="text-sm text-gray-500 mt-1">El modelo del negocio define si será producto inventariable o servicio sin inventario.</p>
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -133,7 +139,7 @@
                                        class="mt-1 rounded border-gray-300 text-gray-900 focus:ring-gray-400">
                                 <span>
                                     <span class="block text-sm font-semibold text-gray-700">Activo</span>
-                                    <span class="block text-xs text-gray-400">Visible en el catalogo publico</span>
+                                    <span class="block text-xs text-gray-400">Visible en el catálogo público</span>
                                 </span>
                             </label>
 
@@ -143,39 +149,30 @@
                                        class="mt-1 rounded border-gray-300 text-gray-900 focus:ring-gray-400">
                                 <span>
                                     <span class="block text-sm font-semibold text-gray-700">Destacado</span>
-                                    <span class="block text-xs text-gray-400">Aparece con mas prioridad en la web</span>
+                                    <span class="block text-xs text-gray-400">Aparece con m?s prioridad en la web</span>
                                 </span>
                             </label>
 
-                            <label class="flex items-start gap-3 rounded-lg border border-gray-100 bg-gray-50 p-3 cursor-pointer">
-                                <input type="checkbox" name="purchasable" value="1"
-                                       {{ old('purchasable', $catalogItem->purchasable) ? 'checked' : '' }}
-                                       class="mt-1 rounded border-gray-300 text-gray-900 focus:ring-gray-400">
-                                <span>
-                                    <span class="block text-sm font-semibold text-gray-700">Se puede vender</span>
-                                    <span class="block text-xs text-gray-400">Puede agregarse a una venta o carrito</span>
-                                </span>
-                            </label>
-
-                            <label class="flex items-start gap-3 rounded-lg border border-gray-100 bg-gray-50 p-3 cursor-pointer">
-                                <input type="checkbox" name="reservable" value="1"
-                                       {{ old('reservable', $catalogItem->reservable) ? 'checked' : '' }}
-                                       class="mt-1 rounded border-gray-300 text-gray-900 focus:ring-gray-400">
-                                <span>
-                                    <span class="block text-sm font-semibold text-gray-700">Se puede reservar</span>
-                                    <span class="block text-xs text-gray-400">Puede usarse para reservas</span>
-                                </span>
-                            </label>
-
-                            <label class="flex items-start gap-3 rounded-lg border border-gray-100 bg-gray-50 p-3 cursor-pointer sm:col-span-2">
-                                <input type="checkbox" name="uses_inventory" value="1"
-                                       {{ old('uses_inventory', $catalogItem->uses_inventory) ? 'checked' : '' }}
-                                       class="mt-1 rounded border-gray-300 text-gray-900 focus:ring-gray-400">
-                                <span>
-                                    <span class="block text-sm font-semibold text-gray-700">Controla stock</span>
-                                    <span class="block text-xs text-gray-400">Activa inventario por presentacion</span>
-                                </span>
-                            </label>
+                            @if($isProductContext)
+                                <div class="rounded-lg border border-blue-100 bg-blue-50 p-3 sm:col-span-2">
+                                    <span class="block text-sm font-semibold text-blue-800">Producto inventariable</span>
+                                    <span class="block text-xs text-blue-600 mt-1">Se podrá vender y usará control de inventario automáticamente. No se tratará como reserva.</span>
+                                </div>
+                            @else
+                                <label class="flex items-start gap-3 rounded-lg border border-gray-100 bg-gray-50 p-3 cursor-pointer">
+                                    <input type="checkbox" name="reservable" value="1"
+                                           {{ old('reservable', $catalogItem->reservable) ? 'checked' : '' }}
+                                           class="mt-1 rounded border-gray-300 text-gray-900 focus:ring-gray-400">
+                                    <span>
+                                        <span class="block text-sm font-semibold text-gray-700">Se puede reservar</span>
+                                        <span class="block text-xs text-gray-400">Puede usarse para reservas</span>
+                                    </span>
+                                </label>
+                                <div class="rounded-lg border border-gray-100 bg-gray-50 p-3">
+                                    <span class="block text-sm font-semibold text-gray-700">Servicio sin inventario</span>
+                                    <span class="block text-xs text-gray-400 mt-1">Los servicios no controlan stock ni aparecen como productos inventariables.</span>
+                                </div>
+                            @endif
                         </div>
                     </section>
 
@@ -205,7 +202,7 @@
                     <div class="flex flex-wrap gap-3 pt-6 mt-8 border-t border-gray-100">
                         <button type="submit"
                                 class="bg-gray-900 text-white px-6 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-sm">
-                            Actualizar Producto o Servicio
+                            Actualizar {{ $itemSingular }}
                         </button>
                         <a href="{{ route('admin.catalog-items.show', $catalogItem) }}"
                            class="bg-gray-100 text-gray-600 px-6 py-2.5 rounded-lg hover:bg-gray-200 transition font-medium text-sm text-center">
@@ -270,3 +267,6 @@ function previewImage(input) {
 })();
 </script>
 @endpush
+
+
+

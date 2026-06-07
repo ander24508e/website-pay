@@ -30,8 +30,11 @@ class CatalogTypeController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['nullable', 'string', 'max:255'],
-            'icon' => ['nullable', 'string', 'max:100'],
             'description' => ['nullable', 'string'],
+            'business_model' => ['required', Rule::in([
+                CatalogType::BUSINESS_MODEL_SERVICES,
+                CatalogType::BUSINESS_MODEL_PRODUCTS,
+            ])],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
             'active' => ['nullable', 'boolean'],
         ]);
@@ -42,8 +45,8 @@ class CatalogTypeController extends Controller
             'empresa_id' => $empresa->id,
             'name' => trim($data['name']),
             'slug' => $slug,
-            'icon' => $this->cleanInput($data['icon'] ?? null),
             'description' => $this->cleanInput($data['description'] ?? null),
+            'business_model' => $data['business_model'],
             'sort_order' => (int) ($data['sort_order'] ?? 0),
             'active' => $request->boolean('active', true),
         ]);
@@ -74,8 +77,11 @@ class CatalogTypeController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['nullable', 'string', 'max:255'],
-            'icon' => ['nullable', 'string', 'max:100'],
             'description' => ['nullable', 'string'],
+            'business_model' => ['required', Rule::in([
+                CatalogType::BUSINESS_MODEL_SERVICES,
+                CatalogType::BUSINESS_MODEL_PRODUCTS,
+            ])],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
             'active' => ['nullable', 'boolean'],
         ]);
@@ -85,8 +91,8 @@ class CatalogTypeController extends Controller
         $catalogType->update([
             'name' => trim($data['name']),
             'slug' => $slug,
-            'icon' => $this->cleanInput($data['icon'] ?? null),
             'description' => $this->cleanInput($data['description'] ?? null),
+            'business_model' => $data['business_model'],
             'sort_order' => (int) ($data['sort_order'] ?? 0),
             'active' => $request->boolean('active'),
         ]);

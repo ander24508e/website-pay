@@ -3,15 +3,22 @@
 @section('title', 'Nuevo Producto o Servicio')
 
 @section('content')
+@php
+    $fromInventory = $fromInventory ?? false;
+    $isProductContext = $selectedType && (($selectedType->business_model ?? 'services') === \App\Models\CatalogType::BUSINESS_MODEL_PRODUCTS);
+    $itemSingular = $selectedType ? ($isProductContext ? 'Producto' : 'Servicio') : 'Producto o Servicio';
+    $itemPlural = $selectedType ? ($isProductContext ? 'Productos' : 'Servicios') : 'productos o servicios';
+@endphp
+
 <div class="container mx-auto px-4 sm:px-6">
     <div class="flex flex-wrap items-center gap-3 mb-6">
-        <a href="{{ ($returnToType ?? false) && ($selectedTypeId ?? 0) > 0 ? route('admin.catalog-types.show', $selectedTypeId) : route('admin.catalog-items.index') }}"
+        <a href="{{ $fromInventory ? route('admin.inventario.index') : (($returnToType && $selectedTypeId > 0) ? route('admin.catalog-types.show', $selectedTypeId) : route('admin.catalog-items.index')) }}"
            class="flex items-center justify-center w-9 h-9 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition text-gray-500 hover:text-gray-800">
             <span aria-hidden="true">&larr;</span>
         </a>
         <div>
-            <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Nuevo Producto o Servicio</h2>
-            <p class="text-gray-400 text-sm">Crea algo que el negocio pueda vender, reservar o mostrar en la pagina web.</p>
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Nuevo {{ $itemSingular }}</h2>
+            <p class="text-gray-400 text-sm">Crea un {{ strtolower($itemSingular) }} para este negocio.</p>
         </div>
     </div>
 
@@ -47,29 +54,30 @@
             <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6">
                 @if($types->isEmpty())
                     <div class="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800">
-                        Primero necesitas crear al menos una seccion antes de registrar productos o servicios.
+                        Primero necesitas crear al menos una sección antes de registrar {{ $itemPlural }}.
                     </div>
                     <div class="mt-5">
                         <a href="{{ route('admin.catalog-types.create') }}" class="bg-gray-900 text-white px-5 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-sm inline-block">
-                            Crear Seccion
+                            Crear Sección
                         </a>
                     </div>
                 @else
                     <form id="catalog-item-form" action="{{ route('admin.catalog-items.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
-                        <input type="hidden" name="redirect_to_type" value="{{ ($returnToType ?? false) ? 1 : 0 }}">
+                        <input type="hidden" name="redirect_to_type" value="{{ $returnToType ? 1 : 0 }}">
+                        <input type="hidden" name="redirect_to_inventory" value="{{ $fromInventory ? 1 : 0 }}">
 
                         <section class="space-y-5">
                             <div>
                                 <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Informacion basica</p>
-                                <p class="text-sm text-gray-500 mt-1">Nombre, ubicacion dentro del catalogo y precio principal.</p>
+                                <p class="text-sm text-gray-500 mt-1">Nombre, ubicación dentro del catálogo y precio principal.</p>
                             </div>
 
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
                                 <input type="text" name="name" value="{{ old('name') }}"
                                        class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-gray-50 @error('name') border-red-400 bg-red-50 @enderror"
-                                       placeholder="Ej: Ceviche, Lavado premium, Coctel de la casa">
+                                       placeholder="Ej: Lavado premium, Coca Cola, Ceviche">
                                 @error('name')
                                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                 @enderror
@@ -77,14 +85,14 @@
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Seccion *</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Sección *</label>
                                     <select name="catalog_type_id" id="catalog_type_id"
                                             class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-gray-50 @error('catalog_type_id') border-red-400 bg-red-50 @enderror">
-                                        @unless(($returnToType ?? false) && ($selectedTypeId ?? 0) > 0)
-                                            <option value="">Selecciona una seccion</option>
+                                        @unless($returnToType && $selectedTypeId > 0)
+                                            <option value="">Selecciona una sección</option>
                                         @endunless
                                         @foreach($types as $type)
-                                            <option value="{{ $type->id }}" {{ (old('catalog_type_id', $selectedTypeId ?? null) == $type->id) ? 'selected' : '' }}>{{ $type->name }}</option>
+                                            <option value="{{ $type->id }}" {{ (old('catalog_type_id', $selectedTypeId ?: null) == $type->id) ? 'selected' : '' }}>{{ $type->name }}</option>
                                         @endforeach
                                     </select>
                                     @error('catalog_type_id')
@@ -93,12 +101,12 @@
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
                                     <select name="catalog_category_id" id="catalog_category_id"
                                             class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-gray-50 @error('catalog_category_id') border-red-400 bg-red-50 @enderror">
-                                        <option value="">Sin categoria</option>
+                                        <option value="">Sin categoría</option>
                                         @foreach($categories as $category)
-                                            <option value="{{ $category->id }}" data-type="{{ $category->catalog_type_id }}" {{ (old('catalog_category_id', $selectedCategoryId ?? null) == $category->id) ? 'selected' : '' }}>
+                                            <option value="{{ $category->id }}" data-type="{{ $category->catalog_type_id }}" {{ (old('catalog_category_id', $selectedCategoryId ?: null) == $category->id) ? 'selected' : '' }}>
                                                 {{ $category->type->name }} / {{ $category->name }}
                                             </option>
                                         @endforeach
@@ -126,10 +134,10 @@
                             </div>
 
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Descripcion</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
                                 <textarea name="description" rows="4"
                                           class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-gray-50 resize-none @error('description') border-red-400 bg-red-50 @enderror"
-                                          placeholder="Describe este producto o servicio y para que sirve dentro del negocio">{{ old('description') }}</textarea>
+                                          placeholder="Describe este {{ strtolower($itemSingular) }} y para que sirve dentro del negocio">{{ old('description') }}</textarea>
                                 @error('description')
                                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                 @enderror
@@ -138,8 +146,8 @@
 
                         <section class="mt-8 border-t border-gray-100 pt-6 space-y-4" data-tour="catalog-item-behavior">
                             <div>
-                                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Como se usara</p>
-                                <p class="text-sm text-gray-500 mt-1">Define si se muestra, se vende, se reserva o controla stock.</p>
+                                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Como se usar?</p>
+                                <p class="text-sm text-gray-500 mt-1">El modelo del negocio define si será producto inventariable o servicio sin inventario.</p>
                             </div>
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -149,7 +157,7 @@
                                            class="mt-1 rounded border-gray-300 text-gray-900 focus:ring-gray-400">
                                     <span>
                                         <span class="block text-sm font-semibold text-gray-700">Activo</span>
-                                        <span class="block text-xs text-gray-400">Visible en el catalogo publico</span>
+                                        <span class="block text-xs text-gray-400">Visible en el catálogo público</span>
                                     </span>
                                 </label>
 
@@ -159,56 +167,52 @@
                                            class="mt-1 rounded border-gray-300 text-gray-900 focus:ring-gray-400">
                                     <span>
                                         <span class="block text-sm font-semibold text-gray-700">Destacado</span>
-                                        <span class="block text-xs text-gray-400">Aparece con mas prioridad en la web</span>
+                                        <span class="block text-xs text-gray-400">Aparece con m?s prioridad en la web</span>
                                     </span>
                                 </label>
 
-                                <label class="flex items-start gap-3 rounded-lg border border-gray-100 bg-gray-50 p-3 cursor-pointer">
-                                    <input type="checkbox" name="purchasable" value="1"
-                                           {{ old('purchasable', true) ? 'checked' : '' }}
-                                           class="mt-1 rounded border-gray-300 text-gray-900 focus:ring-gray-400">
-                                    <span>
-                                        <span class="block text-sm font-semibold text-gray-700">Se puede vender</span>
-                                        <span class="block text-xs text-gray-400">Puede agregarse a una venta o carrito</span>
-                                    </span>
-                                </label>
-
-                                <label class="flex items-start gap-3 rounded-lg border border-gray-100 bg-gray-50 p-3 cursor-pointer">
-                                    <input type="checkbox" name="reservable" value="1"
-                                           {{ old('reservable') ? 'checked' : '' }}
-                                           class="mt-1 rounded border-gray-300 text-gray-900 focus:ring-gray-400">
-                                    <span>
-                                        <span class="block text-sm font-semibold text-gray-700">Se puede reservar</span>
-                                        <span class="block text-xs text-gray-400">Puede usarse para reservas</span>
-                                    </span>
-                                </label>
-
-                                <label class="flex items-start gap-3 rounded-lg border border-gray-100 bg-gray-50 p-3 cursor-pointer sm:col-span-2">
-                                    <input type="checkbox" name="uses_inventory" value="1"
-                                           {{ old('uses_inventory') ? 'checked' : '' }}
-                                           class="mt-1 rounded border-gray-300 text-gray-900 focus:ring-gray-400">
-                                    <span>
-                                        <span class="block text-sm font-semibold text-gray-700">Controla stock</span>
-                                        <span class="block text-xs text-gray-400">Activa inventario por presentacion</span>
-                                    </span>
-                                </label>
+                                @if($isProductContext)
+                                    <div class="rounded-lg border border-blue-100 bg-blue-50 p-3 sm:col-span-2">
+                                        <span class="block text-sm font-semibold text-blue-800">Producto inventariable</span>
+                                        <span class="block text-xs text-blue-600 mt-1">Se podrá vender y usará control de inventario automáticamente. No se tratará como reserva.</span>
+                                    </div>
+                                @elseif($selectedType)
+                                    <label class="flex items-start gap-3 rounded-lg border border-gray-100 bg-gray-50 p-3 cursor-pointer">
+                                        <input type="checkbox" name="reservable" value="1"
+                                               {{ old('reservable') ? 'checked' : '' }}
+                                               class="mt-1 rounded border-gray-300 text-gray-900 focus:ring-gray-400">
+                                        <span>
+                                            <span class="block text-sm font-semibold text-gray-700">Se puede reservar</span>
+                                            <span class="block text-xs text-gray-400">Puede usarse para reservas</span>
+                                        </span>
+                                    </label>
+                                    <div class="rounded-lg border border-gray-100 bg-gray-50 p-3">
+                                        <span class="block text-sm font-semibold text-gray-700">Servicio sin inventario</span>
+                                        <span class="block text-xs text-gray-400 mt-1">Los servicios no controlan stock ni aparecen como productos inventariables.</span>
+                                    </div>
+                                @else
+                                    <div class="rounded-lg border border-yellow-100 bg-yellow-50 p-3 sm:col-span-2">
+                                        <span class="block text-sm font-semibold text-yellow-800">Selecciona una sección</span>
+                                        <span class="block text-xs text-yellow-700 mt-1">El sistema aplicará automáticamente si esto será producto inventariable o servicio sin inventario.</span>
+                                    </div>
+                                @endif
                             </div>
                         </section>
 
                         <section class="mt-8 border-t border-gray-100 pt-6 space-y-4">
                             <div>
-                                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Presentacion opcional</p>
-                                <p class="text-sm text-gray-500 mt-1">Usala si este producto o servicio tiene tamanos, versiones, SKU, stock o precio distinto.</p>
+                                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Presentación opcional</p>
+                                <p class="text-sm text-gray-500 mt-1">?sala si este {{ strtolower($itemSingular) }} tiene tamaños, versiones, SKU, stock o precio distinto.</p>
                             </div>
 
                             <label class="inline-flex items-center gap-3 text-sm font-semibold text-gray-700">
                                 <input type="checkbox" name="create_presentation" value="1" {{ old('create_presentation') ? 'checked' : '' }} class="rounded border-gray-300 text-gray-900 focus:ring-gray-400">
-                                Crear presentacion inicial
+                                Crear presentación inicial
                             </label>
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Nombre de presentacion</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Nombre de presentación</label>
                                     <input type="text" name="variant_name" value="{{ old('variant_name') }}"
                                            class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-gray-50 @error('variant_name') border-red-400 bg-red-50 @enderror"
                                            placeholder="Ej: Normal, Grande, Botella 500ml">
@@ -218,12 +222,12 @@
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Precio de presentacion</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Precio de presentación</label>
                                     <div class="relative">
                                         <span class="absolute left-4 top-2.5 text-gray-400 text-sm font-semibold">$</span>
                                         <input type="number" name="variant_price" value="{{ old('variant_price') }}" step="0.01" min="0"
                                                class="w-full border border-gray-200 rounded-lg pl-8 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-gray-50 @error('variant_price') border-red-400 bg-red-50 @enderror"
-                                               placeholder="Usa el precio principal si queda vacio">
+                                               placeholder="Usa el precio principal si queda vacío">
                                     </div>
                                     @error('variant_price')
                                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -231,7 +235,7 @@
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Presentacion</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Presentación</label>
                                     <input type="text" name="variant_presentation" value="{{ old('variant_presentation') }}"
                                            class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-gray-50 @error('variant_presentation') border-red-400 bg-red-50 @enderror"
                                            placeholder="Ej: Botella, Combo, Servicio">
@@ -279,7 +283,7 @@
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Slug</label>
                                     <input type="text" name="slug" value="{{ old('slug') }}"
                                            class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-white @error('slug') border-red-400 bg-red-50 @enderror"
-                                           placeholder="Se genera automaticamente si lo dejas vacio">
+                                           placeholder="Se genera automáticamente si lo dejas vacío">
                                     @error('slug')
                                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                     @enderror
@@ -299,9 +303,9 @@
                         <div class="flex flex-wrap gap-3 pt-6 mt-8 border-t border-gray-100">
                             <button type="submit"
                                     class="bg-gray-900 text-white px-6 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-sm">
-                                Guardar Producto o Servicio
+                                Guardar {{ $itemSingular }}
                             </button>
-                            <a href="{{ ($returnToType ?? false) && ($selectedTypeId ?? 0) > 0 ? route('admin.catalog-types.show', $selectedTypeId) : route('admin.catalog-items.index') }}"
+                            <a href="{{ $fromInventory ? route('admin.inventario.index') : (($returnToType && $selectedTypeId > 0) ? route('admin.catalog-types.show', $selectedTypeId) : route('admin.catalog-items.index')) }}"
                                class="bg-gray-100 text-gray-600 px-6 py-2.5 rounded-lg hover:bg-gray-200 transition font-medium text-sm text-center">
                                 Cancelar
                             </a>
@@ -365,3 +369,7 @@ function previewImage(input) {
 })();
 </script>
 @endpush
+
+
+
+

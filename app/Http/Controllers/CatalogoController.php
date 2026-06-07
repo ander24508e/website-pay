@@ -118,7 +118,7 @@ class CatalogoController extends Controller
     private function getCatalogFilters(): array
     {
         $filters = [
-            ['value' => 'todos', 'label' => 'Todos', 'icon' => null],
+            ['value' => 'todos', 'label' => 'Todos'],
         ];
 
         if (!Schema::hasTable('catalog_types')) {
@@ -134,7 +134,7 @@ class CatalogoController extends Controller
             ->where('empresa_id', $empresa->id)
             ->where('active', true)
             ->ordered()
-            ->get(['name', 'slug', 'icon']);
+            ->get(['name', 'slug']);
 
         foreach ($types as $type) {
             if (!$type->slug) {
@@ -144,7 +144,6 @@ class CatalogoController extends Controller
             $filters[] = [
                 'value' => 'tipo:' . $type->slug,
                 'label' => $type->name,
-                'icon' => $type->icon,
             ];
         }
 

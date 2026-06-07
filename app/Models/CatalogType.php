@@ -7,12 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class CatalogType extends Model
 {
+    public const BUSINESS_MODEL_SERVICES = 'services';
+    public const BUSINESS_MODEL_PRODUCTS = 'products';
+
     protected $fillable = [
         'empresa_id',
         'name',
         'slug',
-        'icon',
         'description',
+        'business_model',
         'sort_order',
         'active',
     ];

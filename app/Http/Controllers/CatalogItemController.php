@@ -81,6 +81,7 @@ class CatalogItemController extends Controller
         $empresa = $this->getOrCreateEmpresa();
         $selectedTypeId = (int) $request->query('catalog_type_id', old('catalog_type_id', 0));
         $selectedCategoryId = (int) $request->query('catalog_category_id', old('catalog_category_id', 0));
+        $fromInventory = $request->boolean('inventory');
         $selectedType = null;
         $selectedCategory = null;
 
@@ -104,6 +105,9 @@ class CatalogItemController extends Controller
 
         $types = CatalogType::query()
             ->where('empresa_id', $empresa->id)
+            ->when($fromInventory, function ($query) {
+                $query->where('business_model', CatalogType::BUSINESS_MODEL_PRODUCTS);
+            })
             ->when($selectedType, fn ($query) => $query->whereKey($selectedType->id))
             ->ordered()
             ->get();
@@ -123,7 +127,8 @@ class CatalogItemController extends Controller
             'selectedCategoryId',
             'selectedType',
             'selectedCategory',
-            'returnToType'
+            'returnToType',
+            'fromInventory'
         ));
     }
 
@@ -145,6 +150,7 @@ class CatalogItemController extends Controller
             'purchasable' => ['nullable', 'boolean'],
             'reservable' => ['nullable', 'boolean'],
             'uses_inventory' => ['nullable', 'boolean'],
+            'redirect_to_inventory' => ['nullable', 'boolean'],
             'create_presentation' => ['nullable', 'boolean'],
             'variant_name' => ['nullable', 'required_if:create_presentation,1', 'string', 'max:255'],
             'variant_presentation' => ['nullable', 'string', 'max:255'],
@@ -158,8 +164,15 @@ class CatalogItemController extends Controller
             ->where('empresa_id', $empresa->id)
             ->findOrFail($data['catalog_type_id']);
 
+        if ($request->boolean('redirect_to_inventory') && !$this->isProductBusiness($type)) {
+            NotificationHelper::error('Inventario solo permite crear productos de negocios tipo producto.');
+            return redirect()->back()->withInput();
+        }
+
         $category = $this->resolveCategory($empresa->id, $type->id, $data['catalog_category_id'] ?? null);
         $slug = $this->resolveSlug($empresa->id, $data['name'], $data['slug'] ?? null);
+
+        $behavior = $this->resolveBehaviorForType($type, $request);
 
         $payload = [
             'empresa_id' => $empresa->id,
@@ -171,9 +184,9 @@ class CatalogItemController extends Controller
             'base_price' => $data['base_price'] ?? null,
             'active' => $request->boolean('active', true),
             'featured' => $request->boolean('featured'),
-            'purchasable' => $request->boolean('purchasable', true),
-            'reservable' => $request->boolean('reservable'),
-            'uses_inventory' => $request->boolean('uses_inventory'),
+            'purchasable' => $behavior['purchasable'],
+            'reservable' => $behavior['reservable'],
+            'uses_inventory' => $behavior['uses_inventory'],
             'sort_order' => (int) ($data['sort_order'] ?? 0),
         ];
 
@@ -183,10 +196,12 @@ class CatalogItemController extends Controller
 
         $item = CatalogItem::create($payload);
 
-        if ($request->boolean('create_presentation')) {
+        $shouldCreatePresentation = $request->boolean('create_presentation') || $this->isProductBusiness($type);
+
+        if ($shouldCreatePresentation) {
             CatalogItemVariant::create([
                 'catalog_item_id' => $item->id,
-                'name' => trim((string) $data['variant_name']),
+                'name' => trim((string) ($data['variant_name'] ?? '')) ?: 'General',
                 'presentation' => $this->cleanInput($data['variant_presentation'] ?? null),
                 'specification' => $this->cleanInput($data['variant_specification'] ?? null),
                 'sku' => $this->cleanInput($data['variant_sku'] ?? null),
@@ -198,7 +213,11 @@ class CatalogItemController extends Controller
             ]);
         }
 
-        NotificationHelper::success('Producto o servicio creado correctamente.');
+        NotificationHelper::success($this->isProductBusiness($type) ? 'Producto creado correctamente.' : 'Servicio creado correctamente.');
+
+        if ($request->boolean('redirect_to_inventory')) {
+            return redirect()->route('admin.inventario.index', ['catalog_type_id' => $type->id]);
+        }
 
         if ($request->boolean('redirect_to_type')) {
             return redirect()->route('admin.catalog-types.show', $item->catalog_type_id);
@@ -254,6 +273,8 @@ class CatalogItemController extends Controller
         $category = $this->resolveCategory($catalogItem->empresa_id, $type->id, $data['catalog_category_id'] ?? null);
         $slug = $this->resolveSlug($catalogItem->empresa_id, $data['name'], $data['slug'] ?? null, $catalogItem->id);
 
+        $behavior = $this->resolveBehaviorForType($type, $request);
+
         $payload = [
             'catalog_type_id' => $type->id,
             'catalog_category_id' => $category?->id,
@@ -263,9 +284,9 @@ class CatalogItemController extends Controller
             'base_price' => $data['base_price'] ?? null,
             'active' => $request->boolean('active'),
             'featured' => $request->boolean('featured'),
-            'purchasable' => $request->boolean('purchasable'),
-            'reservable' => $request->boolean('reservable'),
-            'uses_inventory' => $request->boolean('uses_inventory'),
+            'purchasable' => $behavior['purchasable'],
+            'reservable' => $behavior['reservable'],
+            'uses_inventory' => $behavior['uses_inventory'],
             'sort_order' => (int) ($data['sort_order'] ?? 0),
         ];
 
@@ -278,7 +299,7 @@ class CatalogItemController extends Controller
 
         $catalogItem->update($payload);
 
-        NotificationHelper::success('Item universal actualizado correctamente.');
+        NotificationHelper::success($this->isProductBusiness($type) ? 'Producto actualizado correctamente.' : 'Servicio actualizado correctamente.');
 
         return redirect()->route('admin.catalog-items.index');
     }
@@ -320,6 +341,28 @@ class CatalogItemController extends Controller
             ->where('empresa_id', $empresaId)
             ->where('catalog_type_id', $typeId)
             ->findOrFail($categoryId);
+    }
+
+    private function isProductBusiness(CatalogType $type): bool
+    {
+        return ($type->business_model ?? CatalogType::BUSINESS_MODEL_SERVICES) === CatalogType::BUSINESS_MODEL_PRODUCTS;
+    }
+
+    private function resolveBehaviorForType(CatalogType $type, Request $request): array
+    {
+        if ($this->isProductBusiness($type)) {
+            return [
+                'purchasable' => true,
+                'reservable' => false,
+                'uses_inventory' => true,
+            ];
+        }
+
+        return [
+            'purchasable' => true,
+            'reservable' => $request->boolean('reservable'),
+            'uses_inventory' => false,
+        ];
     }
 
     private function resolveSlug(int $empresaId, string $name, ?string $slug, ?int $ignoreId = null): ?string

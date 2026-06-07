@@ -10,17 +10,28 @@
                 <x-heroicon-o-archive-box class="w-8 h-8 text-gray-800" />
                 <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Inventario</h2>
             </div>
-            <p class="text-gray-500 text-sm mt-1">Control de stock por variantes en items que usan inventario.</p>
+            <p class="text-gray-500 text-sm mt-1">Control de stock solo para negocios configurados como productos.</p>
         </div>
         <div class="w-full lg:w-auto flex flex-col sm:flex-row gap-2">
-            <form method="GET" action="{{ route('admin.inventario.index') }}" class="w-full lg:w-auto">
-                <div class="relative">
+            <form method="GET" action="{{ route('admin.inventario.index') }}" class="w-full lg:w-auto flex flex-col sm:flex-row gap-2">
+                <div class="relative w-full sm:w-72">
                     <x-heroicon-o-magnifying-glass class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input type="search" name="q" value="{{ request('q') }}"
-                        class="w-full lg:w-80 rounded-lg border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm text-gray-700"
-                        placeholder="Buscar por item, variante o SKU...">
+                        class="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm text-gray-700"
+                        placeholder="Buscar producto, categoría, SKU...">
                 </div>
+                <select name="catalog_type_id" class="w-full sm:w-56 rounded-lg border border-gray-200 bg-white py-2.5 px-3 text-sm text-gray-700" onchange="this.form.submit()">
+                    <option value="">Todos los negocios</option>
+                    @foreach($productTypes as $type)
+                        <option value="{{ $type->id }}" {{ $selectedTypeId === $type->id ? 'selected' : '' }}>{{ $type->name }}</option>
+                    @endforeach
+                </select>
             </form>
+            <a href="{{ route('admin.catalog-items.create', ['inventory' => 1]) }}"
+                class="inline-flex items-center justify-center bg-white text-gray-800 border border-gray-200 w-11 h-11 rounded-lg hover:bg-gray-50 transition"
+                title="Nuevo producto" aria-label="Nuevo producto">
+                <x-heroicon-o-cube class="w-5 h-5" />
+            </a>
             <a href="{{ route('admin.inventario.create') }}"
                 class="inline-flex items-center justify-center bg-gray-900 text-white w-11 h-11 rounded-lg hover:bg-gray-700 transition"
                 title="Nuevo movimiento" aria-label="Nuevo movimiento">
@@ -32,36 +43,46 @@
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div class="xl:col-span-2 bg-white rounded-xl shadow-sm overflow-hidden">
             <div class="px-4 py-3 border-b border-gray-100">
-                <h3 class="font-semibold text-gray-800">Stock actual</h3>
+                <h3 class="font-semibold text-gray-800">Stock actual de productos</h3>
             </div>
 
             <div class="md:hidden space-y-3 p-4">
-                @forelse($variants as $variant)
+                @forelse($products as $product)
+                    @php
+                        $variant = $product->variants->first();
+                        $variantName = $variant ? $variant->name : 'General';
+                        $variantSku = $variant ? $variant->sku : null;
+                        $variantStock = $variant ? (int) ($variant->stock ?? 0) : 0;
+                    @endphp
                     <div class="rounded-xl border border-gray-100 p-4 space-y-4">
                         <div class="flex items-start justify-between gap-3">
                             <div class="min-w-0">
-                                <p class="font-semibold text-gray-800 break-words">{{ $variant->item->name ?? '-' }}</p>
-                                <p class="text-xs text-gray-400 break-words">{{ $variant->item->type->name ?? '-' }}</p>
+                                <p class="font-semibold text-gray-800 break-words">{{ $product->name }}</p>
+                                <p class="text-xs text-gray-400 break-words">{{ $product->type->name ?? '-' }} · {{ $product->category->name ?? 'Sin categoría' }}</p>
                             </div>
                             <span class="shrink-0 bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full text-xs font-semibold">
-                                Stock: {{ (int) ($variant->stock ?? 0) }}
+                                Stock: {{ $variantStock }}
                             </span>
                         </div>
 
                         <div class="grid grid-cols-2 gap-3 text-sm">
                             <div>
                                 <p class="text-xs uppercase text-gray-400 font-semibold">Variante</p>
-                                <p class="text-gray-700 break-words">{{ $variant->name }}</p>
+                                <p class="text-gray-700 break-words">{{ $variantName }}</p>
                             </div>
                             <div>
                                 <p class="text-xs uppercase text-gray-400 font-semibold">SKU</p>
-                                <p class="font-mono text-xs text-gray-700 break-words">{{ $variant->sku ?: '-' }}</p>
+                                <p class="font-mono text-xs text-gray-700 break-words">{{ $variantSku ?: '-' }}</p>
                             </div>
                         </div>
 
                         <form method="POST" action="{{ route('admin.inventario.movements.store') }}" class="grid grid-cols-1 sm:grid-cols-4 gap-2 items-center">
                             @csrf
-                            <input type="hidden" name="catalog_item_variant_id" value="{{ $variant->id }}">
+                            @if($variant)
+                                <input type="hidden" name="catalog_item_variant_id" value="{{ $variant->id }}">
+                            @else
+                                <input type="hidden" name="catalog_item_id" value="{{ $product->id }}">
+                            @endif
                             <select name="type" class="border border-gray-200 rounded-lg px-2 py-2 text-xs">
                                 <option value="in">Entrada</option>
                                 <option value="out">Salida</option>
@@ -74,7 +95,7 @@
                         </form>
                     </div>
                 @empty
-                    <div class="px-4 py-8 text-center text-gray-400">No hay variantes con inventario habilitado.</div>
+                    <div class="px-4 py-8 text-center text-gray-400">No hay productos inventariables para este filtro.</div>
                 @endforelse
             </div>
 
@@ -82,27 +103,41 @@
                 <table class="w-full table-fixed text-sm text-left">
                     <thead class="bg-gray-50 border-b text-xs uppercase text-gray-500">
                         <tr>
-                            <th class="px-3 py-3 text-center w-[24%]">Item</th>
-                            <th class="px-3 py-3 text-center w-[18%]">Variante</th>
-                            <th class="px-3 py-3 text-center w-[14%]">SKU</th>
-                            <th class="px-3 py-3 text-center w-[10%]">Stock</th>
-                            <th class="px-3 py-3 text-center w-[34%]">Acción</th>
+                            <th class="px-3 py-3 text-center w-[22%]">Producto</th>
+                            <th class="px-3 py-3 text-center w-[15%]">Negocio</th>
+                            <th class="px-3 py-3 text-center w-[15%]">Categoría</th>
+                            <th class="px-3 py-3 text-center w-[14%]">Variante</th>
+                            <th class="px-3 py-3 text-center w-[12%]">SKU</th>
+                            <th class="px-3 py-3 text-center w-[8%]">Stock</th>
+                            <th class="px-3 py-3 text-center w-[26%]">Acción</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y">
-                        @forelse($variants as $variant)
-                            <tr>
-                                <td class="px-3 py-3 text-center">
-                                    <p class="font-medium text-gray-800 truncate">{{ $variant->item->name ?? '-' }}</p>
-                                    <p class="text-xs text-gray-400 truncate">{{ $variant->item->type->name ?? '-' }}</p>
-                                </td>
-                                <td class="px-3 py-3 text-center text-gray-700 truncate">{{ $variant->name }}</td>
-                                <td class="px-3 py-3 text-center text-gray-500 font-mono text-xs truncate">{{ $variant->sku ?: '-' }}</td>
-                                <td class="px-3 py-3 text-center font-semibold text-gray-800">{{ (int) ($variant->stock ?? 0) }}</td>
-                                <td class="px-3 py-3 text-center">
-                                    <form method="POST" action="{{ route('admin.inventario.movements.store') }}" class="flex flex-wrap justify-center gap-2 items-center">
-                                        @csrf
-                                        <input type="hidden" name="catalog_item_variant_id" value="{{ $variant->id }}">
+                @forelse($products as $product)
+                    @php
+                        $variant = $product->variants->first();
+                        $variantName = $variant ? $variant->name : 'General';
+                        $variantSku = $variant ? $variant->sku : null;
+                        $variantStock = $variant ? (int) ($variant->stock ?? 0) : 0;
+                    @endphp
+                    <tr>
+                        <td class="px-3 py-3 text-center">
+                            <p class="font-medium text-gray-800 truncate">{{ $product->name }}</p>
+                            <p class="text-xs text-gray-400 truncate">{{ $product->description ?: 'Sin descripción' }}</p>
+                        </td>
+                        <td class="px-3 py-3 text-center text-gray-700 truncate">{{ $product->type->name ?? '-' }}</td>
+                        <td class="px-3 py-3 text-center text-gray-700 truncate">{{ $product->category->name ?? 'Sin categoría' }}</td>
+                        <td class="px-3 py-3 text-center text-gray-700 truncate">{{ $variantName }}</td>
+                        <td class="px-3 py-3 text-center text-gray-500 font-mono text-xs truncate">{{ $variantSku ?: '-' }}</td>
+                        <td class="px-3 py-3 text-center font-semibold text-gray-800">{{ $variantStock }}</td>
+                        <td class="px-3 py-3 text-center">
+                            <form method="POST" action="{{ route('admin.inventario.movements.store') }}" class="flex flex-wrap justify-center gap-2 items-center">
+                                @csrf
+                                @if($variant)
+                                    <input type="hidden" name="catalog_item_variant_id" value="{{ $variant->id }}">
+                                @else
+                                    <input type="hidden" name="catalog_item_id" value="{{ $product->id }}">
+                                @endif
                                         <select name="type" class="border border-gray-200 rounded-lg px-2 py-1.5 text-xs">
                                             <option value="in">Entrada</option>
                                             <option value="out">Salida</option>
@@ -117,15 +152,15 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="px-4 py-8 text-center text-gray-400">No hay variantes con inventario habilitado.</td>
+                                <td colspan="7" class="px-4 py-8 text-center text-gray-400">No hay productos inventariables para este filtro.</td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
 
-            @if($variants->hasPages())
-                <div class="p-4 border-t">{{ $variants->links() }}</div>
+            @if($products->hasPages())
+                <div class="p-4 border-t">{{ $products->links() }}</div>
             @endif
         </div>
 

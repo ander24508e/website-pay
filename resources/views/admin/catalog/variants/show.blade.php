@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+﻿@extends('layouts.admin')
 
 @section('title', 'Detalle Variante Universal')
 
@@ -25,21 +25,21 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <p class="text-xs text-gray-400 uppercase tracking-wide">Item</p>
-                        <p class="text-gray-700">{{ $catalogVariant->item->name ?? 'Sin item' }}</p>
+                        <p class="text-gray-700">{{ isset($catalogVariant->item) && isset($catalogVariant->item->name) ? $catalogVariant->item->name : 'Sin item' }}</p>
                     </div>
                     <div>
                         <p class="text-xs text-gray-400 uppercase tracking-wide">Tipo</p>
-                        <p class="text-gray-700">{{ $catalogVariant->item->type->name ?? 'Sin tipo' }}</p>
+                        <p class="text-gray-700">{{ isset($catalogVariant->item) && isset($catalogVariant->item->type) && isset($catalogVariant->item->type->name) ? $catalogVariant->item->type->name : 'Sin tipo' }}</p>
                     </div>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <p class="text-xs text-gray-400 uppercase tracking-wide">Presentacion</p>
-                        <p class="text-gray-700">{{ $catalogVariant->presentation ?: '-' }}</p>
+                        <p class="text-xs text-gray-400 uppercase tracking-wide">PresentaciÃ³n</p>
+                        <p class="text-gray-700">{{ isset($catalogVariant->presentation) ? $catalogVariant->presentation : '-' }}</p>
                     </div>
                     <div>
                         <p class="text-xs text-gray-400 uppercase tracking-wide">Especificacion</p>
-                        <p class="text-gray-700">{{ $catalogVariant->specification ?: '-' }}</p>
+                        <p class="text-gray-700">{{ isset($catalogVariant->specification) ? $catalogVariant->specification : '-' }}</p>
                     </div>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -53,7 +53,7 @@
                     </div>
                     <div>
                         <p class="text-xs text-gray-400 uppercase tracking-wide">Stock</p>
-                        <p class="text-gray-700 font-semibold">{{ $catalogVariant->stock ?? '-' }}</p>
+                        <p class="text-gray-700 font-semibold">{{ isset($catalogVariant->stock) ? $catalogVariant->stock : '-' }}</p>
                     </div>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -86,7 +86,7 @@
                     Editar
                 </a>
                 <form action="{{ route('admin.catalog-variants.destroy', $catalogVariant) }}" method="POST"
-                      onsubmit="return confirm('¿Eliminar esta variante universal?')">
+                      onsubmit="return confirm('Â¿Eliminar esta variante universal?')">
                     @csrf
                     @method('DELETE')
                     <button class="bg-red-50 text-red-600 px-5 py-2.5 rounded-lg hover:bg-red-100 transition font-medium text-sm border border-red-200">
@@ -98,3 +98,4 @@
     </div>
 </div>
 @endsection
+

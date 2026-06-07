@@ -5,7 +5,7 @@
 @section('content')
 <div class="container mx-auto px-4 sm:px-6">
     <div class="flex flex-wrap items-center gap-3 mb-6">
-        <a href="{{ ($returnToType ?? false) && ($selectedTypeId ?? 0) > 0 ? route('admin.catalog-types.show', $selectedTypeId) : route('admin.catalog-categories.index') }}"
+        <a href="{{ ($returnToType && $selectedTypeId > 0) ? route('admin.catalog-types.show', $selectedTypeId) : route('admin.catalog-categories.index') }}"
            class="flex items-center justify-center w-9 h-9 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition text-gray-500 hover:text-gray-800">
             <span aria-hidden="true">&larr;</span>
         </a>
@@ -29,17 +29,17 @@
             @else
                 <form action="{{ route('admin.catalog-categories.store') }}" method="POST">
                     @csrf
-                    <input type="hidden" name="redirect_to_type" value="{{ ($returnToType ?? false) ? 1 : 0 }}">
+                    <input type="hidden" name="redirect_to_type" value="{{ $returnToType ? 1 : 0 }}">
 
                     <div class="mb-5">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Sección *</label>
                         <select name="catalog_type_id"
                                 class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-400 @error('catalog_type_id') border-red-400 bg-red-50 @enderror">
-                            @unless(($returnToType ?? false) && ($selectedTypeId ?? 0) > 0)
+                            @unless($returnToType && $selectedTypeId > 0)
                                 <option value="">Selecciona una sección</option>
                             @endunless
                             @foreach($types as $type)
-                                <option value="{{ $type->id }}" {{ (old('catalog_type_id', $selectedTypeId ?? null) == $type->id) ? 'selected' : '' }}>{{ $type->name }}</option>
+                                <option value="{{ $type->id }}" {{ (old('catalog_type_id', $selectedTypeId ?: null) == $type->id) ? 'selected' : '' }}>{{ $type->name }}</option>
                             @endforeach
                         </select>
                         @error('catalog_type_id')
@@ -61,17 +61,17 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">Slug</label>
                         <input type="text" name="slug" value="{{ old('slug') }}"
                                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-400 @error('slug') border-red-400 bg-red-50 @enderror"
-                               placeholder="Se genera automaticamente si lo dejas vacio">
+                               placeholder="Se genera automáticamente si lo dejas vacío">
                         @error('slug')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div class="mb-5">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Descripcion</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
                         <textarea name="description" rows="4"
                                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-400 @error('description') border-red-400 bg-red-50 @enderror"
-                               placeholder="Describe que agrupa esta categoria">{{ old('description') }}</textarea>
+                               placeholder="Describe que agrupa esta categoría">{{ old('description') }}</textarea>
                         @error('description')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
@@ -90,7 +90,7 @@
                         <div class="flex items-center pt-8">
                             <label class="inline-flex items-center gap-3 text-sm text-gray-700">
                                 <input type="checkbox" name="active" value="1" {{ old('active', '1') ? 'checked' : '' }} class="rounded border-gray-300 text-gray-900 focus:ring-gray-400">
-                                Categoria activa
+                                Categoría activa
                             </label>
                         </div>
                     </div>
@@ -100,7 +100,7 @@
                                 class="bg-gray-900 text-white px-6 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-sm">
                         Guardar Categoría
                         </button>
-                        <a href="{{ ($returnToType ?? false) && ($selectedTypeId ?? 0) > 0 ? route('admin.catalog-types.show', $selectedTypeId) : route('admin.catalog-categories.index') }}"
+                        <a href="{{ ($returnToType && $selectedTypeId > 0) ? route('admin.catalog-types.show', $selectedTypeId) : route('admin.catalog-categories.index') }}"
                            class="bg-gray-100 text-gray-700 px-6 py-2.5 rounded-lg hover:bg-gray-200 transition font-medium text-sm text-center">
                             Cancelar
                         </a>

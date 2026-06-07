@@ -1,17 +1,17 @@
-@extends('layouts.admin')
+﻿@extends('layouts.admin')
 
-@section('title', 'Nueva Presentación')
+@section('title', 'Nueva PresentaciÃ³n')
 
 @section('content')
 <div class="container mx-auto px-4 sm:px-6">
     <div class="flex flex-wrap items-center gap-3 mb-6">
-        <a href="{{ ($returnToType ?? false) && ($selectedTypeId ?? 0) > 0 ? route('admin.catalog-types.show', $selectedTypeId) : route('admin.catalog-variants.index') }}"
+        <a href="{{ ($returnToType && $selectedTypeId > 0) ? route('admin.catalog-types.show', $selectedTypeId) : route('admin.catalog-variants.index') }}"
            class="flex items-center justify-center w-9 h-9 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition text-gray-500 hover:text-gray-800">
             <span aria-hidden="true">&larr;</span>
         </a>
         <div>
-            <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Nueva Presentación</h2>
-            <p class="text-gray-400 text-sm">Agrega un tamaño, versión o precio diferente a un producto o servicio.</p>
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Nueva PresentaciÃ³n</h2>
+            <p class="text-gray-400 text-sm">Agrega un tamaÃ±o, versiÃ³n o precio diferente a un producto o servicio.</p>
         </div>
     </div>
 
@@ -29,18 +29,18 @@
             @else
                 <form action="{{ route('admin.catalog-variants.store') }}" method="POST">
                     @csrf
-                    <input type="hidden" name="redirect_to_type" value="{{ ($returnToType ?? false) ? 1 : 0 }}">
+                    <input type="hidden" name="redirect_to_type" value="{{ $returnToType ? 1 : 0 }}">
 
                     <div class="mb-5">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Producto o Servicio *</label>
                         <select name="catalog_item_id"
                                 class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-400 @error('catalog_item_id') border-red-400 bg-red-50 @enderror">
-                            @unless(($selectedItemId ?? 0) > 0 || ($selectedTypeId ?? 0) > 0)
+                            @unless($selectedItemId > 0 || $selectedTypeId > 0)
                                 <option value="">Selecciona un producto o servicio</option>
                             @endunless
                             @foreach($items as $item)
                                 <option value="{{ $item->id }}" {{ old('catalog_item_id', $selectedItemId) == $item->id ? 'selected' : '' }}>
-                                    {{ $item->type->name ?? 'Sección' }} / {{ $item->name }}
+                                    {{ isset($item->type) && isset($item->type->name) ? $item->type->name : 'Sección' }} / {{ $item->name }}
                                 </option>
                             @endforeach
                         </select>
@@ -61,7 +61,7 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
                         <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Presentación</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">PresentaciÃ³n</label>
                             <input type="text" name="presentation" value="{{ old('presentation') }}"
                                    class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-400 @error('presentation') border-red-400 bg-red-50 @enderror"
                                    placeholder="Ej: Botella, Plato, Galon">
@@ -127,24 +127,24 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
                         <label class="inline-flex items-center gap-3 text-sm text-gray-700">
                             <input type="checkbox" name="active" value="1" {{ old('active', '1') ? 'checked' : '' }} class="rounded border-gray-300 text-gray-900 focus:ring-gray-400">
-                            Presentación activa
+                            PresentaciÃ³n activa
                         </label>
                         <label class="inline-flex items-center gap-3 text-sm text-gray-700">
                             <input type="checkbox" name="is_default" value="1" {{ old('is_default') ? 'checked' : '' }} class="rounded border-gray-300 text-gray-900 focus:ring-gray-400">
-                            Presentación principal
+                            PresentaciÃ³n principal
                         </label>
                     </div>
 
                     <div class="rounded-lg bg-gray-50 border border-gray-200 p-3 text-xs text-gray-500 mb-8">
-                        La presentación principal es la que se selecciona primero en la web cuando el usuario abre el detalle.
+                        La presentaciÃ³n principal es la que se selecciona primero en la web cuando el usuario abre el detalle.
                     </div>
 
                     <div class="flex flex-wrap gap-3 pt-2">
                         <button type="submit"
                                 class="bg-gray-900 text-white px-6 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-sm">
-                            Guardar Presentación
+                            Guardar PresentaciÃ³n
                         </button>
-                        <a href="{{ ($returnToType ?? false) && ($selectedTypeId ?? 0) > 0 ? route('admin.catalog-types.show', $selectedTypeId) : route('admin.catalog-variants.index') }}"
+                        <a href="{{ ($returnToType && $selectedTypeId > 0) ? route('admin.catalog-types.show', $selectedTypeId) : route('admin.catalog-variants.index') }}"
                            class="bg-gray-100 text-gray-700 px-6 py-2.5 rounded-lg hover:bg-gray-200 transition font-medium text-sm text-center">
                             Cancelar
                         </a>
@@ -155,3 +155,4 @@
     </div>
 </div>
 @endsection
+

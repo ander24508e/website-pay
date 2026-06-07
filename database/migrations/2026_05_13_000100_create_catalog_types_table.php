@@ -13,7 +13,6 @@ return new class extends Migration
             $table->foreignId('empresa_id')->constrained()->cascadeOnDelete();
             $table->string('name');
             $table->string('slug')->nullable();
-            $table->string('icon')->nullable();
             $table->text('description')->nullable();
             $table->unsignedInteger('sort_order')->default(0);
             $table->boolean('active')->default(true);

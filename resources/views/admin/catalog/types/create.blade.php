@@ -30,34 +30,49 @@
                     @enderror
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
+                <div class="mb-5">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Modelo del negocio *</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <label class="flex gap-3 rounded-xl border border-gray-200 p-4 cursor-pointer hover:border-gray-400 transition">
+                            <input type="radio" name="business_model" value="services" class="mt-1 text-gray-900 focus:ring-gray-400"
+                                {{ old('business_model', 'services') === 'services' ? 'checked' : '' }}>
+                            <span>
+                                <span class="block text-sm font-semibold text-gray-800">Servicios</span>
+                                <span class="block text-xs text-gray-500 mt-1">Para reservas, trabajos o atención sin stock directo.</span>
+                            </span>
+                        </label>
+                        <label class="flex gap-3 rounded-xl border border-gray-200 p-4 cursor-pointer hover:border-gray-400 transition">
+                            <input type="radio" name="business_model" value="products" class="mt-1 text-gray-900 focus:ring-gray-400"
+                                {{ old('business_model') === 'products' ? 'checked' : '' }}>
+                            <span>
+                                <span class="block text-sm font-semibold text-gray-800">Productos</span>
+                                <span class="block text-xs text-gray-500 mt-1">Para artículos físicos que podrán manejar stock e inventario.</span>
+                            </span>
+                        </label>
+                    </div>
+                    @error('business_model')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="grid grid-cols-1 gap-5 mb-5">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Slug</label>
                         <input type="text" name="slug" value="{{ old('slug') }}"
                                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-400 @error('slug') border-red-400 bg-red-50 @enderror"
-                               placeholder="Se genera automaticamente si lo dejas vacio">
+                               placeholder="Se genera automáticamente si lo dejas vacío">
                         @error('slug')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Icono</label>
-                        <input type="text" name="icon" value="{{ old('icon') }}"
-                               class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-400 @error('icon') border-red-400 bg-red-50 @enderror"
-                               placeholder="Ej: cake, martini, wrench">
-                        <p class="text-xs text-gray-400 mt-1">Sugeridos: `cake`, `sparkles`, `building-storefront`, `cube`, `wrench`.</p>
-                        @error('icon')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
                 </div>
 
                 <div class="mb-5">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Descripcion</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
                     <textarea name="description" rows="4"
                            class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-400 @error('description') border-red-400 bg-red-50 @enderror"
-                           placeholder="Explica que tipo de items agrupara esta seccion">{{ old('description') }}</textarea>
+                           placeholder="Explica que tipo de items agrupará esta sección">{{ old('description') }}</textarea>
                     @error('description')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror

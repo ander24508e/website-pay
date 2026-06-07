@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Helpers\NotificationHelper;
 use App\Http\Controllers\Controller;
+use App\Models\CatalogItem;
+use App\Models\CatalogType;
 use App\Models\CatalogItemVariant;
 use App\Models\InventoryMovement;
 use Illuminate\Http\Request;
@@ -14,18 +16,34 @@ class InventarioController extends Controller
     public function index(Request $request)
     {
         $q = trim((string) $request->query('q', ''));
+        $selectedTypeId = (int) $request->query('catalog_type_id', 0);
 
-        $variants = CatalogItemVariant::query()
-            ->with(['item.type', 'item.category'])
-            ->whereHas('item', function ($query) {
-                $query->where('uses_inventory', true);
+        $productTypes = CatalogType::query()
+            ->where('business_model', CatalogType::BUSINESS_MODEL_PRODUCTS)
+            ->ordered()
+            ->get();
+
+        $products = CatalogItem::query()
+            ->with(['type', 'category', 'variants'])
+            ->whereHas('type', function ($typeQuery) use ($selectedTypeId) {
+                $typeQuery->where('business_model', CatalogType::BUSINESS_MODEL_PRODUCTS)
+                    ->when($selectedTypeId > 0, function ($filteredTypeQuery) use ($selectedTypeId) {
+                        $filteredTypeQuery->whereKey($selectedTypeId);
+                    });
             })
             ->when($q !== '', function ($query) use ($q) {
                 $query->where(function ($subQuery) use ($q) {
                     $subQuery->where('name', 'like', "%{$q}%")
-                        ->orWhere('sku', 'like', "%{$q}%")
-                        ->orWhereHas('item', function ($itemQuery) use ($q) {
-                            $itemQuery->where('name', 'like', "%{$q}%");
+                        ->orWhere('description', 'like', "%{$q}%")
+                        ->orWhereHas('type', function ($typeQuery) use ($q) {
+                            $typeQuery->where('name', 'like', "%{$q}%");
+                        })
+                        ->orWhereHas('category', function ($categoryQuery) use ($q) {
+                            $categoryQuery->where('name', 'like', "%{$q}%");
+                        })
+                        ->orWhereHas('variants', function ($variantQuery) use ($q) {
+                            $variantQuery->where('name', 'like', "%{$q}%")
+                                ->orWhere('sku', 'like', "%{$q}%");
                         });
                 });
             })
@@ -34,19 +52,29 @@ class InventarioController extends Controller
             ->withQueryString();
 
         $recentMovements = InventoryMovement::query()
-            ->with(['variant.item', 'user'])
+            ->with(['variant.item.type', 'user'])
+            ->whereHas('variant.item.type', function ($query) use ($selectedTypeId) {
+                $query->where('business_model', CatalogType::BUSINESS_MODEL_PRODUCTS)
+                    ->when($selectedTypeId > 0, function ($filteredTypeQuery) use ($selectedTypeId) {
+                        $filteredTypeQuery->whereKey($selectedTypeId);
+                    });
+            })
             ->latest()
             ->limit(20)
             ->get();
 
-        return view('admin.inventario.index', compact('variants', 'recentMovements'));
+        return view('admin.inventario.index', compact('products', 'recentMovements', 'productTypes', 'selectedTypeId'));
     }
 
     public function create()
     {
         $variants = CatalogItemVariant::query()
             ->with('item')
-            ->whereHas('item', fn ($query) => $query->where('uses_inventory', true))
+            ->whereHas('item', function ($query) {
+                $query->whereHas('type', function ($typeQuery) {
+                    $typeQuery->where('business_model', CatalogType::BUSINESS_MODEL_PRODUCTS);
+                });
+            })
             ->ordered()
             ->get();
 
@@ -56,19 +84,25 @@ class InventarioController extends Controller
     public function storeMovement(Request $request)
     {
         $data = $request->validate([
-            'catalog_item_variant_id' => ['required', 'integer', 'exists:catalog_item_variants,id'],
+            'catalog_item_id' => ['nullable', 'required_without:catalog_item_variant_id', 'integer', 'exists:catalog_items,id'],
+            'catalog_item_variant_id' => ['nullable', 'required_without:catalog_item_id', 'integer', 'exists:catalog_item_variants,id'],
             'type' => ['required', 'in:in,out,adjust'],
             'quantity' => ['required', 'integer', 'min:1'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        $variant = CatalogItemVariant::query()
-            ->with('item')
-            ->findOrFail($data['catalog_item_variant_id']);
+        $variant = $this->resolveInventoryVariant($data['catalog_item_variant_id'] ?? null, $data['catalog_item_id'] ?? null);
 
-        if (!$variant->item || !$variant->item->uses_inventory) {
-            NotificationHelper::error('Este item no tiene inventario habilitado.');
+        if (
+            !$variant->item
+            || ($variant->item->type?->business_model !== CatalogType::BUSINESS_MODEL_PRODUCTS)
+        ) {
+            NotificationHelper::error('Este producto no tiene inventario habilitado.');
             return redirect()->back();
+        }
+
+        if (!$variant->item->uses_inventory) {
+            $variant->item->update(['uses_inventory' => true]);
         }
 
         DB::transaction(function () use ($data, $variant) {
@@ -105,7 +139,11 @@ class InventarioController extends Controller
     {
         $variants = CatalogItemVariant::query()
             ->with('item')
-            ->whereHas('item', fn ($query) => $query->where('uses_inventory', true))
+            ->whereHas('item', function ($query) {
+                $query->whereHas('type', function ($typeQuery) {
+                    $typeQuery->where('business_model', CatalogType::BUSINESS_MODEL_PRODUCTS);
+                });
+            })
             ->ordered()
             ->get();
 
@@ -131,5 +169,42 @@ class InventarioController extends Controller
         $movement->delete();
         NotificationHelper::success('Movimiento eliminado.');
         return redirect()->route('admin.inventario.index');
+    }
+
+    private function resolveInventoryVariant(?int $variantId, ?int $itemId): CatalogItemVariant
+    {
+        if ($variantId) {
+            return CatalogItemVariant::query()
+                ->with('item.type')
+                ->findOrFail($variantId);
+        }
+
+        $item = CatalogItem::query()
+            ->with(['type', 'variants'])
+            ->whereHas('type', function ($query) {
+                $query->where('business_model', CatalogType::BUSINESS_MODEL_PRODUCTS);
+            })
+            ->findOrFail($itemId);
+
+        if (!$item->uses_inventory) {
+            $item->update(['uses_inventory' => true]);
+        }
+
+        $variant = $item->variants->first();
+
+        if ($variant) {
+            $variant->load('item.type');
+            return $variant;
+        }
+
+        return CatalogItemVariant::create([
+            'catalog_item_id' => $item->id,
+            'name' => 'General',
+            'price' => $item->base_price,
+            'stock' => 0,
+            'active' => true,
+            'is_default' => true,
+            'sort_order' => 0,
+        ])->load('item.type');
     }
 }

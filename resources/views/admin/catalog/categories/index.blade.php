@@ -3,6 +3,11 @@
 @section('title', 'Categorías')
 
 @section('content')
+@php
+    $isProductContext = isset($selectedType) && $selectedType && (($selectedType->business_model ?? 'services') === \App\Models\CatalogType::BUSINESS_MODEL_PRODUCTS);
+    $itemPlural = isset($selectedType) && $selectedType ? ($isProductContext ? 'productos' : 'servicios') : 'productos y servicios';
+@endphp
+
 <div class="container mx-auto px-4 sm:px-6">
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
         <div class="min-w-0">
@@ -15,9 +20,9 @@
                     <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Categorías</h2>
                     <p class="text-gray-500 text-sm mt-1">
                         @if(isset($selectedType) && $selectedType)
-                            Estas viendo las categorías de la sección {{ $selectedType->name }}.
+                            Estas viendo las Categorías de la Sección {{ $selectedType->name }}.
                         @else
-                            Organiza productos y servicios dentro de cada sección.
+                            Organiza {{ $itemPlural }} dentro de cada sección.
                         @endif
                     </p>
                 </div>
@@ -30,19 +35,19 @@
             @endif
             <div class="relative">
                 <x-heroicon-o-magnifying-glass class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input type="search" name="q" value="{{ request('q') }}" placeholder="Buscar por nombre, sección, slug o descripcion..." class="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm text-gray-700 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none focus:ring-0">
+                <input type="search" name="q" value="{{ request('q') }}" placeholder="Buscar por nombre, sección, slug o descripción..." class="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm text-gray-700 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none focus:ring-0">
             </div>
         </form>
 
-        <a href="{{ route('admin.catalog-categories.create', array_filter(['catalog_type_id' => $selectedType->id ?? null, 'return_to_type' => isset($selectedType) && $selectedType ? 1 : null])) }}"
+        <a href="{{ route('admin.catalog-categories.create', array_filter(['catalog_type_id' => isset($selectedType) && $selectedType ? $selectedType->id : null, 'return_to_type' => isset($selectedType) && $selectedType ? 1 : null])) }}"
             class="bg-gray-900 text-white px-5 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-center">
-            + Nueva Categoria
+            + Nueva Categoría
         </a>
     </div>
 
     <div class="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-            <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Categorias</p>
+            <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Categorías</p>
             <p class="text-2xl font-bold text-gray-800 mt-2">{{ $stats['total'] }}</p>
         </div>
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
@@ -63,7 +68,7 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6 flex flex-wrap items-center gap-3">
             <span class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Contexto actual</span>
             <a href="{{ route('admin.catalog-types.show', $selectedType) }}" class="inline-flex items-center rounded-full bg-gray-100 text-gray-700 px-3 py-1 text-sm font-medium hover:bg-gray-200 transition">
-                Catalogo: {{ $selectedType->name }}
+                Catálogo: {{ $selectedType->name }}
             </a>
             <a href="{{ route('admin.catalog-categories.index') }}" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
                 Limpiar filtro
@@ -82,7 +87,7 @@
                         <th class="px-4 sm:px-6 py-3 sm:py-4">Orden</th>
                         <th class="px-4 sm:px-6 py-3 sm:py-4">Items</th>
                         <th class="px-4 sm:px-6 py-3 sm:py-4">Estado</th>
-                        <th class="px-4 sm:px-6 py-3 sm:py-4">Acciones</th>
+                        <th class="px-4 sm:px-6 py-3 sm:py-4">Acci?nes</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y">
@@ -90,11 +95,11 @@
                         <tr class="hover:bg-gray-50">
                             <td class="px-4 sm:px-6 py-3 sm:py-4">
                                 <p class="font-medium text-gray-800">{{ $category->name }}</p>
-                                <p class="text-xs text-gray-400 mt-0.5">{{ \Illuminate\Support\Str::limit($category->description, 70) ?: 'Sin descripcion adicional' }}</p>
+                                <p class="text-xs text-gray-400 mt-0.5">{{ \Illuminate\Support\Str::limit($category->description, 70) ?: 'Sin descripción adicional' }}</p>
                             </td>
                             <td class="px-4 sm:px-6 py-3 sm:py-4">
                                 <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-                                    {{ $category->type->name ?? 'Sin sección' }}
+                                    {{ $category->type?->name ?? 'Sin sección' }}
                                 </span>
                             </td>
                             <td class="px-4 sm:px-6 py-3 sm:py-4 text-gray-500 font-mono text-xs">
@@ -119,7 +124,7 @@
                                     <a href="{{ route('admin.catalog-items.index', ['catalog_type_id' => $category->catalog_type_id, 'catalog_category_id' => $category->id]) }}" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium px-2 py-1">Items</a>
                                     <a href="{{ route('admin.catalog-items.create', ['catalog_type_id' => $category->catalog_type_id, 'catalog_category_id' => $category->id, 'return_to_type' => 1]) }}" class="text-emerald-600 hover:text-emerald-800 text-sm font-medium px-2 py-1">+ Item</a>
                                     <a href="{{ route('admin.catalog-categories.edit', $category) }}" class="text-yellow-600 hover:text-yellow-800 text-sm font-medium px-2 py-1">Editar</a>
-                                    <form method="POST" action="{{ route('admin.catalog-categories.destroy', $category) }}" onsubmit="return confirm('¿Eliminar esta categoria universal?');" class="inline">
+                                    <form method="POST" action="{{ route('admin.catalog-categories.destroy', $category) }}" onsubmit="return confirm('¿Eliminar esta categoría universal?');" class="inline">
                                         @csrf
                                         @method('DELETE')
                                         <button class="text-red-600 hover:text-red-800 text-sm font-medium px-2 py-1">Eliminar</button>
@@ -129,7 +134,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center py-10 text-gray-400">No hay categorías registradas</td>
+                            <td colspan="7" class="text-center py-10 text-gray-400">No hay Categorías Registradas</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -144,3 +149,4 @@
     </div>
 </div>
 @endsection
+

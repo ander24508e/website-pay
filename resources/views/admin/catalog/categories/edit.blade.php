@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Editar Categoria Universal')
+@section('title', 'Editar Categoría Universal')
 
 @section('content')
 <div class="container mx-auto px-4 sm:px-6">
@@ -10,7 +10,7 @@
             <span aria-hidden="true">&larr;</span>
         </a>
         <div>
-            <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Editar Categoria Universal</h2>
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Editar Categoría Universal</h2>
             <p class="text-gray-400 text-sm">Modificando <strong class="text-gray-600">{{ $catalogCategory->name }}</strong></p>
         </div>
     </div>
@@ -53,7 +53,7 @@
                 </div>
 
                 <div class="mb-5">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Descripcion</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
                     <textarea name="description" rows="4"
                            class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-400 @error('description') border-red-400 bg-red-50 @enderror">{{ old('description', $catalogCategory->description) }}</textarea>
                     @error('description')
@@ -74,7 +74,7 @@
                     <div class="flex items-center pt-8">
                         <label class="inline-flex items-center gap-3 text-sm text-gray-700">
                             <input type="checkbox" name="active" value="1" {{ old('active', $catalogCategory->active) ? 'checked' : '' }} class="rounded border-gray-300 text-gray-900 focus:ring-gray-400">
-                            Categoria activa
+                            Categoría activa
                         </label>
                     </div>
                 </div>
@@ -82,7 +82,7 @@
                 <div class="flex flex-wrap gap-3 pt-2">
                     <button type="submit"
                             class="bg-gray-900 text-white px-6 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-sm">
-                        Actualizar Categoria
+                        Actualizar Categoría
                     </button>
                     <a href="{{ route('admin.catalog-categories.index') }}"
                        class="bg-gray-100 text-gray-700 px-6 py-2.5 rounded-lg hover:bg-gray-200 transition font-medium text-sm text-center">

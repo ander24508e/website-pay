@@ -10,17 +10,6 @@
         <div class="filtros-tipo" role="tablist" aria-label="Filtrar catalogo por tipo">
             @foreach(($catalogFilters ?? []) as $filter)
                 <button type="button" data-tipo="{{ $filter['value'] }}" class="filtro-btn {{ $tipo === $filter['value'] ? 'active' : '' }}">
-                    @if(($filter['icon'] ?? null) === 'cube')
-                        <x-heroicon-o-cube class="w-4 h-4" />
-                    @elseif(($filter['icon'] ?? null) === 'wrench')
-                        <x-heroicon-o-wrench class="w-4 h-4" />
-                    @elseif(($filter['icon'] ?? null) === 'cake')
-                        <x-heroicon-o-cake class="w-4 h-4" />
-                    @elseif(($filter['icon'] ?? null) === 'sparkles')
-                        <x-heroicon-o-sparkles class="w-4 h-4" />
-                    @elseif(($filter['icon'] ?? null) === 'building-storefront')
-                        <x-heroicon-o-building-storefront class="w-4 h-4" />
-                    @endif
                     {{ $filter['label'] }}
                 </button>
             @endforeach

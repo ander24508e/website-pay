@@ -5,7 +5,7 @@
 @section('content')
 <div class="container mx-auto px-4 sm:px-6">
     <div class="flex flex-wrap items-center gap-2 text-xs text-gray-400 uppercase tracking-wide mb-4">
-        <a href="{{ route('admin.catalog.index') }}" class="hover:text-gray-600 transition">Catalogo</a>
+        <a href="{{ route('admin.catalog.index') }}" class="hover:text-gray-600 transition">Catálogo</a>
         <span>/</span>
         @if($catalogItem->type)
             <a href="{{ route('admin.catalog-types.show', $catalogItem->type) }}" class="hover:text-gray-600 transition">{{ $catalogItem->type->name }}</a>
@@ -32,12 +32,12 @@
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <a href="{{ $catalogItem->type ? route('admin.catalog-types.show', $catalogItem->type) : route('admin.catalog.index') }}" class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:border-gray-300 transition">
             <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Sección</p>
-            <p class="text-lg font-bold text-gray-800 mt-2">{{ $catalogItem->type->name ?? 'Sin sección' }}</p>
+            <p class="text-lg font-bold text-gray-800 mt-2">{{ $catalogItem->type?->name ?? 'Sin sección' }}</p>
             <p class="text-xs text-gray-400 mt-1">Volver a la sección</p>
         </a>
         <a href="{{ $catalogItem->category ? route('admin.catalog-categories.show', $catalogItem->category) : route('admin.catalog-items.index', ['catalog_type_id' => $catalogItem->catalog_type_id]) }}" class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:border-gray-300 transition">
-            <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Categoria</p>
-            <p class="text-lg font-bold text-gray-800 mt-2">{{ $catalogItem->category->name ?? 'Sin categoria' }}</p>
+            <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Categoría</p>
+            <p class="text-lg font-bold text-gray-800 mt-2">{{ $catalogItem->category?->name ?? 'Sin categoría' }}</p>
             <p class="text-xs text-gray-400 mt-1">Ver contexto del producto o servicio</p>
         </a>
         <a href="{{ route('admin.catalog-variants.index', ['catalog_item_id' => $catalogItem->id]) }}" class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:border-gray-300 transition">
@@ -62,11 +62,11 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <p class="text-xs text-gray-400 uppercase tracking-wide">Sección</p>
-                            <p class="text-gray-700">{{ $catalogItem->type->name ?? 'Sin sección' }}</p>
+                            <p class="text-gray-700">{{ $catalogItem->type?->name ?? 'Sin sección' }}</p>
                         </div>
                         <div>
-                            <p class="text-xs text-gray-400 uppercase tracking-wide">Categoria</p>
-                            <p class="text-gray-700">{{ $catalogItem->category->name ?? '-' }}</p>
+                            <p class="text-xs text-gray-400 uppercase tracking-wide">Categoría</p>
+                            <p class="text-gray-700">{{ $catalogItem->category?->name ?? '-' }}</p>
                         </div>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -80,8 +80,8 @@
                         </div>
                     </div>
                     <div>
-                        <p class="text-xs text-gray-400 uppercase tracking-wide">Descripcion</p>
-                        <p class="text-gray-700">{{ $catalogItem->description ?: 'Sin descripcion adicional.' }}</p>
+                        <p class="text-xs text-gray-400 uppercase tracking-wide">Descripción</p>
+                        <p class="text-gray-700">{{ $catalogItem->description ?: 'Sin descripción adicional.' }}</p>
                     </div>
                     <div class="flex flex-wrap gap-2">
                         @if($catalogItem->active)
@@ -116,7 +116,7 @@
                 </div>
                 <div>
                     <p class="text-xs text-gray-400 uppercase tracking-wide">Origen anterior</p>
-                    <p class="text-gray-700">{{ $catalogItem->legacy_source_type && $catalogItem->legacy_source_id ? $catalogItem->legacy_source_type . ' #' . $catalogItem->legacy_source_id : 'Aun no migrado' }}</p>
+                    <p class="text-gray-700">{{ $catalogItem->legacy_source_type && $catalogItem->legacy_source_id ? $catalogItem->legacy_source_type . ' #' . $catalogItem->legacy_source_id : 'A?n no migrado' }}</p>
                 </div>
                 <div>
                     <p class="text-xs text-gray-400 uppercase tracking-wide">Control de inventario</p>
@@ -142,10 +142,10 @@
                             <thead class="bg-gray-50 border-b">
                                 <tr>
                                     <th class="px-4 py-3">Nombre</th>
-                                    <th class="px-4 py-3">Presentacion</th>
+                                    <th class="px-4 py-3">Presentación</th>
                                     <th class="px-4 py-3">Precio</th>
                                     <th class="px-4 py-3">Estado</th>
-                                    <th class="px-4 py-3">Acciones</th>
+                                    <th class="px-4 py-3">Acci?nes</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y">
@@ -156,7 +156,16 @@
                                             <p class="text-xs text-gray-400">{{ $variant->sku ?: 'Sin SKU' }}</p>
                                         </td>
                                         <td class="px-4 py-3 text-gray-600">
-                                            {{ trim(($variant->presentation ?? '') . ' ' . ($variant->specification ?? '')) ?: '-' }}
+                                            @php
+                                                $variantPresentation = isset($variant->presentation) ? $variant->presentation : '';
+                                                $variantSpecification = isset($variant->specification) ? $variant->specification : '';
+                                                $variantDetails = trim($variantPresentation . ' ' . $variantSpecification);
+                                            @endphp
+                                            @if($variantDetails !== '')
+                                                {{ $variantDetails }}
+                                            @else
+                                                -
+                                            @endif
                                         </td>
                                         <td class="px-4 py-3 font-semibold text-gray-800">
                                             {{ $variant->price !== null ? '$' . number_format((float) $variant->price, 2) : '-' }}
