@@ -46,6 +46,12 @@ class CatalogItemController extends Controller
             }
         }
 
+        if (!$selectedType) {
+            NotificationHelper::error('Primero ingresa a un negocio para ver sus productos o servicios.');
+
+            return redirect()->route('admin.catalog.index');
+        }
+
         $items = (clone $baseQuery)
             ->with(['type', 'category'])
             ->withCount(['variants'])
@@ -103,23 +109,45 @@ class CatalogItemController extends Controller
                 ->find($selectedTypeId);
         }
 
+        if ($fromInventory && (!$selectedType || !$this->isProductBusiness($selectedType))) {
+            $selectedType = CatalogType::query()
+                ->where('empresa_id', $empresa->id)
+                ->where('business_model', CatalogType::BUSINESS_MODEL_PRODUCTS)
+                ->ordered()
+                ->first();
+
+            $selectedTypeId = (int) ($selectedType?->id ?? 0);
+            $selectedCategoryId = 0;
+            $selectedCategory = null;
+        }
+
+        $restrictToSelectedType = $selectedType && !$fromInventory;
+
         $types = CatalogType::query()
             ->where('empresa_id', $empresa->id)
             ->when($fromInventory, function ($query) {
                 $query->where('business_model', CatalogType::BUSINESS_MODEL_PRODUCTS);
             })
-            ->when($selectedType, fn ($query) => $query->whereKey($selectedType->id))
+            ->when($restrictToSelectedType, fn ($query) => $query->whereKey($selectedType->id))
             ->ordered()
             ->get();
+
         $categories = CatalogCategory::query()
             ->where('empresa_id', $empresa->id)
-            ->when($selectedType, fn ($query) => $query->where('catalog_type_id', $selectedType->id))
+            ->when($fromInventory, function ($query) use ($types) {
+                $query->whereIn('catalog_type_id', $types->pluck('id'));
+            })
+            ->when(!$fromInventory && $selectedType, fn ($query) => $query->where('catalog_type_id', $selectedType->id))
             ->with('type')
             ->ordered()
             ->get();
         $returnToType = (bool) $request->boolean('return_to_type', $selectedTypeId > 0);
 
-        return view('admin.catalog.items.create', compact(
+        $view = $fromInventory || ($selectedType && $this->isProductBusiness($selectedType))
+            ? 'admin.catalog.items.create-product'
+            : 'admin.catalog.items.create-service';
+
+        return view($view, compact(
             'empresa',
             'types',
             'categories',
@@ -152,7 +180,7 @@ class CatalogItemController extends Controller
             'uses_inventory' => ['nullable', 'boolean'],
             'redirect_to_inventory' => ['nullable', 'boolean'],
             'create_presentation' => ['nullable', 'boolean'],
-            'variant_name' => ['nullable', 'required_if:create_presentation,1', 'string', 'max:255'],
+            'variant_name' => ['nullable', 'string', 'max:255'],
             'variant_presentation' => ['nullable', 'string', 'max:255'],
             'variant_specification' => ['nullable', 'string', 'max:255'],
             'variant_sku' => ['nullable', 'string', 'max:255'],
@@ -196,7 +224,7 @@ class CatalogItemController extends Controller
 
         $item = CatalogItem::create($payload);
 
-        $shouldCreatePresentation = $request->boolean('create_presentation') || $this->isProductBusiness($type);
+        $shouldCreatePresentation = $this->isProductBusiness($type);
 
         if ($shouldCreatePresentation) {
             CatalogItemVariant::create([
@@ -223,7 +251,7 @@ class CatalogItemController extends Controller
             return redirect()->route('admin.catalog-types.show', $item->catalog_type_id);
         }
 
-        return redirect()->route('admin.catalog-items.index');
+        return redirect()->route('admin.catalog-items.index', ['catalog_type_id' => $item->catalog_type_id]);
     }
 
     public function show(CatalogItem $catalogItem)
@@ -299,13 +327,21 @@ class CatalogItemController extends Controller
 
         $catalogItem->update($payload);
 
+        if ($this->isProductBusiness($type)) {
+            $this->ensureDefaultVariant($catalogItem);
+        } else {
+            $catalogItem->variants()->delete();
+        }
+
         NotificationHelper::success($this->isProductBusiness($type) ? 'Producto actualizado correctamente.' : 'Servicio actualizado correctamente.');
 
-        return redirect()->route('admin.catalog-items.index');
+        return redirect()->route('admin.catalog-items.index', ['catalog_type_id' => $catalogItem->catalog_type_id]);
     }
 
     public function destroy(CatalogItem $catalogItem)
     {
+        $catalogTypeId = $catalogItem->catalog_type_id;
+
         if ($catalogItem->image && Storage::disk('public')->exists($catalogItem->image)) {
             Storage::disk('public')->delete($catalogItem->image);
         }
@@ -314,7 +350,7 @@ class CatalogItemController extends Controller
 
         NotificationHelper::success('Item universal eliminado correctamente.');
 
-        return redirect()->route('admin.catalog-items.index');
+        return redirect()->route('admin.catalog-items.index', ['catalog_type_id' => $catalogTypeId]);
     }
 
     private function getOrCreateEmpresa(): Empresa
@@ -363,6 +399,23 @@ class CatalogItemController extends Controller
             'reservable' => $request->boolean('reservable'),
             'uses_inventory' => false,
         ];
+    }
+
+    private function ensureDefaultVariant(CatalogItem $item): void
+    {
+        if ($item->variants()->exists()) {
+            return;
+        }
+
+        CatalogItemVariant::create([
+            'catalog_item_id' => $item->id,
+            'name' => 'General',
+            'price' => $item->base_price,
+            'stock' => 0,
+            'active' => true,
+            'is_default' => true,
+            'sort_order' => 0,
+        ]);
     }
 
     private function resolveSlug(int $empresaId, string $name, ?string $slug, ?int $ignoreId = null): ?string

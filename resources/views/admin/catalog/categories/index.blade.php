@@ -20,7 +20,7 @@
                     <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Categorías</h2>
                     <p class="text-gray-500 text-sm mt-1">
                         @if(isset($selectedType) && $selectedType)
-                            Estas viendo las Categorías de la Sección {{ $selectedType->name }}.
+                            Estás viendo las Categorías de la Sección {{ $selectedType->name }}.
                         @else
                             Organiza {{ $itemPlural }} dentro de cada sección.
                         @endif
@@ -55,7 +55,7 @@
             <p class="text-2xl font-bold text-emerald-700 mt-2">{{ $stats['active'] }}</p>
         </div>
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-            <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Con Items</p>
+            <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Con Ítems</p>
             <p class="text-2xl font-bold text-gray-800 mt-2">{{ $stats['with_items'] }}</p>
         </div>
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
@@ -85,9 +85,9 @@
                         <th class="px-4 sm:px-6 py-3 sm:py-4">Tipo</th>
                         <th class="px-4 sm:px-6 py-3 sm:py-4">Slug</th>
                         <th class="px-4 sm:px-6 py-3 sm:py-4">Orden</th>
-                        <th class="px-4 sm:px-6 py-3 sm:py-4">Items</th>
+                        <th class="px-4 sm:px-6 py-3 sm:py-4">Ítems</th>
                         <th class="px-4 sm:px-6 py-3 sm:py-4">Estado</th>
-                        <th class="px-4 sm:px-6 py-3 sm:py-4">Acci?nes</th>
+                        <th class="px-4 sm:px-6 py-3 sm:py-4">Acciones</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y">
@@ -121,8 +121,8 @@
                             <td class="px-4 sm:px-6 py-3 sm:py-4">
                                 <div class="flex flex-wrap gap-2">
                                     <a href="{{ route('admin.catalog-categories.show', $category) }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium px-2 py-1">Ver</a>
-                                    <a href="{{ route('admin.catalog-items.index', ['catalog_type_id' => $category->catalog_type_id, 'catalog_category_id' => $category->id]) }}" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium px-2 py-1">Items</a>
-                                    <a href="{{ route('admin.catalog-items.create', ['catalog_type_id' => $category->catalog_type_id, 'catalog_category_id' => $category->id, 'return_to_type' => 1]) }}" class="text-emerald-600 hover:text-emerald-800 text-sm font-medium px-2 py-1">+ Item</a>
+                                    <a href="{{ route('admin.catalog-items.index', ['catalog_type_id' => $category->catalog_type_id, 'catalog_category_id' => $category->id]) }}" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium px-2 py-1">Ítems</a>
+                                    <a href="{{ route('admin.catalog-items.create', ['catalog_type_id' => $category->catalog_type_id, 'catalog_category_id' => $category->id, 'return_to_type' => 1]) }}" class="text-emerald-600 hover:text-emerald-800 text-sm font-medium px-2 py-1">+ Ítem</a>
                                     <a href="{{ route('admin.catalog-categories.edit', $category) }}" class="text-yellow-600 hover:text-yellow-800 text-sm font-medium px-2 py-1">Editar</a>
                                     <form method="POST" action="{{ route('admin.catalog-categories.destroy', $category) }}" onsubmit="return confirm('¿Eliminar esta categoría universal?');" class="inline">
                                         @csrf
@@ -149,4 +149,3 @@
     </div>
 </div>
 @endsection
-

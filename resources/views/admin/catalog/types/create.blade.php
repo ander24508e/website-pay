@@ -3,6 +3,10 @@
 @section('title', 'Nueva Sección')
 
 @section('content')
+@php
+    $selectedBusinessModel = old('business_model', request('business_model', 'services'));
+@endphp
+
 <div class="container mx-auto px-4 sm:px-6">
     <div class="flex flex-wrap items-center gap-3 mb-6">
         <a href="{{ route('admin.catalog.index') }}"
@@ -35,7 +39,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <label class="flex gap-3 rounded-xl border border-gray-200 p-4 cursor-pointer hover:border-gray-400 transition">
                             <input type="radio" name="business_model" value="services" class="mt-1 text-gray-900 focus:ring-gray-400"
-                                {{ old('business_model', 'services') === 'services' ? 'checked' : '' }}>
+                                {{ $selectedBusinessModel === 'services' ? 'checked' : '' }}>
                             <span>
                                 <span class="block text-sm font-semibold text-gray-800">Servicios</span>
                                 <span class="block text-xs text-gray-500 mt-1">Para reservas, trabajos o atención sin stock directo.</span>
@@ -43,7 +47,7 @@
                         </label>
                         <label class="flex gap-3 rounded-xl border border-gray-200 p-4 cursor-pointer hover:border-gray-400 transition">
                             <input type="radio" name="business_model" value="products" class="mt-1 text-gray-900 focus:ring-gray-400"
-                                {{ old('business_model') === 'products' ? 'checked' : '' }}>
+                                {{ $selectedBusinessModel === 'products' ? 'checked' : '' }}>
                             <span>
                                 <span class="block text-sm font-semibold text-gray-800">Productos</span>
                                 <span class="block text-xs text-gray-500 mt-1">Para artículos físicos que podrán manejar stock e inventario.</span>

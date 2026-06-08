@@ -28,9 +28,9 @@
             <div class="min-w-0">
                 <div class="flex items-center gap-2">
                     <x-heroicon-o-squares-2x2 class="w-8 h-8 text-gray-800" />
-                    <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Catálogo por Secciones</h2>
+                    <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Catálogos de Negocios</h2>
                 </div>
-                <p class="text-gray-500 text-sm mt-1">Entra a un negocio para crear sus categorías, servicios o productos, y
+                <p class="text-gray-500 text-sm mt-1">Crea e ingresa a un negocio para crear sus categorías, servicios o productos, y
                     presentaciones.</p>
             </div>
             <a href="{{ route('admin.catalog-types.create') }}"
@@ -44,8 +44,8 @@
             <div
                 class="px-4 sm:px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div>
-                    <h3 class="font-semibold text-gray-800">Secciones del negocio</h3>
-                    <p class="text-xs text-gray-400 mt-1">Cada sección define si trabaja con servicios o productos.</p>
+                    <h3 class="font-semibold text-gray-800">Negocios</h3>
+                    <p class="text-xs text-gray-400 mt-1">Define en cada sección trabajar con servicios o productos.</p>
                 </div>
             </div>
 
@@ -95,8 +95,8 @@
                 @empty
                     <div class="p-8 text-center">
                         <x-heroicon-o-squares-2x2 class="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                        <p class="font-semibold text-gray-700">Todavía no hay secciones.</p>
-                        <p class="text-sm text-gray-400 mt-1 mb-5">Empieza creando una sección como Carwash, Bar Cafetería, Productos o Servicios.</p>
+                        <p class="font-semibold text-gray-700">Todavía no hay negocios.</p>
+                        <p class="text-sm text-gray-400 mt-1 mb-5">Empieza creando un negocio.</p>
                         <a href="{{ route('admin.catalog-types.create') }}"
                             class="inline-flex items-center justify-center rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-gray-700 transition"
                             title="Nueva sección" aria-label="Nueva sección">
@@ -110,7 +110,7 @@
                 <table class="w-full table-fixed text-sm">
                     <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
                         <tr>
-                            <th class="w-[20%] px-4 py-3 text-center">Sección</th>
+                            <th class="w-[20%] px-4 py-3 text-center">Nombre del negocio</th>
                             <th class="w-[24%] px-4 py-3 text-center">Descripción</th>
                             <th class="w-[12%] px-4 py-3 text-center">Modelo</th>
                             <th class="w-[12%] px-4 py-3 text-center">Categorías</th>
@@ -161,9 +161,8 @@
                                 <td colspan="7" class="px-6 py-16 text-center">
                                     <div class="max-w-md mx-auto">
                                         <x-heroicon-o-squares-2x2 class="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                                        <p class="font-semibold text-gray-700">Todavía no hay secciones.</p>
-                                        <p class="text-sm text-gray-400 mt-1 mb-5">Empieza creando una sección como Carwash,
-                                            Bar Cafetería, Productos o Servicios.</p>
+                                        <p class="font-semibold text-gray-700">Todavía no hay negocios.</p>
+                                        <p class="text-sm text-gray-400 mt-1 mb-5">Empieza creando un negocio.</p>
                                         <a href="{{ route('admin.catalog-types.create') }}"
                                             class="inline-flex items-center justify-center rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-gray-700 transition"
                                             title="Nueva sección" aria-label="Nueva sección">

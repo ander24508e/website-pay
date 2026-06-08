@@ -11,48 +11,24 @@
                     ? $selectedCategory->type
                     : null);
 
-        $hasContext = (bool) $contextType;
         $isProductContext =
             $contextType &&
             ($contextType->business_model ?? 'services') === \App\Models\CatalogType::BUSINESS_MODEL_PRODUCTS;
-        $itemSingular = $hasContext ? ($isProductContext ? 'Producto' : 'Servicio') : 'Item';
-        $itemPlural = $hasContext ? ($isProductContext ? 'Productos' : 'Servicios') : 'Catálogo separado';
+        $itemSingular = $isProductContext ? 'Producto' : 'Servicio';
+        $itemPlural = $isProductContext ? 'Productos' : 'Servicios';
         $itemsCollection = $items->getCollection();
 
-        $sectionsForView = $hasContext
-            ? collect([
-                [
-                    'title' => $itemPlural,
-                    'description' => $isProductContext
-                        ? 'Productos del negocio seleccionado.'
-                        : 'Servicios del negocio seleccionado.',
-                    'items' => $itemsCollection,
-                    'empty' => 'No hay ' . strtolower($itemPlural) . ' registrados.',
-                    'singular' => $itemSingular,
-                ],
-            ])
-            : collect([
-                [
-                    'title' => 'Productos',
-                    'description' => 'Items de negocios tipo producto. Estos pueden manejar inventario.',
-                    'items' => $itemsCollection->filter(function ($item) {
-                        return ($item->type->business_model ?? 'services') ===
-                            \App\Models\CatalogType::BUSINESS_MODEL_PRODUCTS;
-                    }),
-                    'empty' => 'No hay productos registrados.',
-                    'singular' => 'Producto',
-                ],
-                [
-                    'title' => 'Servicios',
-                    'description' => 'Items de negocios tipo servicio. Estos no manejan inventario.',
-                    'items' => $itemsCollection->filter(function ($item) {
-                        return ($item->type->business_model ?? 'services') !==
-                            \App\Models\CatalogType::BUSINESS_MODEL_PRODUCTS;
-                    }),
-                    'empty' => 'No hay servicios registrados.',
-                    'singular' => 'Servicio',
-                ],
-            ]);
+        $sectionsForView = collect([
+            [
+                'title' => $itemPlural,
+                'description' => $isProductContext
+                    ? 'Productos del negocio seleccionado.'
+                    : 'Servicios del negocio seleccionado.',
+                'items' => $itemsCollection,
+                'empty' => 'No hay ' . strtolower($itemPlural) . ' registrados.',
+                'singular' => $itemSingular,
+            ],
+        ]);
     @endphp
 
     <div class="container mx-auto px-4 sm:px-6">
@@ -71,8 +47,6 @@
                                 Estás viendo {{ strtolower($itemPlural) }} de la categoría {{ $selectedCategory->name }}.
                             @elseif(isset($selectedType) && $selectedType)
                                 Estás viendo {{ strtolower($itemPlural) }} de la sección {{ $selectedType->name }}.
-                            @else
-                                Vista separada por modelo de negocio: productos por un lado, servicios por otro.
                             @endif
                         </p>
                     </div>
@@ -94,19 +68,17 @@
                 </div>
             </form>
 
-            @if ($hasContext)
-                <a href="{{ route('admin.catalog-items.create', array_filter(['catalog_type_id' => isset($selectedType) && $selectedType ? $selectedType->id : null, 'catalog_category_id' => isset($selectedCategory) && $selectedCategory ? $selectedCategory->id : null, 'return_to_type' => isset($selectedType) && $selectedType ? 1 : null])) }}"
-                    class="inline-flex items-center justify-center bg-gray-900 text-white w-11 h-11 rounded-lg hover:bg-gray-700 transition"
-                    title="Nuevo {{ strtolower($itemSingular) }}" aria-label="Nuevo {{ strtolower($itemSingular) }}">
-                    <x-heroicon-o-plus class="w-5 h-5" />
-                </a>
-            @endif
+            <a href="{{ route('admin.catalog-items.create', array_filter(['catalog_type_id' => isset($selectedType) && $selectedType ? $selectedType->id : null, 'catalog_category_id' => isset($selectedCategory) && $selectedCategory ? $selectedCategory->id : null, 'return_to_type' => isset($selectedType) && $selectedType ? 1 : null])) }}"
+                class="inline-flex items-center justify-center bg-gray-900 text-white w-11 h-11 rounded-lg hover:bg-gray-700 transition"
+                title="Nuevo {{ strtolower($itemSingular) }}" aria-label="Nuevo {{ strtolower($itemSingular) }}">
+                <x-heroicon-o-plus class="w-5 h-5" />
+            </a>
         </div>
 
         <div class="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                 <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">
-                    {{ $hasContext ? $itemPlural : 'Items' }}</p>
+                    {{ $itemPlural }}</p>
                 <p class="text-2xl font-bold text-gray-800 mt-2">{{ $stats['total'] }}</p>
             </div>
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
@@ -123,23 +95,21 @@
             </div>
         </div>
 
-        @if ($hasContext)
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6 flex flex-wrap items-center gap-3">
-                <span class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Contexto actual</span>
-                @if (isset($selectedType) && $selectedType)
-                    <a href="{{ route('admin.catalog-types.show', $selectedType) }}"
-                        class="inline-flex items-center rounded-full bg-gray-100 text-gray-700 px-3 py-1 text-sm font-medium hover:bg-gray-200 transition">
-                        Sección: {{ $selectedType->name }}
-                    </a>
-                @endif
-                @if (isset($selectedCategory) && $selectedCategory)
-                    <a href="{{ route('admin.catalog-categories.show', $selectedCategory) }}"
-                        class="inline-flex items-center rounded-full bg-gray-100 text-gray-700 px-3 py-1 text-sm font-medium hover:bg-gray-200 transition">
-                        Categoría: {{ $selectedCategory->name }}
-                    </a>
-                @endif
-            </div>
-        @endif
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6 flex flex-wrap items-center gap-3">
+            <span class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Contexto actual</span>
+            @if (isset($selectedType) && $selectedType)
+                <a href="{{ route('admin.catalog-types.show', $selectedType) }}"
+                    class="inline-flex items-center rounded-full bg-gray-100 text-gray-700 px-3 py-1 text-sm font-medium hover:bg-gray-200 transition">
+                    Sección: {{ $selectedType->name }}
+                </a>
+            @endif
+            @if (isset($selectedCategory) && $selectedCategory)
+                <a href="{{ route('admin.catalog-categories.show', $selectedCategory) }}"
+                    class="inline-flex items-center rounded-full bg-gray-100 text-gray-700 px-3 py-1 text-sm font-medium hover:bg-gray-200 transition">
+                    Categoría: {{ $selectedCategory->name }}
+                </a>
+            @endif
+        </div>
 
         <div class="space-y-6">
             @foreach ($sectionsForView as $section)

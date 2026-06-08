@@ -19,7 +19,7 @@
     </div>
 
     <div class="flex flex-wrap items-center gap-3 mb-6">
-        <a href="{{ route('admin.catalog-items.index') }}"
+        <a href="{{ route('admin.catalog-items.index', ['catalog_type_id' => $catalogItem->catalog_type_id]) }}"
            class="flex items-center justify-center w-9 h-9 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition text-gray-500 hover:text-gray-800">
             <span aria-hidden="true">&larr;</span>
         </a>

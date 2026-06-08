@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Helpers\NotificationHelper;
 use App\Models\CatalogItem;
 use App\Models\CatalogItemVariant;
+use App\Models\CatalogType;
 use App\Models\Empresa;
 use Illuminate\Http\Request;
 
@@ -16,7 +17,10 @@ class CatalogItemVariantController extends Controller
         $search = trim((string) $request->query('q', ''));
         $baseQuery = CatalogItemVariant::query()
             ->whereHas('item', function ($query) use ($empresa) {
-                $query->where('empresa_id', $empresa->id);
+                $query->where('empresa_id', $empresa->id)
+                    ->whereHas('type', function ($typeQuery) {
+                        $typeQuery->where('business_model', CatalogType::BUSINESS_MODEL_PRODUCTS);
+                    });
             });
 
         $variants = (clone $baseQuery)
@@ -54,6 +58,9 @@ class CatalogItemVariantController extends Controller
         $selectedTypeId = (int) $request->query('catalog_type_id', 0);
         $items = CatalogItem::query()
             ->where('empresa_id', $empresa->id)
+            ->whereHas('type', function ($typeQuery) {
+                $typeQuery->where('business_model', CatalogType::BUSINESS_MODEL_PRODUCTS);
+            })
             ->when($selectedItemId > 0, fn ($query) => $query->whereKey($selectedItemId))
             ->when($selectedTypeId > 0, fn ($query) => $query->where('catalog_type_id', $selectedTypeId))
             ->with(['type', 'category'])
@@ -83,6 +90,9 @@ class CatalogItemVariantController extends Controller
 
         $item = CatalogItem::query()
             ->where('empresa_id', $empresa->id)
+            ->whereHas('type', function ($typeQuery) {
+                $typeQuery->where('business_model', CatalogType::BUSINESS_MODEL_PRODUCTS);
+            })
             ->findOrFail($data['catalog_item_id']);
 
         $variant = CatalogItemVariant::create([
@@ -100,7 +110,7 @@ class CatalogItemVariantController extends Controller
 
         $this->syncDefaultVariant($variant);
 
-        NotificationHelper::success('Variante universal creada correctamente.');
+        NotificationHelper::success('Presentación de producto creada correctamente.');
 
         if ($request->boolean('redirect_to_type')) {
             return redirect()->route('admin.catalog-types.show', $item->catalog_type_id);
@@ -113,13 +123,28 @@ class CatalogItemVariantController extends Controller
     {
         $catalogVariant->load(['item.type', 'item.category']);
 
+        if (!$this->isProductVariant($catalogVariant)) {
+            NotificationHelper::error('Las presentaciones solo aplican a productos.');
+            return redirect()->route('admin.catalog.index');
+        }
+
         return view('admin.catalog.variants.show', compact('catalogVariant'));
     }
 
     public function edit(CatalogItemVariant $catalogVariant)
     {
+        $catalogVariant->load('item.type');
+
+        if (!$this->isProductVariant($catalogVariant)) {
+            NotificationHelper::error('Las presentaciones solo aplican a productos.');
+            return redirect()->route('admin.catalog.index');
+        }
+
         $items = CatalogItem::query()
             ->where('empresa_id', $catalogVariant->item->empresa_id)
+            ->whereHas('type', function ($typeQuery) {
+                $typeQuery->where('business_model', CatalogType::BUSINESS_MODEL_PRODUCTS);
+            })
             ->with(['type', 'category'])
             ->ordered()
             ->get();
@@ -129,6 +154,13 @@ class CatalogItemVariantController extends Controller
 
     public function update(Request $request, CatalogItemVariant $catalogVariant)
     {
+        $catalogVariant->load('item.type');
+
+        if (!$this->isProductVariant($catalogVariant)) {
+            NotificationHelper::error('Las presentaciones solo aplican a productos.');
+            return redirect()->route('admin.catalog.index');
+        }
+
         $empresaId = $catalogVariant->item->empresa_id;
 
         $data = $request->validate([
@@ -146,6 +178,9 @@ class CatalogItemVariantController extends Controller
 
         $item = CatalogItem::query()
             ->where('empresa_id', $empresaId)
+            ->whereHas('type', function ($typeQuery) {
+                $typeQuery->where('business_model', CatalogType::BUSINESS_MODEL_PRODUCTS);
+            })
             ->findOrFail($data['catalog_item_id']);
 
         $catalogVariant->update([
@@ -163,13 +198,20 @@ class CatalogItemVariantController extends Controller
 
         $this->syncDefaultVariant($catalogVariant);
 
-        NotificationHelper::success('Variante universal actualizada correctamente.');
+        NotificationHelper::success('Presentación de producto actualizada correctamente.');
 
         return redirect()->route('admin.catalog-variants.index');
     }
 
     public function destroy(CatalogItemVariant $catalogVariant)
     {
+        $catalogVariant->load('item.type');
+
+        if (!$this->isProductVariant($catalogVariant)) {
+            NotificationHelper::error('Las presentaciones solo aplican a productos.');
+            return redirect()->route('admin.catalog.index');
+        }
+
         $itemId = $catalogVariant->catalog_item_id;
         $wasDefault = (bool) $catalogVariant->is_default;
 
@@ -186,7 +228,7 @@ class CatalogItemVariantController extends Controller
             }
         }
 
-        NotificationHelper::success('Variante universal eliminada correctamente.');
+        NotificationHelper::success('Presentación de producto eliminada correctamente.');
 
         return redirect()->route('admin.catalog-variants.index');
     }
@@ -224,5 +266,10 @@ class CatalogItemVariantController extends Controller
         if (!$hasDefault) {
             $variant->update(['is_default' => true]);
         }
+    }
+
+    private function isProductVariant(CatalogItemVariant $variant): bool
+    {
+        return ($variant->item?->type?->business_model ?? CatalogType::BUSINESS_MODEL_SERVICES) === CatalogType::BUSINESS_MODEL_PRODUCTS;
     }
 }

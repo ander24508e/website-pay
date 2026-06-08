@@ -3,6 +3,10 @@
 @section('title', 'Inventario')
 
 @section('content')
+@php
+    $hasProductTypes = $productTypes->isNotEmpty();
+@endphp
+
 <div class="container mx-auto px-4 sm:px-6">
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
         <div class="min-w-0">
@@ -10,15 +14,16 @@
                 <x-heroicon-o-archive-box class="w-8 h-8 text-gray-800" />
                 <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Inventario</h2>
             </div>
-            <p class="text-gray-500 text-sm mt-1">Control de stock solo para negocios configurados como productos.</p>
+            <p class="text-gray-500 text-sm mt-1">Controla stock únicamente de productos. Los servicios no se muestran porque no manejan inventario.</p>
         </div>
+        @if($hasProductTypes)
         <div class="w-full lg:w-auto flex flex-col sm:flex-row gap-2">
             <form method="GET" action="{{ route('admin.inventario.index') }}" class="w-full lg:w-auto flex flex-col sm:flex-row gap-2">
                 <div class="relative w-full sm:w-72">
                     <x-heroicon-o-magnifying-glass class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input type="search" name="q" value="{{ request('q') }}"
                         class="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm text-gray-700"
-                        placeholder="Buscar producto, categoría, SKU...">
+                        placeholder="Buscar producto, negocio, categoría, presentación o SKU...">
                 </div>
                 <select name="catalog_type_id" class="w-full sm:w-56 rounded-lg border border-gray-200 bg-white py-2.5 px-3 text-sm text-gray-700" onchange="this.form.submit()">
                     <option value="">Todos los negocios</option>
@@ -27,7 +32,7 @@
                     @endforeach
                 </select>
             </form>
-            <a href="{{ route('admin.catalog-items.create', ['inventory' => 1]) }}"
+            <a href="{{ route('admin.catalog-items.create', array_filter(['inventory' => 1, 'catalog_type_id' => $selectedTypeId ?: null])) }}"
                 class="inline-flex items-center justify-center bg-white text-gray-800 border border-gray-200 w-11 h-11 rounded-lg hover:bg-gray-50 transition"
                 title="Nuevo producto" aria-label="Nuevo producto">
                 <x-heroicon-o-cube class="w-5 h-5" />
@@ -38,7 +43,56 @@
                 <x-heroicon-o-plus class="w-5 h-5" />
             </a>
         </div>
+        @endif
     </div>
+
+    @unless($hasProductTypes)
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 sm:p-10 text-center max-w-3xl mx-auto">
+            <div class="w-14 h-14 rounded-2xl bg-gray-100 text-gray-700 flex items-center justify-center mx-auto mb-4">
+                <x-heroicon-o-building-storefront class="w-7 h-7" />
+            </div>
+            <h3 class="text-xl font-bold text-gray-800">Inventario necesita un negocio de productos</h3>
+            <p class="text-sm text-gray-500 mt-2 max-w-xl mx-auto">
+                Para controlar stock, primero crea un negocio configurado como productos. Los servicios no aparecen aquí porque no tienen existencias físicas.
+            </p>
+            <div class="mt-6 flex flex-col sm:flex-row justify-center gap-3">
+                <a href="{{ route('admin.catalog-types.create', ['business_model' => 'products']) }}"
+                    class="inline-flex items-center justify-center gap-2 bg-gray-900 text-white px-5 py-2.5 rounded-lg hover:bg-gray-700 transition text-sm font-semibold">
+                    <x-heroicon-o-plus class="w-5 h-5" />
+                    Crear negocio de productos
+                </a>
+                <a href="{{ route('admin.catalog.index') }}"
+                    class="inline-flex items-center justify-center gap-2 bg-gray-100 text-gray-700 px-5 py-2.5 rounded-lg hover:bg-gray-200 transition text-sm font-semibold">
+                    <x-heroicon-o-squares-2x2 class="w-5 h-5" />
+                    Ir a catálogo
+                </a>
+            </div>
+        </div>
+    @else
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-2 mb-6 overflow-x-auto">
+            <div class="flex items-center gap-2 min-w-max">
+                <a href="{{ route('admin.inventario.index', array_filter(['q' => request('q')])) }}"
+                    class="inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-semibold transition {{ $selectedTypeId === 0 ? 'bg-gray-900 text-white' : 'text-gray-600 hover:bg-gray-100' }}">
+                    Todos
+                </a>
+                @foreach($productTypes as $type)
+                    <a href="{{ route('admin.inventario.index', array_filter(['catalog_type_id' => $type->id, 'q' => request('q')])) }}"
+                        class="inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-semibold transition {{ $selectedTypeId === $type->id ? 'bg-gray-900 text-white' : 'text-gray-600 hover:bg-gray-100' }}">
+                        {{ $type->name }}
+                    </a>
+                @endforeach
+            </div>
+        </div>
+
+        <div class="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 mb-6 flex flex-col sm:flex-row sm:items-center gap-3 text-sm text-blue-800">
+            <div class="shrink-0">
+                <x-heroicon-o-information-circle class="w-5 h-5" />
+            </div>
+            <div>
+                <p class="font-semibold">Inventario trabaja solo con productos.</p>
+                <p class="text-blue-700 mt-0.5">Por ahora registra entradas, salidas y ajustes manuales. Proveedores y compras se agregarán después sobre esta misma base.</p>
+            </div>
+        </div>
 
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div class="xl:col-span-2 bg-white rounded-xl shadow-sm overflow-hidden">
@@ -50,7 +104,7 @@
                 @forelse($products as $product)
                     @php
                         $variant = $product->variants->first();
-                        $variantName = $variant ? $variant->name : 'General';
+                        $variantName = $variant ? $variant->name : 'Producto base';
                         $variantSku = $variant ? $variant->sku : null;
                         $variantStock = $variant ? (int) ($variant->stock ?? 0) : 0;
                     @endphp
@@ -67,12 +121,24 @@
 
                         <div class="grid grid-cols-2 gap-3 text-sm">
                             <div>
-                                <p class="text-xs uppercase text-gray-400 font-semibold">Variante</p>
+                                <p class="text-xs uppercase text-gray-400 font-semibold">Presentación</p>
                                 <p class="text-gray-700 break-words">{{ $variantName }}</p>
                             </div>
                             <div>
                                 <p class="text-xs uppercase text-gray-400 font-semibold">SKU</p>
                                 <p class="font-mono text-xs text-gray-700 break-words">{{ $variantSku ?: '-' }}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs uppercase text-gray-400 font-semibold">Estado</p>
+                                @if($product->active)
+                                    <span class="inline-flex bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-medium">Activo</span>
+                                @else
+                                    <span class="inline-flex bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs font-medium">Oculto</span>
+                                @endif
+                            </div>
+                            <div>
+                                <p class="text-xs uppercase text-gray-400 font-semibold">Precio</p>
+                                <p class="font-semibold text-gray-800">${{ number_format($product->base_price ?? 0, 2) }}</p>
                             </div>
                         </div>
 
@@ -95,7 +161,7 @@
                         </form>
                     </div>
                 @empty
-                    <div class="px-4 py-8 text-center text-gray-400">No hay productos inventariables para este filtro.</div>
+                    <div class="px-4 py-8 text-center text-gray-400">No hay productos para este negocio o búsqueda. Crea un producto o cambia el filtro.</div>
                 @endforelse
             </div>
 
@@ -103,12 +169,12 @@
                 <table class="w-full table-fixed text-sm text-left">
                     <thead class="bg-gray-50 border-b text-xs uppercase text-gray-500">
                         <tr>
-                            <th class="px-3 py-3 text-center w-[22%]">Producto</th>
-                            <th class="px-3 py-3 text-center w-[15%]">Negocio</th>
-                            <th class="px-3 py-3 text-center w-[15%]">Categoría</th>
-                            <th class="px-3 py-3 text-center w-[14%]">Variante</th>
-                            <th class="px-3 py-3 text-center w-[12%]">SKU</th>
+                            <th class="px-3 py-3 text-center w-[21%]">Producto</th>
+                            <th class="px-3 py-3 text-center w-[14%]">Negocio</th>
+                            <th class="px-3 py-3 text-center w-[14%]">Categoría</th>
+                            <th class="px-3 py-3 text-center w-[17%]">Presentación/SKU</th>
                             <th class="px-3 py-3 text-center w-[8%]">Stock</th>
+                            <th class="px-3 py-3 text-center w-[10%]">Estado</th>
                             <th class="px-3 py-3 text-center w-[26%]">Acción</th>
                         </tr>
                     </thead>
@@ -116,7 +182,7 @@
                 @forelse($products as $product)
                     @php
                         $variant = $product->variants->first();
-                        $variantName = $variant ? $variant->name : 'General';
+                        $variantName = $variant ? $variant->name : 'Producto base';
                         $variantSku = $variant ? $variant->sku : null;
                         $variantStock = $variant ? (int) ($variant->stock ?? 0) : 0;
                     @endphp
@@ -127,9 +193,18 @@
                         </td>
                         <td class="px-3 py-3 text-center text-gray-700 truncate">{{ $product->type->name ?? '-' }}</td>
                         <td class="px-3 py-3 text-center text-gray-700 truncate">{{ $product->category->name ?? 'Sin categoría' }}</td>
-                        <td class="px-3 py-3 text-center text-gray-700 truncate">{{ $variantName }}</td>
-                        <td class="px-3 py-3 text-center text-gray-500 font-mono text-xs truncate">{{ $variantSku ?: '-' }}</td>
+                        <td class="px-3 py-3 text-center">
+                            <p class="text-gray-700 truncate">{{ $variantName }}</p>
+                            <p class="text-gray-500 font-mono text-xs truncate">{{ $variantSku ?: 'Sin SKU' }}</p>
+                        </td>
                         <td class="px-3 py-3 text-center font-semibold text-gray-800">{{ $variantStock }}</td>
+                        <td class="px-3 py-3 text-center">
+                            @if($product->active)
+                                <span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">Activo</span>
+                            @else
+                                <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs font-medium">Oculto</span>
+                            @endif
+                        </td>
                         <td class="px-3 py-3 text-center">
                             <form method="POST" action="{{ route('admin.inventario.movements.store') }}" class="flex flex-wrap justify-center gap-2 items-center">
                                 @csrf
@@ -152,7 +227,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="px-4 py-8 text-center text-gray-400">No hay productos inventariables para este filtro.</td>
+                                <td colspan="7" class="px-4 py-8 text-center text-gray-400">No hay productos para este negocio o búsqueda. Crea un producto o cambia el filtro.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -202,5 +277,6 @@
             </div>
         </div>
     </div>
+    @endunless
 </div>
 @endsection

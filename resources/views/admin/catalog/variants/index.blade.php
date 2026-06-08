@@ -14,7 +14,7 @@
                 </a>
                 <div class="min-w-0">
                     <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Presentaciones</h2>
-                    <p class="text-gray-500 text-sm mt-1">TamaÃ±os, versiones o precios diferentes para productos y servicios.</p>
+                    <p class="text-gray-500 text-sm mt-1">Tamaños, versiones o precios diferentes para productos y servicios.</p>
                 </div>
             </div>
         </div>
@@ -22,13 +22,13 @@
         <form method="GET" action="{{ route('admin.catalog-variants.index') }}" class="flex-1 max-w-xl">
             <div class="relative">
                 <x-heroicon-o-magnifying-glass class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input type="search" name="q" value="{{ request('q') }}" placeholder="Buscar por presentaciÃ³n, SKU, producto o secciÃ³n..." class="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm text-gray-700 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none focus:ring-0">
+                <input type="search" name="q" value="{{ request('q') }}" placeholder="Buscar por presentación, SKU, producto o sección..." class="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm text-gray-700 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none focus:ring-0">
             </div>
         </form>
 
         <a href="{{ route('admin.catalog-variants.create') }}"
             class="inline-flex items-center justify-center bg-gray-900 text-white w-11 h-11 rounded-lg hover:bg-gray-700 transition"
-            title="Nueva presentaciÃ³n" aria-label="Nueva presentaciÃ³n">
+            title="Nueva presentación" aria-label="Nueva presentación">
             <x-heroicon-o-plus class="w-5 h-5" />
         </a>
     </div>
@@ -85,16 +85,16 @@
 
                 <div class="grid grid-cols-2 gap-3 text-sm">
                     <div>
-                        <p class="text-xs uppercase text-gray-400 font-semibold">Item</p>
-                        <p class="text-gray-700 break-words">{{ $variant->item?->name ?? 'Sin item' }}</p>
+                        <p class="text-xs uppercase text-gray-400 font-semibold">Ítem</p>
+                        <p class="text-gray-700 break-words">{{ $variant->item?->name ?? 'Sin ítem' }}</p>
                     </div>
                     <div>
-                        <p class="text-xs uppercase text-gray-400 font-semibold">CategorÃ­a</p>
+                        <p class="text-xs uppercase text-gray-400 font-semibold">Categoría</p>
                         <p class="text-gray-700 break-words">{{ $variant->item?->category?->name ?? '-' }}</p>
                     </div>
                     <div>
-                        <p class="text-xs uppercase text-gray-400 font-semibold">SecciÃ³n</p>
-                        <p class="text-gray-700 break-words">{{ $variant->item?->type?->name ?? 'Sin secciÃ³n' }}</p>
+                        <p class="text-xs uppercase text-gray-400 font-semibold">Sección</p>
+                        <p class="text-gray-700 break-words">{{ $variant->item?->type?->name ?? 'Sin sección' }}</p>
                     </div>
                     <div>
                         <p class="text-xs uppercase text-gray-400 font-semibold">SKU</p>
@@ -113,19 +113,19 @@
                 <div class="flex items-center justify-end gap-2 pt-1">
                     <a href="{{ route('admin.catalog-variants.show', $variant) }}"
                         class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition"
-                        title="Ver presentaciÃ³n" aria-label="Ver presentaciÃ³n">
+                        title="Ver presentación" aria-label="Ver presentación">
                         <x-heroicon-o-eye class="w-5 h-5" />
                     </a>
                     <a href="{{ route('admin.catalog-variants.edit', $variant) }}"
                         class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gray-50 text-gray-700 hover:bg-gray-100 transition"
-                        title="Editar presentaciÃ³n" aria-label="Editar presentaciÃ³n">
+                        title="Editar presentación" aria-label="Editar presentación">
                         <x-heroicon-o-pencil-square class="w-5 h-5" />
                     </a>
-                    <form method="POST" action="{{ route('admin.catalog-variants.destroy', $variant) }}" onsubmit="return confirm('Â¿Eliminar esta variante universal?');">
+                    <form method="POST" action="{{ route('admin.catalog-variants.destroy', $variant) }}" onsubmit="return confirm('¿Eliminar esta variante universal?');">
                         @csrf
                         @method('DELETE')
                         <button class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition"
-                            title="Eliminar presentaciÃ³n" aria-label="Eliminar presentaciÃ³n">
+                            title="Eliminar presentación" aria-label="Eliminar presentación">
                             <x-heroicon-o-trash class="w-5 h-5" />
                         </button>
                     </form>
@@ -141,9 +141,9 @@
             <table class="w-full table-fixed text-sm text-left">
                 <thead class="bg-gray-50 border-b sticky top-0 z-10 text-xs uppercase text-gray-500">
                     <tr>
-                        <th class="px-3 py-3 text-center w-[20%]">PresentaciÃ³n</th>
-                        <th class="px-3 py-3 text-center w-[18%]">Item</th>
-                        <th class="px-3 py-3 text-center w-[13%]">SecciÃ³n</th>
+                        <th class="px-3 py-3 text-center w-[20%]">Presentación</th>
+                        <th class="px-3 py-3 text-center w-[18%]">Ítem</th>
+                        <th class="px-3 py-3 text-center w-[13%]">Sección</th>
                         <th class="px-3 py-3 text-center w-[12%]">SKU</th>
                         <th class="px-3 py-3 text-center w-[10%]">Precio</th>
                         <th class="px-3 py-3 text-center w-[8%]">Stock</th>
@@ -170,10 +170,10 @@
                                 </p>
                             </td>
                             <td class="px-3 py-3 text-center">
-                                <p class="font-medium text-gray-700 truncate">{{ $variant->item?->name ?? 'Sin item' }}</p>
+                                <p class="font-medium text-gray-700 truncate">{{ $variant->item?->name ?? 'Sin ítem' }}</p>
                                 <p class="text-xs text-gray-400 truncate">{{ $variant->item?->category?->name ?? '-' }}</p>
                             </td>
-                            <td class="px-3 py-3 text-gray-700 text-center truncate">{{ $variant->item?->type?->name ?? 'Sin secciÃ³n' }}</td>
+                            <td class="px-3 py-3 text-gray-700 text-center truncate">{{ $variant->item?->type?->name ?? 'Sin sección' }}</td>
                             <td class="px-3 py-3 text-gray-500 text-center font-mono text-xs truncate">{{ $variant->sku ?: '-' }}</td>
                             <td class="px-3 py-3 font-semibold text-gray-800 text-center truncate">{{ $variant->price !== null ? '$' . number_format((float) $variant->price, 2) : '-' }}</td>
                             <td class="px-3 py-3 text-gray-700 text-center">{{ $variant->stock ?? '-' }}</td>
@@ -193,19 +193,19 @@
                                 <div class="flex items-center justify-end gap-1">
                                     <a href="{{ route('admin.catalog-variants.show', $variant) }}"
                                         class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-blue-600 hover:bg-blue-50 transition"
-                                        title="Ver presentaciÃ³n" aria-label="Ver presentaciÃ³n">
+                                        title="Ver presentación" aria-label="Ver presentación">
                                         <x-heroicon-o-eye class="w-4 h-4" />
                                     </a>
                                     <a href="{{ route('admin.catalog-variants.edit', $variant) }}"
                                         class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-gray-700 hover:bg-gray-100 transition"
-                                        title="Editar presentaciÃ³n" aria-label="Editar presentaciÃ³n">
+                                        title="Editar presentación" aria-label="Editar presentación">
                                         <x-heroicon-o-pencil-square class="w-4 h-4" />
                                     </a>
-                                    <form method="POST" action="{{ route('admin.catalog-variants.destroy', $variant) }}" onsubmit="return confirm('Â¿Eliminar esta variante universal?');">
+                                    <form method="POST" action="{{ route('admin.catalog-variants.destroy', $variant) }}" onsubmit="return confirm('¿Eliminar esta variante universal?');">
                                         @csrf
                                         @method('DELETE')
                                         <button class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-red-600 hover:bg-red-50 transition"
-                                            title="Eliminar presentaciÃ³n" aria-label="Eliminar presentaciÃ³n">
+                                            title="Eliminar presentación" aria-label="Eliminar presentación">
                                             <x-heroicon-o-trash class="w-4 h-4" />
                                         </button>
                                     </form>
@@ -229,5 +229,3 @@
     @endif
 </div>
 @endsection
-
-

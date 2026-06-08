@@ -41,7 +41,7 @@
                         class="w-full bg-gray-900 text-white py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-sm">
                     Cambiar Imagen
                 </button>
-                <p class="text-xs text-gray-400 text-center mt-2">JPG, PNG o WEBP - Max. 6MB</p>
+                <p class="text-xs text-gray-400 text-center mt-2">JPG, PNG o WEBP - Máx. 6MB</p>
 
                 @error('image')
                     <p class="text-red-500 text-xs mt-2 text-center">{{ $message }}</p>
@@ -57,7 +57,7 @@
 
                     <section class="space-y-5">
                         <div>
-                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Informacion basica</p>
+                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Información básica</p>
                             <p class="text-sm text-gray-500 mt-1">Nombre, ubicación dentro del catálogo y precio principal.</p>
                         </div>
 
@@ -128,7 +128,7 @@
 
                     <section class="mt-8 border-t border-gray-100 pt-6 space-y-4">
                         <div>
-                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Como se usar?</p>
+                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">¿Cómo se usa?</p>
                             <p class="text-sm text-gray-500 mt-1">El modelo del negocio define si será producto inventariable o servicio sin inventario.</p>
                         </div>
 
@@ -149,7 +149,7 @@
                                        class="mt-1 rounded border-gray-300 text-gray-900 focus:ring-gray-400">
                                 <span>
                                     <span class="block text-sm font-semibold text-gray-700">Destacado</span>
-                                    <span class="block text-xs text-gray-400">Aparece con m?s prioridad en la web</span>
+                                    <span class="block text-xs text-gray-400">Aparece con más prioridad en la web</span>
                                 </span>
                             </label>
 
@@ -267,6 +267,3 @@ function previewImage(input) {
 })();
 </script>
 @endpush
-
-
-

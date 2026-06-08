@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CatalogItem;
 use App\Models\CatalogType;
 use App\Models\CatalogItemVariant;
+use App\Models\Empresa;
 use App\Models\InventoryMovement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,16 +16,23 @@ class InventarioController extends Controller
 {
     public function index(Request $request)
     {
+        $empresa = $this->getOrCreateEmpresa();
         $q = trim((string) $request->query('q', ''));
         $selectedTypeId = (int) $request->query('catalog_type_id', 0);
 
         $productTypes = CatalogType::query()
+            ->where('empresa_id', $empresa->id)
             ->where('business_model', CatalogType::BUSINESS_MODEL_PRODUCTS)
             ->ordered()
             ->get();
 
+        if ($selectedTypeId > 0 && !$productTypes->contains('id', $selectedTypeId)) {
+            $selectedTypeId = 0;
+        }
+
         $products = CatalogItem::query()
             ->with(['type', 'category', 'variants'])
+            ->where('empresa_id', $empresa->id)
             ->whereHas('type', function ($typeQuery) use ($selectedTypeId) {
                 $typeQuery->where('business_model', CatalogType::BUSINESS_MODEL_PRODUCTS)
                     ->when($selectedTypeId > 0, function ($filteredTypeQuery) use ($selectedTypeId) {
@@ -43,6 +51,8 @@ class InventarioController extends Controller
                         })
                         ->orWhereHas('variants', function ($variantQuery) use ($q) {
                             $variantQuery->where('name', 'like', "%{$q}%")
+                                ->orWhere('presentation', 'like', "%{$q}%")
+                                ->orWhere('specification', 'like', "%{$q}%")
                                 ->orWhere('sku', 'like', "%{$q}%");
                         });
                 });
@@ -53,24 +63,32 @@ class InventarioController extends Controller
 
         $recentMovements = InventoryMovement::query()
             ->with(['variant.item.type', 'user'])
-            ->whereHas('variant.item.type', function ($query) use ($selectedTypeId) {
-                $query->where('business_model', CatalogType::BUSINESS_MODEL_PRODUCTS)
-                    ->when($selectedTypeId > 0, function ($filteredTypeQuery) use ($selectedTypeId) {
-                        $filteredTypeQuery->whereKey($selectedTypeId);
+            ->whereHas('variant.item', function ($itemQuery) use ($empresa, $selectedTypeId) {
+                $itemQuery->where('empresa_id', $empresa->id)
+                    ->whereHas('type', function ($typeQuery) use ($selectedTypeId) {
+                        $typeQuery->where('business_model', CatalogType::BUSINESS_MODEL_PRODUCTS)
+                            ->when($selectedTypeId > 0, function ($filteredTypeQuery) use ($selectedTypeId) {
+                                $filteredTypeQuery->whereKey($selectedTypeId);
+                            });
                     });
             })
             ->latest()
             ->limit(20)
             ->get();
 
-        return view('admin.inventario.index', compact('products', 'recentMovements', 'productTypes', 'selectedTypeId'));
+        $selectedType = $productTypes->firstWhere('id', $selectedTypeId);
+
+        return view('admin.inventario.index', compact('products', 'recentMovements', 'productTypes', 'selectedTypeId', 'selectedType'));
     }
 
     public function create()
     {
+        $empresa = $this->getOrCreateEmpresa();
+
         $variants = CatalogItemVariant::query()
             ->with('item')
-            ->whereHas('item', function ($query) {
+            ->whereHas('item', function ($query) use ($empresa) {
+                $query->where('empresa_id', $empresa->id);
                 $query->whereHas('type', function ($typeQuery) {
                     $typeQuery->where('business_model', CatalogType::BUSINESS_MODEL_PRODUCTS);
                 });
@@ -137,9 +155,12 @@ class InventarioController extends Controller
 
     public function edit(InventoryMovement $movement)
     {
+        $empresa = $this->getOrCreateEmpresa();
+
         $variants = CatalogItemVariant::query()
             ->with('item')
-            ->whereHas('item', function ($query) {
+            ->whereHas('item', function ($query) use ($empresa) {
+                $query->where('empresa_id', $empresa->id);
                 $query->whereHas('type', function ($typeQuery) {
                     $typeQuery->where('business_model', CatalogType::BUSINESS_MODEL_PRODUCTS);
                 });
@@ -173,14 +194,20 @@ class InventarioController extends Controller
 
     private function resolveInventoryVariant(?int $variantId, ?int $itemId): CatalogItemVariant
     {
+        $empresa = $this->getOrCreateEmpresa();
+
         if ($variantId) {
             return CatalogItemVariant::query()
                 ->with('item.type')
+                ->whereHas('item', function ($query) use ($empresa) {
+                    $query->where('empresa_id', $empresa->id);
+                })
                 ->findOrFail($variantId);
         }
 
         $item = CatalogItem::query()
             ->with(['type', 'variants'])
+            ->where('empresa_id', $empresa->id)
             ->whereHas('type', function ($query) {
                 $query->where('business_model', CatalogType::BUSINESS_MODEL_PRODUCTS);
             })
@@ -206,5 +233,12 @@ class InventarioController extends Controller
             'is_default' => true,
             'sort_order' => 0,
         ])->load('item.type');
+    }
+
+    private function getOrCreateEmpresa(): Empresa
+    {
+        return Empresa::query()->first() ?? Empresa::create([
+            'nombre' => 'Mi negocio',
+        ]);
     }
 }

@@ -9,10 +9,19 @@
         <a href="{{ route('admin.inventario.index') }}" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium">Volver</a>
     </div>
 
+    @if($variants->isEmpty())
+        <div class="bg-white rounded-xl border border-gray-100 p-6 shadow-sm text-center">
+            <h3 class="text-lg font-bold text-gray-800">No hay productos con inventario</h3>
+            <p class="text-sm text-gray-500 mt-2">Primero crea un producto dentro de un negocio configurado como productos. Luego podrás registrar entradas, salidas o ajustes.</p>
+            <a href="{{ route('admin.catalog-items.create', ['inventory' => 1]) }}" class="inline-flex items-center justify-center mt-5 bg-gray-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold">
+                Crear producto
+            </a>
+        </div>
+    @else
     <form method="POST" action="{{ route('admin.inventario.movements.store') }}" class="bg-white rounded-xl border border-gray-100 p-6 shadow-sm space-y-4">
         @csrf
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Variante</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Producto / presentación</label>
             <select name="catalog_item_variant_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" required>
                 @foreach($variants as $variant)
                     <option value="{{ $variant->id }}">{{ $variant->item->name ?? '-' }} - {{ $variant->name }}</option>
@@ -39,6 +48,6 @@
         </div>
         <button class="bg-gray-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold">Guardar Movimiento</button>
     </form>
+    @endif
 </div>
 @endsection
-
