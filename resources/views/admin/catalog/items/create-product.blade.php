@@ -11,6 +11,7 @@
     $inventoryReturnUrl = $fromInventory
         ? route('admin.inventario.index', array_filter(['catalog_type_id' => $selectedTypeId ?: null]))
         : null;
+    $hasProductTypes = count($types ?? []) > 0;
 @endphp
 
 <div class="container mx-auto px-4 sm:px-6">
@@ -26,7 +27,7 @@
     </div>
 
     <div class="flex flex-col lg:flex-row gap-6">
-        <div class="w-full lg:w-1/3 {{ $types->isEmpty() ? 'hidden' : '' }}">
+        <div class="w-full lg:w-1/3 {{ !$hasProductTypes ? 'hidden' : '' }}">
             <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6">
                 <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">Imagen</p>
 
@@ -53,9 +54,9 @@
             </div>
         </div>
 
-        <div class="w-full {{ $types->isEmpty() ? 'lg:w-full' : 'lg:w-2/3' }}">
+        <div class="w-full {{ !$hasProductTypes ? 'lg:w-full' : 'lg:w-2/3' }}">
             <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-                @if($types->isEmpty())
+                @if(!$hasProductTypes)
                     <div class="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800">
                         Inventario necesita un negocio configurado como productos antes de registrar productos.
                     </div>
