@@ -39,7 +39,12 @@ class CarritoController extends Controller
                 ->where('active', true)
                 ->find($request->variant_id);
         } else {
-            $variant = $item->activeVariants()->orderByDesc('is_default')->orderBy('sort_order')->orderBy('price')->first();
+            $variantQuery = $item->activeVariants()
+                ->when($item->uses_inventory, fn ($query) => $query->where('stock', '>', 0))
+                ->orderByDesc('is_default')
+                ->orderBy('sort_order')
+                ->orderBy('price');
+            $variant = $variantQuery->first();
         }
 
         if ($variant) {
@@ -49,9 +54,32 @@ class CarritoController extends Controller
         }
 
         $key = $request->type . '_' . $request->id . ($variantId ? ('_v' . $variantId) : '');
+        $requestedQuantity = (int) $request->quantity;
+        $currentQuantity = (int) ($carrito[$key]['quantity'] ?? 0);
+
+        if ($item->uses_inventory) {
+            if (!$variant) {
+                return $this->cartError($request, 'Este producto no tiene una presentación inventariable disponible.');
+            }
+
+            $availableStock = max(0, (int) ($variant->stock ?? 0));
+
+            if ($availableStock <= 0) {
+                return $this->cartError($request, 'Este producto está agotado.');
+            }
+
+            if (($currentQuantity + $requestedQuantity) > $availableStock) {
+                $remaining = max(0, $availableStock - $currentQuantity);
+                $message = $remaining > 0
+                    ? "Solo puedes agregar {$remaining} unidad(es) más de este producto."
+                    : 'Ya tienes en el carrito todo el stock disponible de este producto.';
+
+                return $this->cartError($request, $message);
+            }
+        }
 
         if (isset($carrito[$key])) {
-            $carrito[$key]['quantity'] += $request->quantity;
+            $carrito[$key]['quantity'] += $requestedQuantity;
         } else {
             $name = $item->name;
             if ($variantLabel) {
@@ -66,13 +94,26 @@ class CarritoController extends Controller
                 'name'     => $name,
                 'price'    => $price,
                 'image'    => $item->image,
-                'quantity' => $request->quantity,
+                'quantity' => $requestedQuantity,
             ];
         }
 
         session()->put('carrito', $carrito);
 
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json(['ok' => true, 'message' => 'Agregado al carrito.']);
+        }
+
         return redirect()->back()->with('success', 'Agregado al carrito.');
+    }
+
+    private function cartError(Request $request, string $message)
+    {
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json(['ok' => false, 'message' => $message], 422);
+        }
+
+        return redirect()->back()->with('error', $message);
     }
 
     public function quitar($id)

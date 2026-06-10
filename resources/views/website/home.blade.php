@@ -70,10 +70,20 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify({ id, type, quantity, variant_id: variantId })
-            }).then(() => window.websiteNotify?.('success', 'Agregado al carrito'));
+            })
+                .then(async (response) => {
+                    const data = await response.json().catch(() => ({}));
+                    if (!response.ok) throw new Error(data.message || 'No se pudo agregar al carrito.');
+                    window.websiteNotify?.('success', data.message || 'Agregado al carrito');
+                })
+                .catch((error) => {
+                    window.websiteNotify?.('error', error.message || 'No se pudo agregar al carrito.');
+                });
         }
 
         function reserveCatalogItem(itemId) {

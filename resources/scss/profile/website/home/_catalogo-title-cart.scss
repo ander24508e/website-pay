@@ -37,7 +37,7 @@
 
 #catalogo .card-name-row {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 2.1rem;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: start;
     gap: 0.55rem;
     width: 100%;
@@ -76,6 +76,69 @@
     width: 1.2rem;
     height: 1.2rem;
     pointer-events: none;
+}
+
+#catalogo .catalog-stock-counter {
+    display: grid;
+    grid-template-columns: 2.4rem 3.2rem 2.4rem;
+    align-items: center;
+    width: fit-content;
+    min-height: 2.2rem;
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+}
+
+#catalogo .catalog-stock-counter-modal {
+    width: 100%;
+    grid-template-columns: 2.7rem 1fr 2.7rem;
+}
+
+#catalogo .catalog-stock-btn {
+    height: 100%;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font-size: 1.25rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.18s ease, opacity 0.18s ease;
+}
+
+#catalogo .catalog-stock-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.14);
+}
+
+#catalogo .catalog-stock-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.35;
+}
+
+#catalogo .catalog-stock-value {
+    height: 100%;
+    min-height: 2.2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-left: 1px solid rgba(255, 255, 255, 0.35);
+    border-right: 1px solid rgba(255, 255, 255, 0.35);
+    font-weight: 800;
+    font-size: 0.95rem;
+}
+
+#catalogo .catalog-stock-empty {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.1rem;
+    padding: 0 0.7rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
 }
 
 #catalogo .card-desc {
@@ -227,6 +290,19 @@
     margin-top: 1rem;
     padding-top: 0.9rem;
     border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+#catalogo .catalogo-detail-service-actions {
+    margin-top: 1rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.75rem;
+}
+
+#catalogo .catalogo-detail-service-actions[hidden] {
+    display: none !important;
 }
 
 #catalogo .catalogo-detail-grid {

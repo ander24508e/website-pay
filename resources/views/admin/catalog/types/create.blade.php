@@ -15,7 +15,7 @@
         </a>
         <div>
             <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Nueva Sección</h2>
-            <p class="text-gray-400 text-sm">Crea un área del negocio, por ejemplo Servicios, Productos o Bebidas.</p>
+            <p class="text-gray-400 text-sm">Crea un área del negocio.</p>
         </div>
     </div>
 

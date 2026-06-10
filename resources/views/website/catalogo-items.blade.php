@@ -10,6 +10,10 @@
                 data-categoria="{{ $item['categoria'] }}"
                 data-precio="{{ $item['precio'] }}"
                 data-descripcion="{{ $item['descripcion'] }}"
+                data-tipo-descripcion="{{ $item['tipo_descripcion'] ?? '' }}"
+                data-inventariable="{{ ($item['inventariable'] ?? false) ? '1' : '0' }}"
+                data-comprable="{{ ($item['comprable'] ?? false) ? '1' : '0' }}"
+                data-reservable="{{ ($item['reservable'] ?? false) ? '1' : '0' }}"
                 data-imagen="{{ Storage::url($item['imagen']) }}"
                 aria-label="Ver detalle de {{ $item['nombre'] }}"
             >
@@ -25,6 +29,10 @@
                 data-categoria="{{ $item['categoria'] }}"
                 data-precio="{{ $item['precio'] }}"
                 data-descripcion="{{ $item['descripcion'] }}"
+                data-tipo-descripcion="{{ $item['tipo_descripcion'] ?? '' }}"
+                data-inventariable="{{ ($item['inventariable'] ?? false) ? '1' : '0' }}"
+                data-comprable="{{ ($item['comprable'] ?? false) ? '1' : '0' }}"
+                data-reservable="{{ ($item['reservable'] ?? false) ? '1' : '0' }}"
                 data-imagen=""
                 aria-label="Ver detalle de {{ $item['nombre'] }}"
             >
@@ -38,16 +46,26 @@
             <div class="card-top">
                 <div class="card-name-row">
                     <div class="card-name">{{ $item['nombre'] }}</div>
-                    @if($item['comprable'] ?? false)
-                        <button class="card-name-cart-btn" onclick="addToCart({{ $item['id'] }}, '{{ $item['tipo'] }}')"
-                            title="Agregar al carrito" aria-label="Agregar al carrito">
-                            <x-heroicon-s-shopping-cart class="w-5 h-5" />
-                        </button>
+                    @if(($item['comprable'] ?? false) && ($item['inventariable'] ?? false) && !($item['agotado'] ?? false))
+                        <div class="catalog-stock-counter" data-stock="{{ (int) ($item['stock_disponible'] ?? 9999) }}" data-quantity="1">
+                            <button type="button" class="catalog-stock-btn js-stock-minus" aria-label="Restar cantidad" disabled>−</button>
+                            <span class="catalog-stock-value js-stock-value">1</span>
+                            <button type="button" class="catalog-stock-btn js-stock-plus" aria-label="Sumar cantidad" {{ (int) ($item['stock_disponible'] ?? 9999) <= 1 ? 'disabled' : '' }}>+</button>
+                        </div>
+                    @elseif(($item['comprable'] ?? false) && ($item['inventariable'] ?? false) && ($item['agotado'] ?? false))
+                        <span class="catalog-stock-empty">Agotado</span>
                     @endif
                 </div>
             </div>
-            <p class="card-desc">{{ Str::limit($item['descripcion'], 80) }}</p>
             <div class="card-footer">
+                @if(($item['comprable'] ?? false) && !($item['agotado'] ?? false))
+                    <button type="button"
+                        class="btn-reservar-main {{ ($item['inventariable'] ?? false) ? 'js-add-counter-cart' : 'js-add-simple-cart' }}"
+                        data-id="{{ $item['id'] }}"
+                        data-tipo="{{ $item['tipo'] }}">
+                        {{ ($item['inventariable'] ?? false) ? 'Comprar' : 'Agregar servicio' }}
+                    </button>
+                @endif
                 @if($item['reservable'] ?? false)
                     <button
                         type="button"

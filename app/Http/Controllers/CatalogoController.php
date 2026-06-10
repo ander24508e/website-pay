@@ -67,6 +67,9 @@ class CatalogoController extends Controller
                 ->orderBy('catalog_items.name');
 
             $catalogoUniversales = $universalesQuery->get()->map(function ($item) {
+                $stockDisponible = $this->resolveAvailableStock($item);
+                $isInventariable = (bool) $item->uses_inventory;
+
                 return [
                     'id' => $item->id,
                     'nombre' => $item->name,
@@ -76,8 +79,13 @@ class CatalogoController extends Controller
                     'categoria' => $item->category->name ?? ($item->type->name ?? 'Catalogo'),
                     'tipo' => 'catalog',
                     'tipo_label' => $item->type->name ?? 'Catalogo',
+                    'tipo_descripcion' => $item->type->description ?? null,
+                    'business_model' => $item->type->business_model ?? null,
                     'comprable' => (bool) $item->purchasable,
                     'reservable' => (bool) $item->reservable,
+                    'inventariable' => $isInventariable,
+                    'stock_disponible' => $stockDisponible,
+                    'agotado' => $isInventariable && $stockDisponible <= 0,
                     'variantes' => $item->activeVariants
                         ->sortBy(function ($variant) {
                             return $variant->is_default ? -1 : $variant->sort_order;
@@ -90,6 +98,7 @@ class CatalogoController extends Controller
                                 'presentation' => $variant->presentation,
                                 'specification' => $variant->specification,
                                 'price' => (float) ($variant->price ?? 0),
+                                'stock' => (int) ($variant->stock ?? 0),
                                 'is_default' => (bool) $variant->is_default,
                             ];
                         }),
@@ -113,6 +122,25 @@ class CatalogoController extends Controller
                 'total'        => (int) $total,
             ],
         ];
+    }
+
+    private function resolveAvailableStock(CatalogItem $item): int
+    {
+        if (!$item->uses_inventory) {
+            return 9999;
+        }
+
+        $availableVariant = $item->activeVariants
+            ->filter(fn ($itemVariant) => (int) ($itemVariant->stock ?? 0) > 0)
+            ->sortBy(fn ($itemVariant) => sprintf(
+                '%d-%05d-%s',
+                $itemVariant->is_default ? 0 : 1,
+                (int) $itemVariant->sort_order,
+                (string) $itemVariant->name
+            ))
+            ->first();
+
+        return max(0, (int) ($availableVariant?->stock ?? 0));
     }
 
     private function getCatalogFilters(): array

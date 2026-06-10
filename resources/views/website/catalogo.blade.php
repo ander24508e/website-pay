@@ -8,8 +8,9 @@
 
     <div class="filtros-container fade-up">
         <div class="filtros-tipo" role="tablist" aria-label="Filtrar catalogo por tipo">
-            @foreach(($catalogFilters ?? []) as $filter)
-                <button type="button" data-tipo="{{ $filter['value'] }}" class="filtro-btn {{ $tipo === $filter['value'] ? 'active' : '' }}">
+            @foreach ($catalogFilters ?? [] as $filter)
+                <button type="button" data-tipo="{{ $filter['value'] }}"
+                    class="filtro-btn {{ $tipo === $filter['value'] ? 'active' : '' }}">
                     {{ $filter['label'] }}
                 </button>
             @endforeach
@@ -17,12 +18,8 @@
 
         <div class="buscador">
             <label for="search-catalogo" class="sr-only">Buscar en catalogo</label>
-            <input
-                type="text"
-                id="search-catalogo"
-                placeholder="Buscar por nombre, descripcion o categoria"
-                value="{{ $search }}"
-            >
+            <input type="text" id="search-catalogo" placeholder="Buscar por nombre, descripcion o categoria"
+                value="{{ $search }}">
         </div>
     </div>
 
@@ -36,33 +33,46 @@
 
     <div class="catalogo-modal-overlay" id="catalogoDetailOverlay" hidden>
         <div class="catalogo-modal" role="dialog" aria-modal="true" aria-labelledby="catalogoDetailTitle">
-            <button type="button" class="catalogo-modal-close" id="catalogoDetailClose" aria-label="Cerrar detalle">&times;</button>
+            <button type="button" class="catalogo-modal-close" id="catalogoDetailClose"
+                aria-label="Cerrar detalle">&times;</button>
             <div class="catalogo-modal-media" id="catalogoDetailMedia"></div>
             <div class="catalogo-modal-body">
                 <p class="catalogo-modal-category" id="catalogoDetailCategory"></p>
                 <h3 class="catalogo-modal-title" id="catalogoDetailTitle"></h3>
                 <p class="catalogo-modal-price" id="catalogoDetailPrice"></p>
                 <p class="catalogo-modal-desc" id="catalogoDetailDescription"></p>
+                <div class="catalogo-detail-service-actions" id="catalogoDetailServiceActions" hidden>
+                    <button type="button" class="btn-reservar-main" id="detailServiceAddBtn">Agregar servicio</button>
+                    <button type="button" class="btn-reservar-main" id="detailServiceReserveBtn">Reservar</button>
+                </div>
                 <div class="catalogo-detail-product-controls" id="catalogoDetailProductControls" hidden>
                     <div class="catalogo-detail-grid">
                         <label>Presentacion
                             <select id="detailVariantSelect"></select>
                         </label>
                         <label>Cantidad
-                            <input type="number" id="detailQtyInput" min="1" step="1" value="1">
+                            <div class="catalog-stock-counter catalog-stock-counter-modal" id="detailQtyCounter">
+                                <button type="button" class="catalog-stock-btn" id="detailQtyMinus"
+                                    aria-label="Restar cantidad">−</button>
+                                <span class="catalog-stock-value" id="detailQtyValue">1</span>
+                                <button type="button" class="catalog-stock-btn" id="detailQtyPlus"
+                                    aria-label="Sumar cantidad">+</button>
+                            </div>
+                            <input type="hidden" id="detailQtyInput" value="1">
                         </label>
                     </div>
                     <p class="catalogo-modal-price" id="detailVariantPrice">$0.00</p>
                     <button type="button" class="btn-reservar-main" id="detailAddToCartBtn">Agregar al carrito</button>
-                    <p class="catalogo-detail-hint">Si este item tiene variantes, aqui puedes elegir la presentacion exacta antes de agregarlo.</p>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="catalogo-modal-overlay" id="catalogoReserveOverlay" hidden>
-        <div class="catalogo-modal catalogo-modal-reserve" role="dialog" aria-modal="true" aria-labelledby="catalogoReserveTitle">
-            <button type="button" class="catalogo-modal-close" id="catalogoReserveClose" aria-label="Cerrar reserva">&times;</button>
+        <div class="catalogo-modal catalogo-modal-reserve" role="dialog" aria-modal="true"
+            aria-labelledby="catalogoReserveTitle">
+            <button type="button" class="catalogo-modal-close" id="catalogoReserveClose"
+                aria-label="Cerrar reserva">&times;</button>
             <div class="catalogo-modal-body">
                 <h3 class="catalogo-modal-title" id="catalogoReserveTitle">Reservar</h3>
                 <p class="catalogo-modal-desc" id="catalogoReserveSubtitle"></p>
@@ -79,7 +89,8 @@
                         <input type="text" id="reserveName" required minlength="3" placeholder="Tu nombre completo">
                     </label>
                     <label>Telefono
-                        <input type="tel" id="reservePhone" required pattern="[0-9+\s()\-]{10,15}" placeholder="+593 98 123 4546">
+                        <input type="tel" id="reservePhone" required pattern="[0-9+\s()\-]{10,15}"
+                            placeholder="+593 98 123 4546">
                     </label>
                     <div class="catalogo-reserve-grid">
                         <label>Fecha
@@ -88,8 +99,8 @@
                         <label>Hora
                             <select id="reserveTime" class="contact-hour-select" required>
                                 <option value="">Selecciona hora</option>
-                                @for($h = 8; $h <= 17; $h++)
-                                    @php($hour = str_pad((string)$h, 2, '0', STR_PAD_LEFT).':00')
+                                @for ($h = 8; $h <= 17; $h++)
+                                    @php($hour = str_pad((string) $h, 2, '0', STR_PAD_LEFT) . ':00')
                                     <option value="{{ $hour }}">{{ $hour }}</option>
                                 @endfor
                             </select>
@@ -103,459 +114,609 @@
 </section>
 
 @push('scripts')
-<script>
-(() => {
-    let currentTipo = @json($tipo ?? 'todos');
-    let currentSearch = @json($search ?? '');
-    let currentPage = Number(@json(($pagination['current_page'] ?? 1))) || 1;
+    <script>
+        (() => {
+            let currentTipo = @json($tipo ?? 'todos');
+            let currentSearch = @json($search ?? '');
+            let currentPage = Number(@json($pagination['current_page'] ?? 1)) || 1;
 
-    const gridContainer = document.getElementById('catalogo-grid');
-    const paginationContainer = document.getElementById('catalogo-pagination');
-    const detailOverlay = document.getElementById('catalogoDetailOverlay');
-    const detailClose = document.getElementById('catalogoDetailClose');
-    const detailMedia = document.getElementById('catalogoDetailMedia');
-    const detailCategory = document.getElementById('catalogoDetailCategory');
-    const detailTitle = document.getElementById('catalogoDetailTitle');
-    const detailPrice = document.getElementById('catalogoDetailPrice');
-    const detailDescription = document.getElementById('catalogoDetailDescription');
-    const detailProductControls = document.getElementById('catalogoDetailProductControls');
-    const detailVariantSelect = document.getElementById('detailVariantSelect');
-    const detailQtyInput = document.getElementById('detailQtyInput');
-    const detailVariantPrice = document.getElementById('detailVariantPrice');
-    const detailAddToCartBtn = document.getElementById('detailAddToCartBtn');
-    const reserveOverlay = document.getElementById('catalogoReserveOverlay');
-    const reserveClose = document.getElementById('catalogoReserveClose');
-    const reserveForm = document.getElementById('catalogoReserveForm');
-    const reserveSubtitle = document.getElementById('catalogoReserveSubtitle');
-    const searchInput = document.getElementById('search-catalogo');
-    const filtroBtns = Array.from(document.querySelectorAll('.filtro-btn'));
-    const searchRoute = @json(route('catalogo.buscar'));
-    const cartIconSvg = `
+            const gridContainer = document.getElementById('catalogo-grid');
+            const paginationContainer = document.getElementById('catalogo-pagination');
+            const detailOverlay = document.getElementById('catalogoDetailOverlay');
+            const detailClose = document.getElementById('catalogoDetailClose');
+            const detailMedia = document.getElementById('catalogoDetailMedia');
+            const detailCategory = document.getElementById('catalogoDetailCategory');
+            const detailTitle = document.getElementById('catalogoDetailTitle');
+            const detailPrice = document.getElementById('catalogoDetailPrice');
+            const detailDescription = document.getElementById('catalogoDetailDescription');
+            const detailServiceActions = document.getElementById('catalogoDetailServiceActions');
+            const detailServiceAddBtn = document.getElementById('detailServiceAddBtn');
+            const detailServiceReserveBtn = document.getElementById('detailServiceReserveBtn');
+            const detailProductControls = document.getElementById('catalogoDetailProductControls');
+            const detailVariantSelect = document.getElementById('detailVariantSelect');
+            const detailQtyInput = document.getElementById('detailQtyInput');
+            const detailQtyValue = document.getElementById('detailQtyValue');
+            const detailQtyMinus = document.getElementById('detailQtyMinus');
+            const detailQtyPlus = document.getElementById('detailQtyPlus');
+            const detailVariantPrice = document.getElementById('detailVariantPrice');
+            const detailAddToCartBtn = document.getElementById('detailAddToCartBtn');
+            const reserveOverlay = document.getElementById('catalogoReserveOverlay');
+            const reserveClose = document.getElementById('catalogoReserveClose');
+            const reserveForm = document.getElementById('catalogoReserveForm');
+            const reserveSubtitle = document.getElementById('catalogoReserveSubtitle');
+            const searchInput = document.getElementById('search-catalogo');
+            const filtroBtns = Array.from(document.querySelectorAll('.filtro-btn'));
+            const searchRoute = @json(route('catalogo.buscar'));
+            const cartIconSvg = `
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
             <path d="M1 1.75A.75.75 0 0 1 1.75 1h1.5a.75.75 0 0 1 .728.57l.249 1.01h11.55a.75.75 0 0 1 .734.904l-1.5 7A.75.75 0 0 1 14.278 11H5.03l.273 1.109A1.75 1.75 0 0 0 7 13.5h7.25a.75.75 0 0 1 0 1.5H7a3.25 3.25 0 0 1-3.154-2.464L2.47 2.5H1.75A.75.75 0 0 1 1 1.75ZM6.5 18a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3ZM14 18a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z" />
         </svg>
     `;
 
-    const whatsappPhone = @json(preg_replace('/\D+/', '', (string) ($empresa->telefono_contacto ?? '')));
-    const reserveRoute = @json(route('reservas.catalogo'));
-    const csrfToken = @json(csrf_token());
-    const initialCatalogItems = @json(($catalogo ?? collect())->values());
-    const catalogItemsByKey = new Map();
-    let currentDetailItem = null;
+            const whatsappPhone = @json(preg_replace('/\D+/', '', (string) ($empresa->telefono_contacto ?? '')));
+            const reserveRoute = @json(route('reservas.catalogo'));
+            const csrfToken = @json(csrf_token());
+            const initialCatalogItems = @json(($catalogo ?? collect())->values());
+            const catalogItemsByKey = new Map();
+            let currentDetailItem = null;
 
-    if (!gridContainer || !paginationContainer || !searchInput || !filtroBtns.length) {
-        return;
-    }
+            if (!gridContainer || !paginationContainer || !searchInput || !filtroBtns.length) {
+                return;
+            }
 
-    function normalizePhone(phone) {
-        const digits = String(phone || '').replace(/\D+/g, '');
-        if (!digits) return '';
-        if (digits.startsWith('593')) return digits;
-        if (digits.length === 10 && digits.startsWith('0')) return `593${digits.slice(1)}`;
-        return digits;
-    }
+            function normalizePhone(phone) {
+                const digits = String(phone || '').replace(/\D+/g, '');
+                if (!digits) return '';
+                if (digits.startsWith('593')) return digits;
+                if (digits.length === 10 && digits.startsWith('0')) return `593${digits.slice(1)}`;
+                return digits;
+            }
 
-    function isSunday(dateText) {
-        const date = new Date(`${dateText}T00:00:00`);
-        return date.getDay() === 0;
-    }
+            function isSunday(dateText) {
+                const date = new Date(`${dateText}T00:00:00`);
+                return date.getDay() === 0;
+            }
 
-    function updateActiveTipoButtons() {
-        filtroBtns.forEach((btn) => {
-            const isActive = btn.dataset.tipo === currentTipo;
-            btn.classList.toggle('active', isActive);
-            btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
-        });
-    }
+            function updateActiveTipoButtons() {
+                filtroBtns.forEach((btn) => {
+                    const isActive = btn.dataset.tipo === currentTipo;
+                    btn.classList.toggle('active', isActive);
+                    btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+                });
+            }
 
-    function escapeHtml(str) {
-        return String(str || '').replace(/[&<>"']/g, (m) => {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            if (m === '"') return '&quot;';
-            return '&#039;';
-        });
-    }
+            function escapeHtml(str) {
+                return String(str || '').replace(/[&<>"']/g, (m) => {
+                    if (m === '&') return '&amp;';
+                    if (m === '<') return '&lt;';
+                    if (m === '>') return '&gt;';
+                    if (m === '"') return '&quot;';
+                    return '&#039;';
+                });
+            }
 
-    function itemKey(tipo, id) {
-        return `${tipo}_${Number(id)}`;
-    }
+            function itemKey(tipo, id) {
+                return `${tipo}_${Number(id)}`;
+            }
 
-    function upsertCatalogItems(items) {
-        if (!Array.isArray(items)) return;
-        items.forEach((item) => {
-            if (!item || typeof item !== 'object') return;
-            catalogItemsByKey.set(itemKey(item.tipo, item.id), item);
-        });
-    }
+            function upsertCatalogItems(items) {
+                if (!Array.isArray(items)) return;
+                items.forEach((item) => {
+                    if (!item || typeof item !== 'object') return;
+                    catalogItemsByKey.set(itemKey(item.tipo, item.id), item);
+                });
+            }
 
-    function getVariants(item) {
-        const variants = Array.isArray(item?.variantes) ? item.variantes : [];
-        return variants
-            .filter((v) => v && Number(v.price) >= 0)
-            .map((v) => ({
-                id: Number(v.id),
-                name: String(v.name || ''),
-                presentation: String(v.presentation || ''),
-                specification: String(v.specification || ''),
-                price: Number(v.price || 0),
-                is_default: Boolean(v.is_default),
-            }));
-    }
+            function getVariants(item) {
+                const variants = Array.isArray(item?.variantes) ? item.variantes : [];
+                return variants
+                    .filter((v) => v && Number(v.price) >= 0)
+                    .map((v) => ({
+                        id: Number(v.id),
+                        name: String(v.name || ''),
+                        presentation: String(v.presentation || ''),
+                        specification: String(v.specification || ''),
+                        price: Number(v.price || 0),
+                        stock: Number(v.stock || 0),
+                        is_default: Boolean(v.is_default),
+                    }));
+            }
 
-    function createCard(item) {
-        const card = document.createElement('div');
-        card.className = 'card item-catalogo';
+            function getItemAvailableStock(item) {
+                if (!item?.inventariable) return 9999;
+                return Math.max(0, Number(item.stock_disponible || 0));
+            }
 
-        const tipo = 'catalog';
-        const placeholder = 'ITM';
-        const safeName = escapeHtml(item.nombre);
-        const safeCategory = escapeHtml(item.categoria);
-        const safeDesc = escapeHtml(item.descripcion || '');
-        const safeImg = item.imagen ? `/storage/${item.imagen}` : '';
-        const isPurchasable = Boolean(item.comprable);
-        const isReservable = Boolean(item.reservable);
-        const imageHtml = item.imagen
-            ? `<button type="button" class="card-image-wrap js-open-detail" data-id="${Number(item.id)}" data-tipo="${tipo}" data-nombre="${safeName}" data-categoria="${safeCategory}" data-precio="${Number(item.precio)}" data-descripcion="${safeDesc}" data-imagen="${safeImg}" aria-label="Ver detalle de ${safeName}"><img src="${safeImg}" alt="${safeName}" class="card-image"></button>`
-            : `<button type="button" class="card-image-wrap js-open-detail" data-id="${Number(item.id)}" data-tipo="${tipo}" data-nombre="${safeName}" data-categoria="${safeCategory}" data-precio="${Number(item.precio)}" data-descripcion="${safeDesc}" data-imagen="" aria-label="Ver detalle de ${safeName}"><div class="card-placeholder">${placeholder}</div></button>`;
+            function getSelectedVariantStock() {
+                if (!currentDetailItem) return 0;
+                const variants = getVariants(currentDetailItem);
+                const selectedId = Number(detailVariantSelect?.value || 0);
+                const selected = variants.find((v) => v.id === selectedId) || variants[0];
+                if (selected) return Math.max(0, Number(selected.stock || 0));
+                return getItemAvailableStock(currentDetailItem);
+            }
 
-        const descripcion = item.descripcion ? String(item.descripcion) : '';
-        const shortDescription = descripcion.length > 80 ? `${descripcion.substring(0, 80)}...` : descripcion;
+            function setCounterValue(counter, value, max) {
+                const nextValue = Math.max(1, Math.min(Number(value) || 1, Math.max(1, Number(max) || 1)));
+                const valueEl = counter.querySelector('.js-stock-value');
+                const minus = counter.querySelector('.js-stock-minus');
+                const plus = counter.querySelector('.js-stock-plus');
+                if (valueEl) valueEl.textContent = String(nextValue);
+                if (minus) minus.disabled = nextValue <= 1;
+                if (plus) plus.disabled = nextValue >= Number(max);
+                counter.dataset.quantity = String(nextValue);
+            }
 
-        card.innerHTML = `
+            function renderPurchaseAction(item, tipo) {
+                if (!item.comprable) return '';
+                if (item.inventariable && item.agotado) return '<span class="catalog-stock-empty">Agotado</span>';
+
+                if (!item.inventariable) {
+                    return `<button type="button" class="btn-reservar-main js-add-simple-cart" data-id="${Number(item.id)}" data-tipo="${tipo}">Agregar servicio</button>`;
+                }
+
+                const stock = getItemAvailableStock(item);
+
+                return `
+            <div class="catalog-stock-counter" data-stock="${stock}" data-quantity="1">
+                <button type="button" class="catalog-stock-btn js-stock-minus" aria-label="Restar cantidad" disabled>−</button>
+                <span class="catalog-stock-value js-stock-value">1</span>
+                <button type="button" class="catalog-stock-btn js-stock-plus" aria-label="Sumar cantidad" ${stock <= 1 ? 'disabled' : ''}>+</button>
+            </div>
+            <button type="button" class="btn-reservar-main js-add-counter-cart" data-id="${Number(item.id)}" data-tipo="${tipo}">Agregar</button>
+        `;
+            }
+
+            function createCard(item) {
+                const card = document.createElement('div');
+                card.className = 'card item-catalogo';
+
+                const tipo = 'catalog';
+                const placeholder = 'ITM';
+                const safeName = escapeHtml(item.nombre);
+                const safeCategory = escapeHtml(item.categoria);
+                const safeDesc = escapeHtml(item.descripcion || '');
+                const safeImg = item.imagen ? `/storage/${item.imagen}` : '';
+                const isPurchasable = Boolean(item.comprable);
+                const isReservable = Boolean(item.reservable);
+                const detailDataAttrs = `data-id="${Number(item.id)}" data-tipo="${tipo}" data-nombre="${safeName}" data-categoria="${safeCategory}" data-precio="${Number(item.precio)}" data-descripcion="${safeDesc}" data-inventariable="${item.inventariable ? '1' : '0'}" data-comprable="${item.comprable ? '1' : '0'}" data-reservable="${item.reservable ? '1' : '0'}"`;
+                const imageHtml = item.imagen ?
+                    `<button type="button" class="card-image-wrap js-open-detail" ${detailDataAttrs} data-imagen="${safeImg}" aria-label="Ver detalle de ${safeName}"><img src="${safeImg}" alt="${safeName}" class="card-image"></button>` :
+                    `<button type="button" class="card-image-wrap js-open-detail" ${detailDataAttrs} data-imagen="" aria-label="Ver detalle de ${safeName}"><div class="card-placeholder">${placeholder}</div></button>`;
+
+                card.innerHTML = `
             ${imageHtml}
             <div class="card-body">
                 <div class="card-category">${escapeHtml(item.tipo_label || 'Catalogo')} · ${escapeHtml(item.categoria)}</div>
                 <div class="card-top">
                     <div class="card-name-row">
                         <div class="card-name">${escapeHtml(item.nombre)}</div>
-                        ${isPurchasable ? `<button class="card-name-cart-btn" onclick="addToCart(${Number(item.id)}, '${tipo}')" title="Agregar al carrito" aria-label="Agregar al carrito">${cartIconSvg}</button>` : ''}
                     </div>
                 </div>
-                <p class="card-desc">${escapeHtml(shortDescription)}</p>
                 <div class="card-footer">
+                    ${isPurchasable ? renderPurchaseAction(item, tipo) : ''}
                     ${isReservable ? `<button type="button" class="btn-reservar btn-reservar-main js-open-reserve" data-id="${Number(item.id)}" data-tipo="${tipo}" data-nombre="${safeName}" data-precio="${Number(item.precio)}" title="Reservar" aria-label="Reservar">Reservar</button>` : ''}
                 </div>
             </div>
         `;
 
-        return card;
-    }
-
-    function renderPagination(pagination) {
-        if (!pagination || Number(pagination.last_page) <= 1) {
-            return '';
-        }
-
-        let html = '';
-        for (let i = 1; i <= Number(pagination.last_page); i += 1) {
-            const activeClass = i === Number(pagination.current_page) ? 'active' : '';
-            html += `<button type="button" data-page="${i}" class="paginacion-btn ${activeClass}">${i}</button>`;
-        }
-
-        return html;
-    }
-
-    function attachPaginationEvents() {
-        document.querySelectorAll('.paginacion-btn').forEach((btn) => {
-            btn.addEventListener('click', () => {
-                currentPage = Number(btn.getAttribute('data-page')) || 1;
-                loadCatalog();
-            });
-        });
-    }
-
-    async function loadCatalog() {
-        const params = new URLSearchParams({
-            tipo: currentTipo,
-            search: currentSearch,
-            page: String(currentPage),
-        });
-
-        try {
-            const response = await fetch(`${searchRoute}?${params.toString()}`, {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' },
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
+                return card;
             }
 
-            const data = await response.json();
-            const items = Array.isArray(data.items) ? data.items : [];
-            catalogItemsByKey.clear();
-            upsertCatalogItems(items);
+            function renderPagination(pagination) {
+                if (!pagination || Number(pagination.last_page) <= 1) {
+                    return '';
+                }
 
-            gridContainer.innerHTML = '';
+                let html = '';
+                for (let i = 1; i <= Number(pagination.last_page); i += 1) {
+                    const activeClass = i === Number(pagination.current_page) ? 'active' : '';
+                    html +=
+                    `<button type="button" data-page="${i}" class="paginacion-btn ${activeClass}">${i}</button>`;
+                }
 
-            if (!items.length) {
-                gridContainer.innerHTML = '<p class="catalogo-empty">No se encontraron resultados.</p>';
-                paginationContainer.innerHTML = '';
-                return;
+                return html;
             }
 
-            items.forEach((item) => {
-                gridContainer.appendChild(createCard(item));
-            });
-
-            paginationContainer.innerHTML = renderPagination(data.pagination);
-            attachPaginationEvents();
-        } catch (error) {
-            console.error('Error al cargar catalogo:', error);
-            gridContainer.innerHTML = '<p class="catalogo-empty">No se pudo cargar el catalogo. Intenta nuevamente.</p>';
-            paginationContainer.innerHTML = '';
-        }
-    }
-
-    updateActiveTipoButtons();
-    attachPaginationEvents();
-    upsertCatalogItems(initialCatalogItems);
-
-    function buildVariantLabel(variant) {
-        const parts = [variant.presentation, variant.specification].filter(Boolean);
-        return parts.length ? parts.join(' ') : (variant.name || 'Presentacion');
-    }
-
-    function updateDetailVariantPrice() {
-        if (!currentDetailItem || !detailVariantSelect || !detailVariantPrice) return;
-        const variants = getVariants(currentDetailItem);
-        const selectedId = Number(detailVariantSelect.value || 0);
-        const selected = variants.find((v) => v.id === selectedId) || variants[0];
-        const price = selected ? selected.price : Number(currentDetailItem.precio || 0);
-        detailVariantPrice.textContent = `Precio: $${price.toFixed(2)}`;
-    }
-
-    function openDetailModal(data) {
-        if (!detailOverlay || !detailMedia || !detailCategory || !detailTitle || !detailPrice || !detailDescription) return;
-        const fullItem = catalogItemsByKey.get(itemKey(data.tipo, data.id));
-        currentDetailItem = fullItem ? { ...data, ...fullItem } : data;
-
-        detailMedia.innerHTML = data.imagen
-            ? `<img src="${data.imagen}" alt="${data.nombre}" class="catalogo-modal-image">`
-            : `<div class="catalogo-modal-placeholder">ITM</div>`;
-        detailCategory.textContent = `${currentDetailItem.tipo_label || 'Catalogo'} · ${currentDetailItem.categoria || ''}`;
-        detailTitle.textContent = currentDetailItem.nombre || '';
-        detailPrice.textContent = `Desde $${Number(currentDetailItem.precio || 0).toFixed(2)}`;
-        detailDescription.textContent = currentDetailItem.descripcion || 'Sin descripcion adicional.';
-
-        if (currentDetailItem.tipo === 'catalog' && currentDetailItem.comprable && detailProductControls && detailVariantSelect && detailQtyInput) {
-            const variants = getVariants(currentDetailItem);
-            detailVariantSelect.innerHTML = '';
-            if (variants.length) {
-                variants.forEach((variant) => {
-                    const option = document.createElement('option');
-                    option.value = String(variant.id);
-                    option.textContent = `${buildVariantLabel(variant)} - $${variant.price.toFixed(2)}`;
-                    detailVariantSelect.appendChild(option);
+            function attachPaginationEvents() {
+                document.querySelectorAll('.paginacion-btn').forEach((btn) => {
+                    btn.addEventListener('click', () => {
+                        currentPage = Number(btn.getAttribute('data-page')) || 1;
+                        loadCatalog();
+                    });
                 });
-                const defaultVariant = variants.find((v) => v.is_default) || variants[0];
-                if (defaultVariant) detailVariantSelect.value = String(defaultVariant.id);
-            } else {
-                const option = document.createElement('option');
-                option.value = '';
-                option.textContent = 'Presentacion base';
-                detailVariantSelect.appendChild(option);
             }
-            detailQtyInput.value = '1';
-            detailProductControls.hidden = false;
-            updateDetailVariantPrice();
-        } else if (detailProductControls) {
-            detailProductControls.hidden = true;
-        }
 
-        detailOverlay.hidden = false;
-        document.body.style.overflow = 'hidden';
-    }
+            async function loadCatalog() {
+                const params = new URLSearchParams({
+                    tipo: currentTipo,
+                    search: currentSearch,
+                    page: String(currentPage),
+                });
 
-    function closeDetailModal() {
-        if (!detailOverlay) return;
-        detailOverlay.hidden = true;
-        document.body.style.overflow = '';
-        currentDetailItem = null;
-    }
+                try {
+                    const response = await fetch(`${searchRoute}?${params.toString()}`, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                    });
 
-    function openReserveModal(data) {
-        if (!reserveOverlay || !reserveForm || !reserveSubtitle) return;
-        reserveForm.reset();
-        const reserveItemId = document.getElementById('reserveItemId');
-        const reserveItemType = document.getElementById('reserveItemType');
-        const reserveItemName = document.getElementById('reserveItemName');
-        const reserveSelectedItem = document.getElementById('reserveSelectedItem');
-        const dateInput = document.getElementById('reserveDate');
-        if (!reserveItemId || !reserveItemType || !reserveItemName || !reserveSelectedItem || !dateInput) return;
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
 
-        reserveItemId.value = data.id || '';
-        reserveItemType.value = data.tipo || '';
-        reserveItemName.value = data.nombre || '';
-        reserveSelectedItem.value = data.nombre || '';
-        reserveSubtitle.textContent = `Completa la reserva para: ${data.nombre || ''}`;
-        const now = new Date();
-        dateInput.min = now.toISOString().split('T')[0];
-        reserveOverlay.hidden = false;
-        document.body.style.overflow = 'hidden';
-    }
+                    const data = await response.json();
+                    const items = Array.isArray(data.items) ? data.items : [];
+                    catalogItemsByKey.clear();
+                    upsertCatalogItems(items);
 
-    function closeReserveModal() {
-        if (!reserveOverlay) return;
-        reserveOverlay.hidden = true;
-        document.body.style.overflow = '';
-    }
+                    gridContainer.innerHTML = '';
 
-    function collectDataset(el) {
-        return {
-            id: el.dataset.id || '',
-            tipo: el.dataset.tipo || '',
-            nombre: el.dataset.nombre || '',
-            categoria: el.dataset.categoria || '',
-            precio: el.dataset.precio || 0,
-            descripcion: el.dataset.descripcion || '',
-            imagen: el.dataset.imagen || '',
-        };
-    }
+                    if (!items.length) {
+                        gridContainer.innerHTML = '<p class="catalogo-empty">No se encontraron resultados.</p>';
+                        paginationContainer.innerHTML = '';
+                        return;
+                    }
 
-    gridContainer.addEventListener('click', (event) => {
-        const detailTarget = event.target.closest('.js-open-detail');
-        if (detailTarget) {
-            openDetailModal(collectDataset(detailTarget));
+                    items.forEach((item) => {
+                        gridContainer.appendChild(createCard(item));
+                    });
+
+                    paginationContainer.innerHTML = renderPagination(data.pagination);
+                    attachPaginationEvents();
+                } catch (error) {
+                    console.error('Error al cargar catalogo:', error);
+                    gridContainer.innerHTML =
+                        '<p class="catalogo-empty">No se pudo cargar el catalogo. Intenta nuevamente.</p>';
+                    paginationContainer.innerHTML = '';
+                }
+            }
+
+            updateActiveTipoButtons();
+            attachPaginationEvents();
+            upsertCatalogItems(initialCatalogItems);
+
+            function buildVariantLabel(variant) {
+                const parts = [variant.presentation, variant.specification].filter(Boolean);
+                return parts.length ? parts.join(' ') : (variant.name || 'Presentacion');
+            }
+
+            function updateDetailVariantPrice() {
+                if (!currentDetailItem || !detailVariantSelect || !detailVariantPrice) return;
+                const variants = getVariants(currentDetailItem);
+                const selectedId = Number(detailVariantSelect.value || 0);
+                const selected = variants.find((v) => v.id === selectedId) || variants[0];
+                const price = selected ? selected.price : Number(currentDetailItem.precio || 0);
+                const maxStock = getSelectedVariantStock();
+                detailVariantPrice.textContent = `Precio: $${price.toFixed(2)}`;
+                setDetailQuantity(1, maxStock);
+                if (detailAddToCartBtn) {
+                    detailAddToCartBtn.disabled = Boolean(currentDetailItem.inventariable) && maxStock <= 0;
+                    detailAddToCartBtn.textContent = detailAddToCartBtn.disabled ? 'Agotado' : 'Agregar al carrito';
+                }
+            }
+
+            function setDetailQuantity(value, max = null) {
+                const maxStock = max === null ? getSelectedVariantStock() : Number(max || 0);
+                const safeMax = Math.max(1, maxStock || 1);
+                const nextValue = Math.max(1, Math.min(Number(value) || 1, safeMax));
+                if (detailQtyInput) detailQtyInput.value = String(nextValue);
+                if (detailQtyValue) detailQtyValue.textContent = String(nextValue);
+                if (detailQtyMinus) detailQtyMinus.disabled = nextValue <= 1;
+                if (detailQtyPlus) detailQtyPlus.disabled = nextValue >= safeMax || maxStock <= 0;
+            }
+
+            function openDetailModal(data) {
+                if (!detailOverlay || !detailMedia || !detailCategory || !detailTitle || !detailPrice || !
+                    detailDescription) return;
+                const fullItem = catalogItemsByKey.get(itemKey(data.tipo, data.id));
+                currentDetailItem = fullItem ? {
+                    ...data,
+                    ...fullItem
+                } : data;
+
+                detailMedia.innerHTML = data.imagen ?
+                    `<img src="${data.imagen}" alt="${data.nombre}" class="catalogo-modal-image">` :
+                    `<div class="catalogo-modal-placeholder">ITM</div>`;
+                detailCategory.textContent =
+                    `${currentDetailItem.tipo_label || 'Catalogo'} · ${currentDetailItem.categoria || ''}`;
+                detailTitle.textContent = currentDetailItem.nombre || '';
+                detailPrice.textContent = `Desde $${Number(currentDetailItem.precio || 0).toFixed(2)}`;
+                detailDescription.textContent = currentDetailItem.descripcion || 'Sin descripcion adicional.';
+                const isProductDetail = currentDetailItem.tipo === 'catalog' && currentDetailItem.comprable && currentDetailItem.inventariable;
+                const isServiceDetail = currentDetailItem.tipo === 'catalog' && !currentDetailItem.inventariable;
+
+                if (detailServiceActions) {
+                    detailServiceActions.hidden = !isServiceDetail;
+                }
+                if (detailServiceAddBtn) {
+                    detailServiceAddBtn.hidden = !(isServiceDetail && currentDetailItem.comprable);
+                }
+                if (detailServiceReserveBtn) {
+                    detailServiceReserveBtn.hidden = !(isServiceDetail && currentDetailItem.reservable);
+                }
+
+                if (isProductDetail && detailProductControls && detailVariantSelect && detailQtyInput) {
+                    const variants = getVariants(currentDetailItem);
+                    detailVariantSelect.innerHTML = '';
+                    if (variants.length) {
+                        variants.forEach((variant) => {
+                            const option = document.createElement('option');
+                            option.value = String(variant.id);
+                            option.textContent =
+                                `${buildVariantLabel(variant)} - $${variant.price.toFixed(2)}${currentDetailItem.inventariable ? ` · Stock ${variant.stock}` : ''}`;
+                            option.disabled = Boolean(currentDetailItem.inventariable) && Number(variant
+                                .stock || 0) <= 0;
+                            detailVariantSelect.appendChild(option);
+                        });
+                        const availableVariants = variants.filter((variant) => !currentDetailItem.inventariable ||
+                            Number(variant.stock || 0) > 0);
+                        const defaultVariant = availableVariants.find((v) => v.is_default) || availableVariants[0] ||
+                            variants[0];
+                        if (defaultVariant) detailVariantSelect.value = String(defaultVariant.id);
+                    } else {
+                        const option = document.createElement('option');
+                        option.value = '';
+                        option.textContent = 'Presentacion base';
+                        detailVariantSelect.appendChild(option);
+                    }
+                    setDetailQuantity(1);
+                    detailProductControls.hidden = false;
+                    updateDetailVariantPrice();
+                } else if (detailProductControls) {
+                    detailVariantSelect.innerHTML = '';
+                    if (detailVariantPrice) detailVariantPrice.textContent = '';
+                    if (detailAddToCartBtn) {
+                        detailAddToCartBtn.disabled = false;
+                        detailAddToCartBtn.textContent = 'Agregar al carrito';
+                    }
+                    detailProductControls.hidden = true;
+                }
+
+                detailOverlay.hidden = false;
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeDetailModal() {
+                if (!detailOverlay) return;
+                detailOverlay.hidden = true;
+                document.body.style.overflow = '';
+                currentDetailItem = null;
+            }
+
+            function openReserveModal(data) {
+                if (!reserveOverlay || !reserveForm || !reserveSubtitle) return;
+                reserveForm.reset();
+                const reserveItemId = document.getElementById('reserveItemId');
+                const reserveItemType = document.getElementById('reserveItemType');
+                const reserveItemName = document.getElementById('reserveItemName');
+                const reserveSelectedItem = document.getElementById('reserveSelectedItem');
+                const dateInput = document.getElementById('reserveDate');
+                if (!reserveItemId || !reserveItemType || !reserveItemName || !reserveSelectedItem || !dateInput)
             return;
-        }
-        const reserveTarget = event.target.closest('.js-open-reserve');
-        if (reserveTarget) {
-            openReserveModal(collectDataset(reserveTarget));
-        }
-    });
 
-    detailClose?.addEventListener('click', closeDetailModal);
-    detailVariantSelect?.addEventListener('change', updateDetailVariantPrice);
-    detailAddToCartBtn?.addEventListener('click', () => {
-        if (!currentDetailItem || currentDetailItem.tipo !== 'catalog') return;
-        const qty = Math.max(1, Number(detailQtyInput?.value || 1));
-        const variantId = Number(detailVariantSelect?.value || 0) || null;
-        addToCart(Number(currentDetailItem.id), currentDetailItem.tipo, qty, variantId);
-        closeDetailModal();
-    });
-    reserveClose?.addEventListener('click', closeReserveModal);
-    detailOverlay?.addEventListener('click', (e) => {
-        if (e.target === detailOverlay) closeDetailModal();
-    });
-    reserveOverlay?.addEventListener('click', (e) => {
-        if (e.target === reserveOverlay) closeReserveModal();
-    });
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            closeDetailModal();
-            closeReserveModal();
-        }
-    });
+                reserveItemId.value = data.id || '';
+                reserveItemType.value = data.tipo || '';
+                reserveItemName.value = data.nombre || '';
+                reserveSelectedItem.value = data.nombre || '';
+                reserveSubtitle.textContent = `Completa la reserva para: ${data.nombre || ''}`;
+                const now = new Date();
+                dateInput.min = now.toISOString().split('T')[0];
+                reserveOverlay.hidden = false;
+                document.body.style.overflow = 'hidden';
+            }
 
-    reserveForm?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const reserveName = document.getElementById('reserveName');
-        const reservePhone = document.getElementById('reservePhone');
-        const reserveDate = document.getElementById('reserveDate');
-        const reserveTime = document.getElementById('reserveTime');
-        const reserveItemName = document.getElementById('reserveItemName');
-        const reserveItemId = document.getElementById('reserveItemId');
-        const reserveItemType = document.getElementById('reserveItemType');
-        if (!reserveName || !reservePhone || !reserveDate || !reserveTime || !reserveItemName || !reserveItemId || !reserveItemType) return;
+            function closeReserveModal() {
+                if (!reserveOverlay) return;
+                reserveOverlay.hidden = true;
+                document.body.style.overflow = '';
+            }
 
-        const name = reserveName.value.trim();
-        const phone = reservePhone.value.trim();
-        const date = reserveDate.value;
-        const time = reserveTime.value;
-        const itemName = reserveItemName.value;
-        const itemId = reserveItemId.value;
-        const itemType = reserveItemType.value;
+            function collectDataset(el) {
+                return {
+                    id: el.dataset.id || '',
+                    tipo: el.dataset.tipo || '',
+                    nombre: el.dataset.nombre || '',
+                    categoria: el.dataset.categoria || '',
+                    precio: el.dataset.precio || 0,
+                    descripcion: el.dataset.descripcion || '',
+                    tipo_descripcion: el.dataset.tipoDescripcion || '',
+                    inventariable: el.dataset.inventariable === '1',
+                    comprable: el.dataset.comprable === '1',
+                    reservable: el.dataset.reservable === '1',
+                    imagen: el.dataset.imagen || '',
+                };
+            }
 
-        if (!name || name.length < 3) {
-            return window.websiteNotify?.('error', 'Ingresa un nombre valido.');
-        }
-        if (!phone) {
-            return window.websiteNotify?.('error', 'Ingresa un telefono.');
-        }
-        if (!date || !time) {
-            return window.websiteNotify?.('error', 'Completa fecha y hora.');
-        }
-        if (isSunday(date)) {
-            return window.websiteNotify?.('error', 'No se agendan reservas en domingo.');
-        }
+            gridContainer.addEventListener('click', (event) => {
+                const detailTarget = event.target.closest('.js-open-detail');
+                if (detailTarget) {
+                    openDetailModal(collectDataset(detailTarget));
+                    return;
+                }
+                const reserveTarget = event.target.closest('.js-open-reserve');
+                if (reserveTarget) {
+                    openReserveModal(collectDataset(reserveTarget));
+                    return;
+                }
 
-        if (!itemId || !itemType) {
-            return window.websiteNotify?.('error', 'No se encontro el item a reservar.');
-        }
+                const stockButton = event.target.closest('.catalog-stock-btn');
+                if (stockButton) {
+                    const counter = stockButton.closest('.catalog-stock-counter');
+                    if (!counter) return;
+                    const max = Number(counter.dataset.stock || 1);
+                    const current = Number(counter.dataset.quantity || counter.querySelector('.js-stock-value')
+                        ?.textContent || 1);
+                    setCounterValue(counter, current + (stockButton.classList.contains('js-stock-plus') ? 1 : -
+                        1), max);
+                    return;
+                }
 
-        try {
-            const response = await fetch(reserveRoute, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-                body: JSON.stringify({
-                    item_id: Number(itemId),
-                    item_type: itemType,
-                }),
+                const addCounterTarget = event.target.closest('.js-add-counter-cart');
+                if (addCounterTarget) {
+                    const card = addCounterTarget.closest('.item-catalogo');
+                    const counter = card?.querySelector('.catalog-stock-counter');
+                    const quantity = Number(counter?.dataset.quantity || counter?.querySelector(
+                        '.js-stock-value')?.textContent || 1);
+                    addToCart(Number(addCounterTarget.dataset.id), addCounterTarget.dataset.tipo || 'catalog',
+                        quantity);
+                    return;
+                }
+
+                const addSimpleTarget = event.target.closest('.js-add-simple-cart');
+                if (addSimpleTarget) {
+                    addToCart(Number(addSimpleTarget.dataset.id), addSimpleTarget.dataset.tipo || 'catalog', 1);
+                }
             });
 
-            const data = await response.json().catch(() => ({}));
+            detailClose?.addEventListener('click', closeDetailModal);
+            detailVariantSelect?.addEventListener('change', updateDetailVariantPrice);
+            detailQtyMinus?.addEventListener('click', () => setDetailQuantity(Number(detailQtyInput?.value || 1) - 1));
+            detailQtyPlus?.addEventListener('click', () => setDetailQuantity(Number(detailQtyInput?.value || 1) + 1));
+            detailAddToCartBtn?.addEventListener('click', () => {
+                if (!currentDetailItem || currentDetailItem.tipo !== 'catalog') return;
+                const qty = Math.max(1, Number(detailQtyInput?.value || 1));
+                const variantId = Number(detailVariantSelect?.value || 0) || null;
+                addToCart(Number(currentDetailItem.id), currentDetailItem.tipo, qty, variantId);
+                closeDetailModal();
+            });
+            detailServiceAddBtn?.addEventListener('click', () => {
+                if (!currentDetailItem || currentDetailItem.tipo !== 'catalog') return;
+                addToCart(Number(currentDetailItem.id), currentDetailItem.tipo, 1);
+                closeDetailModal();
+            });
+            detailServiceReserveBtn?.addEventListener('click', () => {
+                if (!currentDetailItem || currentDetailItem.tipo !== 'catalog') return;
+                const itemForReserve = {
+                    id: currentDetailItem.id,
+                    tipo: currentDetailItem.tipo,
+                    nombre: currentDetailItem.nombre,
+                };
+                closeDetailModal();
+                openReserveModal(itemForReserve);
+            });
+            reserveClose?.addEventListener('click', closeReserveModal);
+            detailOverlay?.addEventListener('click', (e) => {
+                if (e.target === detailOverlay) closeDetailModal();
+            });
+            reserveOverlay?.addEventListener('click', (e) => {
+                if (e.target === reserveOverlay) closeReserveModal();
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeDetailModal();
+                    closeReserveModal();
+                }
+            });
 
-            if (!response.ok) {
-                throw new Error(data.message || 'No se pudo guardar la reserva.');
-            }
-        } catch (error) {
-            window.websiteNotify?.('error', error.message || 'No se pudo guardar la reserva.');
-            return;
-        }
+            reserveForm?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const reserveName = document.getElementById('reserveName');
+                const reservePhone = document.getElementById('reservePhone');
+                const reserveDate = document.getElementById('reserveDate');
+                const reserveTime = document.getElementById('reserveTime');
+                const reserveItemName = document.getElementById('reserveItemName');
+                const reserveItemId = document.getElementById('reserveItemId');
+                const reserveItemType = document.getElementById('reserveItemType');
+                if (!reserveName || !reservePhone || !reserveDate || !reserveTime || !reserveItemName || !
+                    reserveItemId || !reserveItemType) return;
 
-        const waPhone = normalizePhone(whatsappPhone || phone);
-        const message = encodeURIComponent(
-            `NUEVA RESERVA\n\n` +
-            `Nombre: ${name}\n` +
-            `Telefono: ${phone}\n` +
-            `Item: ${itemName}\n` +
-            `Fecha: ${date}\n` +
-            `Hora: ${time}`
-        );
-        const waUrl = waPhone ? `https://wa.me/${waPhone}?text=${message}` : '';
-        if (!waUrl) {
-            window.websiteNotify?.('error', 'No hay numero de WhatsApp configurado.');
-            return;
-        }
-        const popup = window.open('about:blank', '_blank');
-        if (popup) popup.location.href = waUrl;
-        else window.location.href = waUrl;
-        closeReserveModal();
-        window.websiteNotify?.('success', 'Reserva guardada y WhatsApp abierto para continuar.');
-    });
+                const name = reserveName.value.trim();
+                const phone = reservePhone.value.trim();
+                const date = reserveDate.value;
+                const time = reserveTime.value;
+                const itemName = reserveItemName.value;
+                const itemId = reserveItemId.value;
+                const itemType = reserveItemType.value;
 
-    filtroBtns.forEach((btn) => {
-        btn.addEventListener('click', () => {
-            currentTipo = btn.dataset.tipo || 'todos';
-            currentPage = 1;
-            updateActiveTipoButtons();
-            loadCatalog();
-        });
-    });
+                if (!name || name.length < 3) {
+                    return window.websiteNotify?.('error', 'Ingresa un nombre valido.');
+                }
+                if (!phone) {
+                    return window.websiteNotify?.('error', 'Ingresa un telefono.');
+                }
+                if (!date || !time) {
+                    return window.websiteNotify?.('error', 'Completa fecha y hora.');
+                }
+                if (isSunday(date)) {
+                    return window.websiteNotify?.('error', 'No se agendan reservas en domingo.');
+                }
 
-    let debounceTimeout;
-    searchInput.addEventListener('input', () => {
-        clearTimeout(debounceTimeout);
-        debounceTimeout = setTimeout(() => {
-            currentSearch = searchInput.value.trim();
-            currentPage = 1;
-            loadCatalog();
-        }, 320);
-    });
+                if (!itemId || !itemType) {
+                    return window.websiteNotify?.('error', 'No se encontro el item a reservar.');
+                }
 
-    const reserveDateInput = document.getElementById('reserveDate');
-    reserveDateInput?.addEventListener('change', () => {
-        if (reserveDateInput.value && isSunday(reserveDateInput.value)) {
-            reserveDateInput.value = '';
-            window.websiteNotify?.('error', 'No se agendan reservas en domingo.');
-        }
-    });
-})();
-</script>
+                try {
+                    const response = await fetch(reserveRoute, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        body: JSON.stringify({
+                            item_id: Number(itemId),
+                            item_type: itemType,
+                        }),
+                    });
+
+                    const data = await response.json().catch(() => ({}));
+
+                    if (!response.ok) {
+                        throw new Error(data.message || 'No se pudo guardar la reserva.');
+                    }
+                } catch (error) {
+                    window.websiteNotify?.('error', error.message || 'No se pudo guardar la reserva.');
+                    return;
+                }
+
+                const waPhone = normalizePhone(whatsappPhone || phone);
+                const message = encodeURIComponent(
+                    `NUEVA RESERVA\n\n` +
+                    `Nombre: ${name}\n` +
+                    `Telefono: ${phone}\n` +
+                    `Item: ${itemName}\n` +
+                    `Fecha: ${date}\n` +
+                    `Hora: ${time}`
+                );
+                const waUrl = waPhone ? `https://wa.me/${waPhone}?text=${message}` : '';
+                if (!waUrl) {
+                    window.websiteNotify?.('error', 'No hay numero de WhatsApp configurado.');
+                    return;
+                }
+                const popup = window.open('about:blank', '_blank');
+                if (popup) popup.location.href = waUrl;
+                else window.location.href = waUrl;
+                closeReserveModal();
+                window.websiteNotify?.('success', 'Reserva guardada y WhatsApp abierto para continuar.');
+            });
+
+            filtroBtns.forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    currentTipo = btn.dataset.tipo || 'todos';
+                    currentPage = 1;
+                    updateActiveTipoButtons();
+                    loadCatalog();
+                });
+            });
+
+            let debounceTimeout;
+            searchInput.addEventListener('input', () => {
+                clearTimeout(debounceTimeout);
+                debounceTimeout = setTimeout(() => {
+                    currentSearch = searchInput.value.trim();
+                    currentPage = 1;
+                    loadCatalog();
+                }, 320);
+            });
+
+            const reserveDateInput = document.getElementById('reserveDate');
+            reserveDateInput?.addEventListener('change', () => {
+                if (reserveDateInput.value && isSunday(reserveDateInput.value)) {
+                    reserveDateInput.value = '';
+                    window.websiteNotify?.('error', 'No se agendan reservas en domingo.');
+                }
+            });
+        })();
+    </script>
 @endpush

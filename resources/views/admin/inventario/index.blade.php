@@ -142,23 +142,20 @@
                             </div>
                         </div>
 
-                        <form method="POST" action="{{ route('admin.inventario.movements.store') }}" class="grid grid-cols-1 sm:grid-cols-4 gap-2 items-center">
-                            @csrf
-                            @if($variant)
-                                <input type="hidden" name="catalog_item_variant_id" value="{{ $variant->id }}">
-                            @else
-                                <input type="hidden" name="catalog_item_id" value="{{ $product->id }}">
-                            @endif
-                            <select name="type" class="border border-gray-200 rounded-lg px-2 py-2 text-xs">
-                                <option value="in">Entrada</option>
-                                <option value="out">Salida</option>
-                                <option value="adjust">Ajustar</option>
-                            </select>
-                            <input type="number" name="quantity" min="1" required class="border border-gray-200 rounded-lg px-2 py-2 text-xs" placeholder="Cant.">
-                            <button type="submit" class="inline-flex items-center justify-center bg-gray-900 text-white h-9 rounded-lg hover:bg-gray-700 transition sm:col-span-2" title="Guardar movimiento" aria-label="Guardar movimiento">
-                                <x-heroicon-o-check class="w-4 h-4" />
+                        <div class="flex justify-end">
+                            <button type="button"
+                                class="open-stock-modal inline-flex items-center justify-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition text-sm font-semibold"
+                                data-product-id="{{ $product->id }}"
+                                data-variant-id="{{ $variant?->id }}"
+                                data-product-name="{{ $product->name }}"
+                                data-variant-name="{{ $variantName }}"
+                                data-current-stock="{{ $variantStock }}"
+                                title="Gestionar stock"
+                                aria-label="Gestionar stock de {{ $product->name }}">
+                                <x-heroicon-o-archive-box class="w-4 h-4" />
+                                Gestionar stock
                             </button>
-                        </form>
+                        </div>
                     </div>
                 @empty
                     <div class="px-4 py-8 text-center text-gray-400">No hay productos para este negocio o búsqueda. Crea un producto o cambia el filtro.</div>
@@ -169,13 +166,13 @@
                 <table class="w-full table-fixed text-sm text-left">
                     <thead class="bg-gray-50 border-b text-xs uppercase text-gray-500">
                         <tr>
-                            <th class="px-3 py-3 text-center w-[21%]">Producto</th>
-                            <th class="px-3 py-3 text-center w-[14%]">Negocio</th>
-                            <th class="px-3 py-3 text-center w-[14%]">Categoría</th>
-                            <th class="px-3 py-3 text-center w-[17%]">Presentación/SKU</th>
+                            <th class="px-3 py-3 text-center w-[24%]">Producto</th>
+                            <th class="px-3 py-3 text-center w-[15%]">Negocio</th>
+                            <th class="px-3 py-3 text-center w-[15%]">Categoría</th>
+                            <th class="px-3 py-3 text-center w-[18%]">Presentación/SKU</th>
                             <th class="px-3 py-3 text-center w-[8%]">Stock</th>
                             <th class="px-3 py-3 text-center w-[10%]">Estado</th>
-                            <th class="px-3 py-3 text-center w-[26%]">Acción</th>
+                            <th class="px-3 py-3 text-center w-[10%]">Acción</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y">
@@ -206,23 +203,17 @@
                             @endif
                         </td>
                         <td class="px-3 py-3 text-center">
-                            <form method="POST" action="{{ route('admin.inventario.movements.store') }}" class="flex flex-wrap justify-center gap-2 items-center">
-                                @csrf
-                                @if($variant)
-                                    <input type="hidden" name="catalog_item_variant_id" value="{{ $variant->id }}">
-                                @else
-                                    <input type="hidden" name="catalog_item_id" value="{{ $product->id }}">
-                                @endif
-                                        <select name="type" class="border border-gray-200 rounded-lg px-2 py-1.5 text-xs">
-                                            <option value="in">Entrada</option>
-                                            <option value="out">Salida</option>
-                                            <option value="adjust">Ajustar</option>
-                                        </select>
-                                        <input type="number" name="quantity" min="1" required class="w-20 border border-gray-200 rounded-lg px-2 py-1.5 text-xs text-center" placeholder="Cant.">
-                                        <button type="submit" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gray-900 text-white hover:bg-gray-700 transition" title="Guardar movimiento" aria-label="Guardar movimiento">
-                                            <x-heroicon-o-check class="w-4 h-4" />
-                                        </button>
-                                    </form>
+                            <button type="button"
+                                class="open-stock-modal inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gray-900 text-white hover:bg-gray-700 transition"
+                                data-product-id="{{ $product->id }}"
+                                data-variant-id="{{ $variant?->id }}"
+                                data-product-name="{{ $product->name }}"
+                                data-variant-name="{{ $variantName }}"
+                                data-current-stock="{{ $variantStock }}"
+                                title="Gestionar stock"
+                                aria-label="Gestionar stock de {{ $product->name }}">
+                                <x-heroicon-o-archive-box class="w-4 h-4" />
+                            </button>
                                 </td>
                             </tr>
                         @empty
@@ -277,6 +268,114 @@
             </div>
         </div>
     </div>
+
+    <div id="stockModal" class="fixed inset-0 z-50 hidden items-center justify-center px-4 py-6">
+        <div class="absolute inset-0 bg-gray-900/50" data-stock-close></div>
+        <div class="relative w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-100 flex items-start justify-between gap-4">
+                <div class="min-w-0">
+                    <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Gestionar stock</p>
+                    <h3 id="stockModalProduct" class="text-lg font-bold text-gray-800 truncate">Producto</h3>
+                    <p id="stockModalVariant" class="text-sm text-gray-500 truncate">Presentación</p>
+                </div>
+                <button type="button" class="w-9 h-9 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition" data-stock-close aria-label="Cerrar">
+                    ×
+                </button>
+            </div>
+
+            <form method="POST" action="{{ route('admin.inventario.movements.store') }}" class="p-5 space-y-4">
+                @csrf
+                <input type="hidden" name="catalog_item_id" id="stockCatalogItemId">
+                <input type="hidden" name="catalog_item_variant_id" id="stockCatalogVariantId">
+
+                <div class="rounded-xl bg-gray-50 border border-gray-100 px-4 py-3 flex items-center justify-between">
+                    <span class="text-sm text-gray-500">Stock actual</span>
+                    <span id="stockModalCurrent" class="text-lg font-bold text-gray-800">0</span>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Movimiento</label>
+                    <select name="type" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300">
+                        <option value="in">Entrada de stock</option>
+                        <option value="out">Salida de stock</option>
+                        <option value="adjust">Ajustar stock exacto</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Cantidad</label>
+                    <input type="number" name="quantity" id="stockQuantity" min="1" value="1" required
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nota opcional</label>
+                    <input type="text" name="notes" maxlength="1000"
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
+                        placeholder="Ej: compra, pérdida, corrección de conteo">
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" class="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition text-sm font-semibold" data-stock-close>
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-gray-700 transition text-sm font-semibold">
+                        Guardar movimiento
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
     @endunless
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('stockModal');
+    if (!modal) return;
+
+    const productName = document.getElementById('stockModalProduct');
+    const variantName = document.getElementById('stockModalVariant');
+    const currentStock = document.getElementById('stockModalCurrent');
+    const productInput = document.getElementById('stockCatalogItemId');
+    const variantInput = document.getElementById('stockCatalogVariantId');
+    const quantityInput = document.getElementById('stockQuantity');
+
+    function openModal(button) {
+        const variantId = button.dataset.variantId || '';
+
+        productName.textContent = button.dataset.productName || 'Producto';
+        variantName.textContent = button.dataset.variantName || 'Producto base';
+        currentStock.textContent = button.dataset.currentStock || '0';
+        productInput.value = variantId ? '' : (button.dataset.productId || '');
+        variantInput.value = variantId;
+        quantityInput.value = 1;
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        quantityInput.focus();
+    }
+
+    function closeModal() {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    document.querySelectorAll('.open-stock-modal').forEach((button) => {
+        button.addEventListener('click', () => openModal(button));
+    });
+
+    modal.querySelectorAll('[data-stock-close]').forEach((button) => {
+        button.addEventListener('click', closeModal);
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !modal.classList.contains('hidden')) {
+            closeModal();
+        }
+    });
+});
+</script>
+@endpush
