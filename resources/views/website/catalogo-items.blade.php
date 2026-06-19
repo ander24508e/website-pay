@@ -14,6 +14,7 @@
                 data-inventariable="{{ ($item['inventariable'] ?? false) ? '1' : '0' }}"
                 data-comprable="{{ ($item['comprable'] ?? false) ? '1' : '0' }}"
                 data-reservable="{{ ($item['reservable'] ?? false) ? '1' : '0' }}"
+                data-requiere-tipo-vehiculo="{{ ($item['requiere_tipo_vehiculo'] ?? false) ? '1' : '0' }}"
                 data-imagen="{{ Storage::url($item['imagen']) }}"
                 aria-label="Ver detalle de {{ $item['nombre'] }}"
             >
@@ -33,6 +34,7 @@
                 data-inventariable="{{ ($item['inventariable'] ?? false) ? '1' : '0' }}"
                 data-comprable="{{ ($item['comprable'] ?? false) ? '1' : '0' }}"
                 data-reservable="{{ ($item['reservable'] ?? false) ? '1' : '0' }}"
+                data-requiere-tipo-vehiculo="{{ ($item['requiere_tipo_vehiculo'] ?? false) ? '1' : '0' }}"
                 data-imagen=""
                 aria-label="Ver detalle de {{ $item['nombre'] }}"
             >
@@ -60,16 +62,16 @@
             <div class="card-footer">
                 @if(($item['comprable'] ?? false) && !($item['agotado'] ?? false))
                     <button type="button"
-                        class="btn-reservar-main {{ ($item['inventariable'] ?? false) ? 'js-add-counter-cart' : 'js-add-simple-cart' }}"
+                        class="btn-reservar-main {{ ($item['inventariable'] ?? false) ? 'js-add-counter-cart' : (($item['requiere_tipo_vehiculo'] ?? false) ? 'js-open-priced-service' : 'js-add-simple-cart') }}"
                         data-id="{{ $item['id'] }}"
                         data-tipo="{{ $item['tipo'] }}">
-                        {{ ($item['inventariable'] ?? false) ? 'Comprar' : 'Agregar servicio' }}
+                        {{ ($item['inventariable'] ?? false) ? 'Comprar' : (($item['requiere_tipo_vehiculo'] ?? false) ? 'Elegir vehiculo' : 'Agregar servicio') }}
                     </button>
                 @endif
                 @if($item['reservable'] ?? false)
                     <button
                         type="button"
-                        class="btn-reservar btn-reservar-main js-open-reserve"
+                        class="btn-reservar btn-reservar-main {{ ($item['requiere_tipo_vehiculo'] ?? false) ? 'js-open-priced-service' : 'js-open-reserve' }}"
                         data-id="{{ $item['id'] }}"
                         data-tipo="{{ $item['tipo'] }}"
                         data-nombre="{{ $item['nombre'] }}"

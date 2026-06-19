@@ -5,6 +5,8 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ClientesController;
 use App\Http\Controllers\Admin\VentasController;
 use App\Http\Controllers\Admin\UsuariosController;
+use App\Http\Controllers\Admin\VehiculosController;
+use App\Http\Controllers\Admin\VehicleSpecificationsController;
 use App\Http\Controllers\Admin\InventarioController;
 use App\Http\Controllers\CatalogTypeController;
 use App\Http\Controllers\CatalogCategoryController;
@@ -81,6 +83,29 @@ Route::middleware(['auth', 'role:admin'])
         Route::post('/clientes/quick-store', [ClientesController::class, 'quickStore'])->name('clientes.quick-store');
         Route::resource('/clientes', ClientesController::class)
             ->parameters(['clientes' => 'cliente'])
+            ->only(['index', 'show', 'create', 'store', 'edit', 'update', 'destroy']);
+        Route::get('/vehiculos/especificaciones', [VehicleSpecificationsController::class, 'index'])
+            ->name('vehiculos.specifications.index');
+        Route::post('/vehiculos/especificaciones/tipos', [VehicleSpecificationsController::class, 'storeType'])
+            ->name('vehiculos.specifications.types.store');
+        Route::put('/vehiculos/especificaciones/tipos/{vehicleType}', [VehicleSpecificationsController::class, 'updateType'])
+            ->name('vehiculos.specifications.types.update');
+        Route::delete('/vehiculos/especificaciones/tipos/{vehicleType}', [VehicleSpecificationsController::class, 'destroyType'])
+            ->name('vehiculos.specifications.types.destroy');
+        Route::post('/vehiculos/especificaciones/marcas', [VehicleSpecificationsController::class, 'storeBrand'])
+            ->name('vehiculos.specifications.brands.store');
+        Route::put('/vehiculos/especificaciones/marcas/{vehicleBrand}', [VehicleSpecificationsController::class, 'updateBrand'])
+            ->name('vehiculos.specifications.brands.update');
+        Route::delete('/vehiculos/especificaciones/marcas/{vehicleBrand}', [VehicleSpecificationsController::class, 'destroyBrand'])
+            ->name('vehiculos.specifications.brands.destroy');
+        Route::post('/vehiculos/especificaciones/modelos', [VehicleSpecificationsController::class, 'storeModel'])
+            ->name('vehiculos.specifications.models.store');
+        Route::put('/vehiculos/especificaciones/modelos/{vehicleModel}', [VehicleSpecificationsController::class, 'updateModel'])
+            ->name('vehiculos.specifications.models.update');
+        Route::delete('/vehiculos/especificaciones/modelos/{vehicleModel}', [VehicleSpecificationsController::class, 'destroyModel'])
+            ->name('vehiculos.specifications.models.destroy');
+        Route::resource('/vehiculos', VehiculosController::class)
+            ->parameters(['vehiculos' => 'vehiculo'])
             ->only(['index', 'show', 'create', 'store', 'edit', 'update', 'destroy']);
         Route::resource('/usuarios', UsuariosController::class)
             ->parameters(['usuarios' => 'usuario'])

@@ -6,6 +6,7 @@ use App\Models\CatalogItem;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Transaction;
+use App\Services\ServiceVehiclePriceResolver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -15,36 +16,22 @@ use Illuminate\Support\Str;
 
 class OrderController extends Controller
 {
-    private function createOrderFromCart(array $carrito): Order
+    private function createOrderFromCart(array $carrito, ServiceVehiclePriceResolver $priceResolver): Order
     {
-        $total = collect($carrito)->sum(function ($item) {
-            $price = (float) data_get($item, 'price', 0);
-            $quantity = (int) data_get($item, 'quantity', 0);
-            return $price * $quantity;
-        });
+        $resolvedItems = $this->resolveCartItems($carrito, $priceResolver);
+        $total = collect($resolvedItems)->sum(fn ($item) => $item['price'] * $item['quantity']);
         $order = Order::create($this->buildOrderData((float) $total, auth()->id(), false));
 
-        foreach ($carrito as $item) {
-            $itemType = (string) data_get($item, 'type', '');
-            $itemId = (int) data_get($item, 'id', 0);
-            $quantity = (int) data_get($item, 'quantity', 0);
-            $price = (float) data_get($item, 'price', 0);
-
-            /** @var CatalogItem|null $model */
-            $model = $itemType === 'catalog'
-                ? CatalogItem::query()->find($itemId)
-                : null;
-
-            if (!$model) {
-                continue;
-            }
-
+        foreach ($resolvedItems as $item) {
+            $model = $item['model'];
             OrderItem::create([
                 'order_id' => $order->id,
                 'itemable_type' => get_class($model),
                 'itemable_id' => $model->id,
-                'quantity' => $quantity,
-                'unit_price' => $price,
+                'vehicle_id' => $item['vehicle_id'],
+                'vehicle_type_id' => $item['vehicle_type_id'],
+                'quantity' => $item['quantity'],
+                'unit_price' => $item['price'],
             ]);
         }
 
@@ -104,7 +91,7 @@ class OrderController extends Controller
         return view('checkout.index', compact('carrito', 'total'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, ServiceVehiclePriceResolver $priceResolver)
     {
         $carrito = (array) $request->session()->get('carrito', []);
 
@@ -112,7 +99,7 @@ class OrderController extends Controller
             return redirect()->route('carrito.index');
         }
 
-        $order = $this->createOrderFromCart($carrito);
+        $order = $this->createOrderFromCart($carrito, $priceResolver);
 
         $request->session()->put('current_order_id', $order->id);
 
@@ -142,7 +129,7 @@ class OrderController extends Controller
         return redirect()->away($payphoneResponse['payWithCard']);
     }
 
-    public function prepareBox(Request $request)
+    public function prepareBox(Request $request, ServiceVehiclePriceResolver $priceResolver)
     {
         $carrito = (array) $request->session()->get('carrito', []);
 
@@ -153,7 +140,7 @@ class OrderController extends Controller
             ], 422);
         }
 
-        $order = $this->createOrderFromCart($carrito);
+        $order = $this->createOrderFromCart($carrito, $priceResolver);
         $totalCents = (int) round($order->total * 100);
         $amounts = $this->buildPayphoneAmounts($totalCents);
         $clientTransactionId = 'order-' . $order->id . '-' . Str::uuid()->toString();
@@ -242,7 +229,7 @@ class OrderController extends Controller
     public function show(Order $order)
     {
         $this->authorize('view', $order);
-        $order->load('items.itemable', 'transaction', 'user');
+        $order->load('items.itemable', 'items.vehicle.brand', 'items.vehicle.model', 'items.vehicleType', 'transaction', 'user');
 
         if (request()->routeIs('admin.orders.show')) {
             return view('admin.orders.show', compact('order'));
@@ -253,7 +240,7 @@ class OrderController extends Controller
 
     public function confirmacion(Order $order)
     {
-        $order->load('items.itemable', 'transaction');
+        $order->load('items.itemable', 'items.vehicle.brand', 'items.vehicle.model', 'items.vehicleType', 'transaction');
 
         return view('checkout.confirmacion', compact('order'));
     }
@@ -285,11 +272,13 @@ class OrderController extends Controller
         return view('admin.orders.index', compact('orders'));
     }
 
-    public function reservarCatalogo(Request $request)
+    public function reservarCatalogo(Request $request, ServiceVehiclePriceResolver $priceResolver)
     {
         $data = $request->validate([
             'item_id' => ['required', 'integer'],
             'item_type' => ['required', Rule::in(['catalog'])],
+            'vehicle_id' => ['nullable', 'integer'],
+            'vehicle_type_id' => ['nullable', 'integer'],
         ]);
 
         /** @var CatalogItem|null $model */
@@ -303,13 +292,21 @@ class OrderController extends Controller
             return response()->json(['message' => 'El item seleccionado no esta disponible.'], 404);
         }
 
-        $reservationPrice = (float) $model->display_price;
+        $vehicleContext = $priceResolver->resolve(
+            $model,
+            $request->integer('vehicle_id') ?: null,
+            $request->integer('vehicle_type_id') ?: null,
+            auth()->id()
+        );
+        $reservationPrice = $vehicleContext['price'];
         $order = Order::create($this->buildOrderData($reservationPrice, auth()->id(), true));
 
         OrderItem::create([
             'order_id' => $order->id,
             'itemable_type' => get_class($model),
             'itemable_id' => $model->id,
+            'vehicle_id' => $vehicleContext['vehicle_id'],
+            'vehicle_type_id' => $vehicleContext['vehicle_type_id'],
             'quantity' => 1,
             'unit_price' => $reservationPrice,
         ]);
@@ -319,6 +316,47 @@ class OrderController extends Controller
             'message' => 'Reserva creada exitosamente.',
             'order_id' => $order->id,
         ]);
+    }
+
+    private function resolveCartItems(array $cart, ServiceVehiclePriceResolver $priceResolver): array
+    {
+        $resolved = [];
+
+        foreach ($cart as $item) {
+            if ((string) data_get($item, 'type') !== 'catalog') {
+                continue;
+            }
+
+            $model = CatalogItem::query()
+                ->with(['type', 'vehicleTypePrices.vehicleType'])
+                ->where('active', true)
+                ->where('purchasable', true)
+                ->find((int) data_get($item, 'id'));
+
+            if (!$model) {
+                continue;
+            }
+
+            $vehicleContext = $priceResolver->resolve(
+                $model,
+                data_get($item, 'vehicle_id') ? (int) data_get($item, 'vehicle_id') : null,
+                data_get($item, 'vehicle_type_id') ? (int) data_get($item, 'vehicle_type_id') : null,
+                auth()->id()
+            );
+
+            $isService = ($model->type?->business_model ?? \App\Models\CatalogType::BUSINESS_MODEL_SERVICES)
+                === \App\Models\CatalogType::BUSINESS_MODEL_SERVICES;
+
+            $resolved[] = [
+                'model' => $model,
+                'quantity' => max(1, (int) data_get($item, 'quantity', 1)),
+                'price' => $isService ? $vehicleContext['price'] : (float) data_get($item, 'price', $model->display_price),
+                'vehicle_id' => $vehicleContext['vehicle_id'],
+                'vehicle_type_id' => $vehicleContext['vehicle_type_id'],
+            ];
+        }
+
+        return $resolved;
     }
 
     public function marcarPagada(Order $order)

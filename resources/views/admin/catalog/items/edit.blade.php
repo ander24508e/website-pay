@@ -176,6 +176,10 @@
                         </div>
                     </section>
 
+                    @if(!$isProductContext)
+                        @include('admin.catalog.items._vehicle-type-prices')
+                    @endif
+
                     <details class="mt-8 rounded-xl border border-gray-100 bg-gray-50 p-4">
                         <summary class="cursor-pointer text-sm font-semibold text-gray-700">Opciones avanzadas</summary>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-5">

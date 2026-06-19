@@ -63,8 +63,7 @@
                 <span>Transacciones</span>
             </a>
 
-            <p class="px-4 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">Catalogo e
-                inventario</p>
+            <p class="px-3 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">Activos Operacionales</p>
 
             <a href="{{ route('admin.catalog.index') }}"
                 class="{{ request()->routeIs('admin.catalog.*') || request()->routeIs('admin.catalog-types.*') || request()->routeIs('admin.catalog-categories.*') || request()->routeIs('admin.catalog-items.*') || request()->routeIs('admin.catalog-variants.*') || request()->routeIs('admin.catalog.*') ? 'active' : '' }}">
@@ -75,6 +74,11 @@
                 class="{{ request()->routeIs('admin.inventario.*') ? 'active' : '' }}">
                 <span><x-heroicon-o-archive-box class="w-5 h-5" /></span>
                 <span>Inventario</span>
+            </a>
+            <a href="{{ route('admin.vehiculos.index') }}"
+                class="{{ request()->routeIs('admin.vehiculos.*') ? 'active' : '' }}">
+                <span><x-heroicon-o-truck class="w-5 h-5" /></span>
+                <span>Vehiculos</span>
             </a>
 
             <p class="px-4 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">
@@ -189,8 +193,7 @@
                 <span>Transacciones</span>
             </a>
 
-            <p class="px-3 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">Catalogo e
-                inventario</p>
+            <p class="px-3 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">Activos Operacionales</p>
 
             <a href="{{ route('admin.catalog.index') }}"
                 class="{{ request()->routeIs('admin.catalog.*') || request()->routeIs('admin.catalog-types.*') || request()->routeIs('admin.catalog-categories.*') || request()->routeIs('admin.catalog-items.*') || request()->routeIs('admin.catalog-variants.*') || request()->routeIs('admin.catalog.*') ? 'active' : '' }}">
@@ -202,6 +205,11 @@
                 class="{{ request()->routeIs('admin.inventario.*') ? 'active' : '' }}">
                 <span><x-heroicon-o-archive-box class="w-5 h-5" /></span>
                 <span>Inventario</span>
+            </a>
+            <a href="{{ route('admin.vehiculos.index') }}"
+                class="{{ request()->routeIs('admin.vehiculos.*') ? 'active' : '' }}">
+                <span><x-heroicon-o-truck class="w-5 h-5" /></span>
+                <span>Vehiculos</span>
             </a>
 
             <p class="px-3 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">

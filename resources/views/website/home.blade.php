@@ -65,7 +65,7 @@
             track.style.transform = `translateX(-${newOffset * cardWidth}px)`;
         }
 
-        function addToCart(id, type, quantity = 1, variantId = null) {
+        function addToCart(id, type, quantity = 1, variantId = null, vehicleId = null, vehicleTypeId = null) {
             fetch('{{ route('carrito.agregar') }}', {
                 method: 'POST',
                 headers: {
@@ -74,7 +74,14 @@
                     'X-Requested-With': 'XMLHttpRequest',
                     'Accept': 'application/json'
                 },
-                body: JSON.stringify({ id, type, quantity, variant_id: variantId })
+                body: JSON.stringify({
+                    id,
+                    type,
+                    quantity,
+                    variant_id: variantId,
+                    vehicle_id: vehicleId,
+                    vehicle_type_id: vehicleTypeId
+                })
             })
                 .then(async (response) => {
                     const data = await response.json().catch(() => ({}));

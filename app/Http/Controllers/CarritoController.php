@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\CatalogItem;
 use App\Models\CatalogItemVariant;
+use App\Models\CatalogType;
+use App\Services\ServiceVehiclePriceResolver;
 use Illuminate\Http\Request;
 
 class CarritoController extends Controller
@@ -15,16 +17,21 @@ class CarritoController extends Controller
         return view('carrito.index', compact('carrito', 'total'));
     }
 
-    public function agregar(Request $request)
+    public function agregar(Request $request, ServiceVehiclePriceResolver $priceResolver)
     {
         $request->validate([
             'id'       => 'required|integer',
             'type'     => 'required|in:catalog',
             'quantity' => 'required|integer|min:1',
             'variant_id' => 'nullable|integer',
+            'vehicle_id' => 'nullable|integer',
+            'vehicle_type_id' => 'nullable|integer',
         ]);
 
-        $item = CatalogItem::where('active', true)->where('purchasable', true)->findOrFail($request->id);
+        $item = CatalogItem::with(['type', 'vehicleTypePrices.vehicleType'])
+            ->where('active', true)
+            ->where('purchasable', true)
+            ->findOrFail($request->id);
 
         $carrito = session()->get('carrito', []);
         $key = $request->type . '_' . $request->id;
@@ -32,6 +39,24 @@ class CarritoController extends Controller
         $variantId = null;
         $variantLabel = null;
         $price = (float) $item->display_price;
+        $vehicleContext = [
+            'vehicle_id' => null,
+            'vehicle_type_id' => null,
+            'vehicle_label' => null,
+            'vehicle_type_label' => null,
+        ];
+
+        $isService = ($item->type?->business_model ?? CatalogType::BUSINESS_MODEL_SERVICES) === CatalogType::BUSINESS_MODEL_SERVICES;
+
+        if ($isService) {
+            $vehicleContext = $priceResolver->resolve(
+                $item,
+                $request->integer('vehicle_id') ?: null,
+                $request->integer('vehicle_type_id') ?: null,
+                auth()->id()
+            );
+            $price = $vehicleContext['price'];
+        }
 
         if ($request->filled('variant_id')) {
             $variant = CatalogItemVariant::query()
@@ -54,6 +79,11 @@ class CarritoController extends Controller
         }
 
         $key = $request->type . '_' . $request->id . ($variantId ? ('_v' . $variantId) : '');
+        if ($vehicleContext['vehicle_id']) {
+            $key .= '_vehicle' . $vehicleContext['vehicle_id'];
+        } elseif ($vehicleContext['vehicle_type_id']) {
+            $key .= '_type' . $vehicleContext['vehicle_type_id'];
+        }
         $requestedQuantity = (int) $request->quantity;
         $currentQuantity = (int) ($carrito[$key]['quantity'] ?? 0);
 
@@ -95,6 +125,10 @@ class CarritoController extends Controller
                 'price'    => $price,
                 'image'    => $item->image,
                 'quantity' => $requestedQuantity,
+                'vehicle_id' => $vehicleContext['vehicle_id'],
+                'vehicle_type_id' => $vehicleContext['vehicle_type_id'],
+                'vehicle_label' => $vehicleContext['vehicle_label'],
+                'vehicle_type_label' => $vehicleContext['vehicle_type_label'],
             ];
         }
 

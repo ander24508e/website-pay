@@ -63,7 +63,7 @@ class VentasController extends Controller
 
     public function show(Order $venta)
     {
-        $venta->load(['user', 'items.itemable', 'transaction']);
+        $venta->load(['user', 'items.itemable', 'items.vehicle.brand', 'items.vehicle.model', 'items.vehicleType', 'transaction']);
 
         return view('admin.ventas.show', compact('venta'));
     }

@@ -305,6 +305,39 @@
     display: none !important;
 }
 
+#catalogo .catalogo-detail-vehicle {
+    display: grid;
+    gap: 0.45rem;
+    margin-top: 1rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+#catalogo .catalogo-detail-vehicle[hidden] {
+    display: none !important;
+}
+
+#catalogo .catalogo-detail-vehicle label {
+    color: #e5e7eb;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+#catalogo .catalogo-detail-vehicle select {
+    width: 100%;
+    min-height: 2.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.07);
+    color: #fff;
+    padding: 0.62rem 0.7rem;
+}
+
+#catalogo .catalogo-detail-vehicle select:focus {
+    border-color: var(--brand-primary);
+    outline: none;
+}
+
 #catalogo .catalogo-detail-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));

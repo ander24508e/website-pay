@@ -11,6 +11,8 @@ class OrderItem extends Model
         'order_id',
         'itemable_type',
         'itemable_id',
+        'vehicle_id',
+        'vehicle_type_id',
         'quantity',
         'unit_price',
     ];
@@ -23,6 +25,16 @@ class OrderItem extends Model
     public function itemable()
     {
         return $this->morphTo();
+    }
+
+    public function vehicle()
+    {
+        return $this->belongsTo(Vehicle::class);
+    }
+
+    public function vehicleType()
+    {
+        return $this->belongsTo(VehicleType::class);
     }
 
     public function getItemTypeLabelAttribute(): string
@@ -41,5 +53,19 @@ class OrderItem extends Model
     public function getItemDisplayNameAttribute(): string
     {
         return $this->itemable->name ?? 'Item eliminado';
+    }
+
+    public function getVehicleDisplayAttribute(): ?string
+    {
+        if ($this->vehicle) {
+            return trim(sprintf(
+                '%s - %s %s',
+                $this->vehicle->plate,
+                $this->vehicle->brand?->name ?? '',
+                $this->vehicle->model?->name ?? ''
+            ));
+        }
+
+        return $this->vehicleType?->name;
     }
 }

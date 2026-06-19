@@ -64,6 +64,11 @@ class CatalogItem extends Model
         return $this->hasMany(CatalogItemVariant::class)->where('active', true)->orderBy('sort_order')->orderBy('name');
     }
 
+    public function vehicleTypePrices()
+    {
+        return $this->hasMany(ServiceVehicleTypePrice::class)->orderBy('vehicle_type_id');
+    }
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('active', true);

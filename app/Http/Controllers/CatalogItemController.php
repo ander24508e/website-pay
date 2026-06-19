@@ -8,6 +8,7 @@ use App\Models\CatalogItem;
 use App\Models\CatalogItemVariant;
 use App\Models\CatalogType;
 use App\Models\Empresa;
+use App\Models\VehicleType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -142,6 +143,7 @@ class CatalogItemController extends Controller
             ->ordered()
             ->get();
         $returnToType = (bool) $request->boolean('return_to_type', $selectedTypeId > 0);
+        $vehicleTypes = VehicleType::query()->where('active', true)->ordered()->get();
 
         $view = $fromInventory || ($selectedType && $this->isProductBusiness($selectedType))
             ? 'admin.catalog.items.create-product'
@@ -156,7 +158,8 @@ class CatalogItemController extends Controller
             'selectedType',
             'selectedCategory',
             'returnToType',
-            'fromInventory'
+            'fromInventory',
+            'vehicleTypes'
         ));
     }
 
@@ -186,6 +189,8 @@ class CatalogItemController extends Controller
             'variant_sku' => ['nullable', 'string', 'max:255'],
             'variant_price' => ['nullable', 'numeric', 'min:0'],
             'variant_stock' => ['nullable', 'integer', 'min:0'],
+            'vehicle_type_prices' => ['nullable', 'array'],
+            'vehicle_type_prices.*' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
         ]);
 
         $type = CatalogType::query()
@@ -223,6 +228,7 @@ class CatalogItemController extends Controller
         }
 
         $item = CatalogItem::create($payload);
+        $this->syncVehicleTypePrices($item, $type, $data['vehicle_type_prices'] ?? []);
 
         $shouldCreatePresentation = $this->isProductBusiness($type);
 
@@ -256,7 +262,7 @@ class CatalogItemController extends Controller
 
     public function show(CatalogItem $catalogItem)
     {
-        $catalogItem->load(['type', 'category', 'variants']);
+        $catalogItem->load(['type', 'category', 'variants', 'vehicleTypePrices.vehicleType']);
 
         return view('admin.catalog.items.show', compact('catalogItem'));
     }
@@ -272,8 +278,10 @@ class CatalogItemController extends Controller
             ->with('type')
             ->ordered()
             ->get();
+        $vehicleTypes = VehicleType::query()->where('active', true)->ordered()->get();
+        $catalogItem->load('vehicleTypePrices');
 
-        return view('admin.catalog.items.edit', compact('catalogItem', 'types', 'categories'));
+        return view('admin.catalog.items.edit', compact('catalogItem', 'types', 'categories', 'vehicleTypes'));
     }
 
     public function update(Request $request, CatalogItem $catalogItem)
@@ -292,6 +300,8 @@ class CatalogItemController extends Controller
             'purchasable' => ['nullable', 'boolean'],
             'reservable' => ['nullable', 'boolean'],
             'uses_inventory' => ['nullable', 'boolean'],
+            'vehicle_type_prices' => ['nullable', 'array'],
+            'vehicle_type_prices.*' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
         ]);
 
         $type = CatalogType::query()
@@ -326,6 +336,7 @@ class CatalogItemController extends Controller
         }
 
         $catalogItem->update($payload);
+        $this->syncVehicleTypePrices($catalogItem, $type, $data['vehicle_type_prices'] ?? []);
 
         if ($this->isProductBusiness($type)) {
             $this->ensureDefaultVariant($catalogItem);
@@ -416,6 +427,30 @@ class CatalogItemController extends Controller
             'is_default' => true,
             'sort_order' => 0,
         ]);
+    }
+
+    private function syncVehicleTypePrices(CatalogItem $item, CatalogType $type, array $prices): void
+    {
+        if ($this->isProductBusiness($type)) {
+            $item->vehicleTypePrices()->delete();
+            return;
+        }
+
+        $validTypeIds = VehicleType::query()->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $normalized = collect($prices)
+            ->filter(fn ($price, $vehicleTypeId) => in_array((int) $vehicleTypeId, $validTypeIds, true) && $price !== null && $price !== '')
+            ->mapWithKeys(fn ($price, $vehicleTypeId) => [(int) $vehicleTypeId => (float) $price]);
+
+        $item->vehicleTypePrices()
+            ->whereNotIn('vehicle_type_id', $normalized->keys())
+            ->delete();
+
+        foreach ($normalized as $vehicleTypeId => $price) {
+            $item->vehicleTypePrices()->updateOrCreate(
+                ['vehicle_type_id' => $vehicleTypeId],
+                ['price' => $price]
+            );
+        }
     }
 
     private function resolveSlug(int $empresaId, string $name, ?string $slug, ?int $ignoreId = null): ?string

@@ -77,6 +77,7 @@
                         <tr>
                             <th class="text-left px-6 py-3 text-gray-500 font-semibold text-xs">Ítem</th>
                             <th class="text-left px-6 py-3 text-gray-500 font-semibold text-xs">Tipo</th>
+                            <th class="text-left px-6 py-3 text-gray-500 font-semibold text-xs">Vehiculo</th>
                             <th class="text-left px-6 py-3 text-gray-500 font-semibold text-xs">Cant.</th>
                             <th class="text-left px-6 py-3 text-gray-500 font-semibold text-xs">Precio unit.</th>
                             <th class="text-left px-6 py-3 text-gray-500 font-semibold text-xs">Subtotal</th>
@@ -87,13 +88,14 @@
                             <tr class="hover:bg-gray-50">
                                 <td class="px-6 py-3 font-medium text-gray-800">{{ $item->item_display_name }}</td>
                                 <td class="px-6 py-3 text-gray-600">{{ $item->item_type_label }}</td>
+                                <td class="px-6 py-3 text-gray-600">{{ $item->vehicle_display ?? '-' }}</td>
                                 <td class="px-6 py-3 text-gray-600">{{ $item->quantity }}</td>
                                 <td class="px-6 py-3 text-gray-600">${{ number_format($item->unit_price, 2) }}</td>
                                 <td class="px-6 py-3 font-semibold text-gray-800">${{ number_format($item->unit_price * $item->quantity, 2) }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="px-6 py-8 text-center text-gray-400 text-sm">Sin ítems registrados.</td>
+                                <td colspan="6" class="px-6 py-8 text-center text-gray-400 text-sm">Sin ítems registrados.</td>
                             </tr>
                         @endforelse
                     </tbody>

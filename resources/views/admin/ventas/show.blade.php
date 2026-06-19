@@ -29,6 +29,7 @@
                         <tr>
                             <th class="px-3 py-2 text-left">Item</th>
                             <th class="px-3 py-2 text-left">Tipo</th>
+                            <th class="px-3 py-2 text-left">Vehiculo</th>
                             <th class="px-3 py-2 text-left">Cantidad</th>
                             <th class="px-3 py-2 text-left">Unitario</th>
                             <th class="px-3 py-2 text-left">Subtotal</th>
@@ -39,6 +40,7 @@
                             <tr class="border-t border-gray-100">
                                 <td class="px-3 py-2 text-gray-700">{{ $item->item_display_name }}</td>
                                 <td class="px-3 py-2 text-gray-500">{{ $item->item_type_label }}</td>
+                                <td class="px-3 py-2 text-gray-500">{{ $item->vehicle_display ?? '-' }}</td>
                                 <td class="px-3 py-2 text-gray-500">{{ $item->quantity }}</td>
                                 <td class="px-3 py-2 text-gray-500">${{ number_format($item->unit_price, 2) }}</td>
                                 <td class="px-3 py-2 font-semibold text-gray-700">${{ number_format($item->unit_price * $item->quantity, 2) }}</td>

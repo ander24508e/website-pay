@@ -41,6 +41,15 @@
                 <h3 class="catalogo-modal-title" id="catalogoDetailTitle"></h3>
                 <p class="catalogo-modal-price" id="catalogoDetailPrice"></p>
                 <p class="catalogo-modal-desc" id="catalogoDetailDescription"></p>
+                <div class="catalogo-detail-vehicle" id="catalogoDetailVehicle" hidden>
+                    <label for="detailVehicleSelect">Vehiculo o tipo de vehiculo</label>
+                    <select id="detailVehicleSelect">
+                        <option value="">Selecciona una opcion</option>
+                    </select>
+                    <p class="catalogo-detail-hint" id="detailVehicleHint">
+                        El precio se calcula según el tipo del vehículo seleccionado.
+                    </p>
+                </div>
                 <div class="catalogo-detail-service-actions" id="catalogoDetailServiceActions" hidden>
                     <button type="button" class="btn-reservar-main" id="detailServiceAddBtn">Agregar servicio</button>
                     <button type="button" class="btn-reservar-main" id="detailServiceReserveBtn">Reservar</button>
@@ -81,6 +90,9 @@
                     <input type="hidden" id="reserveItemId">
                     <input type="hidden" id="reserveItemType">
                     <input type="hidden" id="reserveItemName">
+                    <input type="hidden" id="reserveVehicleId">
+                    <input type="hidden" id="reserveVehicleTypeId">
+                    <input type="hidden" id="reserveVehicleLabel">
 
                     <label>Item seleccionado
                         <input type="text" id="reserveSelectedItem" readonly>
@@ -129,6 +141,9 @@
             const detailTitle = document.getElementById('catalogoDetailTitle');
             const detailPrice = document.getElementById('catalogoDetailPrice');
             const detailDescription = document.getElementById('catalogoDetailDescription');
+            const detailVehicle = document.getElementById('catalogoDetailVehicle');
+            const detailVehicleSelect = document.getElementById('detailVehicleSelect');
+            const detailVehicleHint = document.getElementById('detailVehicleHint');
             const detailServiceActions = document.getElementById('catalogoDetailServiceActions');
             const detailServiceAddBtn = document.getElementById('detailServiceAddBtn');
             const detailServiceReserveBtn = document.getElementById('detailServiceReserveBtn');
@@ -157,6 +172,8 @@
             const reserveRoute = @json(route('reservas.catalogo'));
             const csrfToken = @json(csrf_token());
             const initialCatalogItems = @json(($catalogo ?? collect())->values());
+            const customerVehicles = @json(($customerVehicles ?? collect())->values());
+            const vehicleTypes = @json(($vehicleTypes ?? collect())->values());
             const catalogItemsByKey = new Map();
             let currentDetailItem = null;
 
@@ -252,7 +269,8 @@
                 if (item.inventariable && item.agotado) return '<span class="catalog-stock-empty">Agotado</span>';
 
                 if (!item.inventariable) {
-                    return `<button type="button" class="btn-reservar-main js-add-simple-cart" data-id="${Number(item.id)}" data-tipo="${tipo}">Agregar servicio</button>`;
+                    const needsVehicle = Boolean(item.requiere_tipo_vehiculo);
+                    return `<button type="button" class="btn-reservar-main ${needsVehicle ? 'js-open-priced-service' : 'js-add-simple-cart'}" data-id="${Number(item.id)}" data-tipo="${tipo}">${needsVehicle ? 'Elegir vehiculo' : 'Agregar servicio'}</button>`;
                 }
 
                 const stock = getItemAvailableStock(item);
@@ -295,7 +313,7 @@
                 </div>
                 <div class="card-footer">
                     ${isPurchasable ? renderPurchaseAction(item, tipo) : ''}
-                    ${isReservable ? `<button type="button" class="btn-reservar btn-reservar-main js-open-reserve" data-id="${Number(item.id)}" data-tipo="${tipo}" data-nombre="${safeName}" data-precio="${Number(item.precio)}" title="Reservar" aria-label="Reservar">Reservar</button>` : ''}
+                    ${isReservable ? `<button type="button" class="btn-reservar btn-reservar-main ${item.requiere_tipo_vehiculo ? 'js-open-priced-service' : 'js-open-reserve'}" data-id="${Number(item.id)}" data-tipo="${tipo}" data-nombre="${safeName}" data-precio="${Number(item.precio)}" title="Reservar" aria-label="Reservar">Reservar</button>` : ''}
                 </div>
             </div>
         `;
@@ -406,6 +424,85 @@
                 if (detailQtyPlus) detailQtyPlus.disabled = nextValue >= safeMax || maxStock <= 0;
             }
 
+            function getVehiclePrices(item) {
+                return Array.isArray(item?.precios_vehiculo) ? item.precios_vehiculo : [];
+            }
+
+            function getSelectedVehicleContext() {
+                const option = detailVehicleSelect?.selectedOptions?.[0];
+                if (!option || !option.value) {
+                    return { vehicleId: null, vehicleTypeId: null };
+                }
+
+                return {
+                    vehicleId: option.dataset.vehicleId ? Number(option.dataset.vehicleId) : null,
+                    vehicleTypeId: option.dataset.vehicleTypeId ? Number(option.dataset.vehicleTypeId) : null,
+                    vehicleLabel: option.textContent?.trim() || null,
+                };
+            }
+
+            function updateServiceVehiclePrice() {
+                if (!currentDetailItem || !detailVehicleSelect) return;
+                const option = detailVehicleSelect.selectedOptions[0];
+                const price = option?.dataset.price !== undefined && option?.dataset.price !== ''
+                    ? Number(option.dataset.price)
+                    : Number(currentDetailItem.precio_base ?? currentDetailItem.precio ?? 0);
+
+                detailPrice.textContent = option?.value
+                    ? `Precio: $${price.toFixed(2)}`
+                    : `Desde $${Number(currentDetailItem.precio || 0).toFixed(2)}`;
+            }
+
+            function renderServiceVehicleOptions(item) {
+                if (!detailVehicle || !detailVehicleSelect) return;
+                const prices = getVehiclePrices(item);
+                const priceByType = new Map(prices.map((price) => [Number(price.vehicle_type_id), Number(price.price)]));
+                const requiresVehicle = Boolean(item.requiere_tipo_vehiculo) && prices.length > 0;
+                const basePrice = Number(item.precio_base ?? item.precio ?? 0);
+                const priceForType = (vehicleTypeId) => priceByType.has(Number(vehicleTypeId))
+                    ? priceByType.get(Number(vehicleTypeId))
+                    : basePrice;
+
+                detailVehicle.hidden = !requiresVehicle;
+                detailVehicleSelect.innerHTML = '<option value="">Selecciona una opcion</option>';
+
+                if (!requiresVehicle) return;
+
+                const compatibleVehicles = customerVehicles;
+                if (compatibleVehicles.length) {
+                    const group = document.createElement('optgroup');
+                    group.label = 'Mis vehiculos';
+                    compatibleVehicles.forEach((vehicle) => {
+                        const option = document.createElement('option');
+                        option.value = `vehicle:${vehicle.id}`;
+                        option.dataset.vehicleId = String(vehicle.id);
+                        option.dataset.vehicleTypeId = String(vehicle.vehicle_type_id);
+                        option.dataset.price = String(priceForType(vehicle.vehicle_type_id));
+                        option.textContent = `${vehicle.label} · ${vehicle.type_name}`;
+                        group.appendChild(option);
+                    });
+                    detailVehicleSelect.appendChild(group);
+                }
+
+                const genericGroup = document.createElement('optgroup');
+                genericGroup.label = compatibleVehicles.length ? 'Otro vehiculo por tipo' : 'Seleccionar por tipo';
+                vehicleTypes.forEach((vehicleType) => {
+                        const option = document.createElement('option');
+                        option.value = `type:${vehicleType.id}`;
+                        option.dataset.vehicleTypeId = String(vehicleType.id);
+                        option.dataset.price = String(priceForType(vehicleType.id));
+                        option.textContent = `${vehicleType.name} · $${priceForType(vehicleType.id).toFixed(2)}`;
+                        genericGroup.appendChild(option);
+                    });
+                detailVehicleSelect.appendChild(genericGroup);
+
+                if (detailVehicleHint) {
+                    detailVehicleHint.textContent = compatibleVehicles.length
+                        ? 'Selecciona uno de tus vehículos o usa un tipo temporal.'
+                        : 'Selecciona temporalmente el tipo de vehículo para calcular el precio.';
+                }
+            }
+
             function openDetailModal(data) {
                 if (!detailOverlay || !detailMedia || !detailCategory || !detailTitle || !detailPrice || !
                     detailDescription) return;
@@ -425,6 +522,7 @@
                 detailDescription.textContent = currentDetailItem.descripcion || 'Sin descripcion adicional.';
                 const isProductDetail = currentDetailItem.tipo === 'catalog' && currentDetailItem.comprable && currentDetailItem.inventariable;
                 const isServiceDetail = currentDetailItem.tipo === 'catalog' && !currentDetailItem.inventariable;
+                renderServiceVehicleOptions(currentDetailItem);
 
                 if (detailServiceActions) {
                     detailServiceActions.hidden = !isServiceDetail;
@@ -498,6 +596,9 @@
                 reserveItemId.value = data.id || '';
                 reserveItemType.value = data.tipo || '';
                 reserveItemName.value = data.nombre || '';
+                document.getElementById('reserveVehicleId').value = data.vehicleId || '';
+                document.getElementById('reserveVehicleTypeId').value = data.vehicleTypeId || '';
+                document.getElementById('reserveVehicleLabel').value = data.vehicleLabel || '';
                 reserveSelectedItem.value = data.nombre || '';
                 reserveSubtitle.textContent = `Completa la reserva para: ${data.nombre || ''}`;
                 const now = new Date();
@@ -524,6 +625,7 @@
                     inventariable: el.dataset.inventariable === '1',
                     comprable: el.dataset.comprable === '1',
                     reservable: el.dataset.reservable === '1',
+                    requiere_tipo_vehiculo: el.dataset.requiereTipoVehiculo === '1',
                     imagen: el.dataset.imagen || '',
                 };
             }
@@ -537,6 +639,20 @@
                 const reserveTarget = event.target.closest('.js-open-reserve');
                 if (reserveTarget) {
                     openReserveModal(collectDataset(reserveTarget));
+                    return;
+                }
+                const pricedServiceTarget = event.target.closest('.js-open-priced-service');
+                if (pricedServiceTarget) {
+                    const item = catalogItemsByKey.get(itemKey(
+                        pricedServiceTarget.dataset.tipo || 'catalog',
+                        pricedServiceTarget.dataset.id
+                    ));
+                    if (item) {
+                        openDetailModal({
+                            ...item,
+                            imagen: item.imagen ? `/storage/${item.imagen}` : '',
+                        });
+                    }
                     return;
                 }
 
@@ -571,6 +687,7 @@
 
             detailClose?.addEventListener('click', closeDetailModal);
             detailVariantSelect?.addEventListener('change', updateDetailVariantPrice);
+            detailVehicleSelect?.addEventListener('change', updateServiceVehiclePrice);
             detailQtyMinus?.addEventListener('click', () => setDetailQuantity(Number(detailQtyInput?.value || 1) - 1));
             detailQtyPlus?.addEventListener('click', () => setDetailQuantity(Number(detailQtyInput?.value || 1) + 1));
             detailAddToCartBtn?.addEventListener('click', () => {
@@ -582,7 +699,11 @@
             });
             detailServiceAddBtn?.addEventListener('click', () => {
                 if (!currentDetailItem || currentDetailItem.tipo !== 'catalog') return;
-                addToCart(Number(currentDetailItem.id), currentDetailItem.tipo, 1);
+                const vehicleContext = getSelectedVehicleContext();
+                if (currentDetailItem.requiere_tipo_vehiculo && !vehicleContext.vehicleId && !vehicleContext.vehicleTypeId) {
+                    return window.websiteNotify?.('error', 'Selecciona tu vehiculo o un tipo de vehiculo.');
+                }
+                addToCart(Number(currentDetailItem.id), currentDetailItem.tipo, 1, null, vehicleContext.vehicleId, vehicleContext.vehicleTypeId);
                 closeDetailModal();
             });
             detailServiceReserveBtn?.addEventListener('click', () => {
@@ -591,7 +712,11 @@
                     id: currentDetailItem.id,
                     tipo: currentDetailItem.tipo,
                     nombre: currentDetailItem.nombre,
+                    ...getSelectedVehicleContext(),
                 };
+                if (currentDetailItem.requiere_tipo_vehiculo && !itemForReserve.vehicleId && !itemForReserve.vehicleTypeId) {
+                    return window.websiteNotify?.('error', 'Selecciona tu vehiculo o un tipo de vehiculo.');
+                }
                 closeDetailModal();
                 openReserveModal(itemForReserve);
             });
@@ -618,8 +743,12 @@
                 const reserveItemName = document.getElementById('reserveItemName');
                 const reserveItemId = document.getElementById('reserveItemId');
                 const reserveItemType = document.getElementById('reserveItemType');
+                const reserveVehicleId = document.getElementById('reserveVehicleId');
+                const reserveVehicleTypeId = document.getElementById('reserveVehicleTypeId');
+                const reserveVehicleLabel = document.getElementById('reserveVehicleLabel');
                 if (!reserveName || !reservePhone || !reserveDate || !reserveTime || !reserveItemName || !
-                    reserveItemId || !reserveItemType) return;
+                    reserveItemId || !reserveItemType || !reserveVehicleId || !reserveVehicleTypeId ||
+                    !reserveVehicleLabel) return;
 
                 const name = reserveName.value.trim();
                 const phone = reservePhone.value.trim();
@@ -657,6 +786,8 @@
                         body: JSON.stringify({
                             item_id: Number(itemId),
                             item_type: itemType,
+                            vehicle_id: reserveVehicleId.value ? Number(reserveVehicleId.value) : null,
+                            vehicle_type_id: reserveVehicleTypeId.value ? Number(reserveVehicleTypeId.value) : null,
                         }),
                     });
 
@@ -676,6 +807,7 @@
                     `Nombre: ${name}\n` +
                     `Telefono: ${phone}\n` +
                     `Item: ${itemName}\n` +
+                    `${reserveVehicleLabel.value ? `Vehiculo: ${reserveVehicleLabel.value}\n` : ''}` +
                     `Fecha: ${date}\n` +
                     `Hora: ${time}`
                 );

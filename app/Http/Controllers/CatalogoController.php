@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\CatalogItem;
 use App\Models\CatalogType;
 use App\Models\Empresa;
+use App\Models\Vehicle;
+use App\Models\VehicleType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 
@@ -46,7 +48,7 @@ class CatalogoController extends Controller
             $universalesQuery = CatalogItem::query()
                 ->select('catalog_items.*')
                 ->join('catalog_types', 'catalog_types.id', '=', 'catalog_items.catalog_type_id')
-                ->with(['type', 'category', 'activeVariants'])
+                ->with(['type', 'category', 'activeVariants', 'vehicleTypePrices.vehicleType'])
                 ->where('catalog_items.active', true)
                 ->when($universalFilterSlug, function ($query) use ($universalFilterSlug) {
                     $query->where('catalog_types.slug', $universalFilterSlug);
@@ -69,12 +71,25 @@ class CatalogoController extends Controller
             $catalogoUniversales = $universalesQuery->get()->map(function ($item) {
                 $stockDisponible = $this->resolveAvailableStock($item);
                 $isInventariable = (bool) $item->uses_inventory;
+                $vehiclePrices = $item->vehicleTypePrices
+                    ->filter(fn ($vehiclePrice) => $vehiclePrice->vehicleType?->active)
+                    ->map(fn ($vehiclePrice) => [
+                        'vehicle_type_id' => (int) $vehiclePrice->vehicle_type_id,
+                        'vehicle_type_name' => $vehiclePrice->vehicleType?->name,
+                        'price' => (float) $vehiclePrice->price,
+                    ])
+                    ->values();
+                $basePrice = (float) ($item->base_price ?? $item->display_price);
+                $publicPrice = $vehiclePrices->isNotEmpty()
+                    ? min($basePrice, (float) $vehiclePrices->min('price'))
+                    : $item->display_price;
 
                 return [
                     'id' => $item->id,
                     'nombre' => $item->name,
                     'descripcion' => $item->description,
-                    'precio' => $item->display_price,
+                    'precio' => $publicPrice,
+                    'precio_base' => $basePrice,
                     'imagen' => $item->image,
                     'categoria' => $item->category->name ?? ($item->type->name ?? 'Catalogo'),
                     'tipo' => 'catalog',
@@ -86,6 +101,8 @@ class CatalogoController extends Controller
                     'inventariable' => $isInventariable,
                     'stock_disponible' => $stockDisponible,
                     'agotado' => $isInventariable && $stockDisponible <= 0,
+                    'requiere_tipo_vehiculo' => !$isInventariable && $vehiclePrices->isNotEmpty(),
+                    'precios_vehiculo' => $vehiclePrices,
                     'variantes' => $item->activeVariants
                         ->sortBy(function ($variant) {
                             return $variant->is_default ? -1 : $variant->sort_order;
@@ -203,6 +220,8 @@ class CatalogoController extends Controller
             'catalogFilters' => $this->getCatalogFilters(),
             'tipo'       => $tipo,
             'search'     => $search,
+            'customerVehicles' => $this->getCustomerVehicles(),
+            'vehicleTypes' => $this->getActiveVehicleTypes(),
         ]);
     }
 
@@ -226,5 +245,44 @@ class CatalogoController extends Controller
             'search' => $search,
             'page' => $page,
         ]);
+    }
+
+    private function getCustomerVehicles()
+    {
+        if (!auth()->check()) {
+            return collect();
+        }
+
+        return Vehicle::query()
+            ->where('user_id', auth()->id())
+            ->where('active', true)
+            ->whereNotNull('vehicle_type_id')
+            ->whereHas('type', fn ($query) => $query->where('active', true))
+            ->with(['brand:id,name', 'model:id,name', 'type:id,name'])
+            ->orderBy('plate')
+            ->get()
+            ->map(fn ($vehicle) => [
+                'id' => (int) $vehicle->id,
+                'vehicle_type_id' => (int) $vehicle->vehicle_type_id,
+                'label' => trim(sprintf(
+                    '%s - %s %s',
+                    $vehicle->plate,
+                    $vehicle->brand?->name ?? '',
+                    $vehicle->model?->name ?? ''
+                )),
+                'type_name' => $vehicle->type?->name,
+            ]);
+    }
+
+    private function getActiveVehicleTypes()
+    {
+        return VehicleType::query()
+            ->where('active', true)
+            ->ordered()
+            ->get(['id', 'name'])
+            ->map(fn ($vehicleType) => [
+                'id' => (int) $vehicleType->id,
+                'name' => $vehicleType->name,
+            ]);
     }
 }
