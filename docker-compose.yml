@@ -6,17 +6,14 @@ services:
     restart: unless-stopped
     env_file:
       - .env
-    environment:
-      DB_CONNECTION: mysql
-      DB_HOST: mysql
-      DB_PORT: 3306
+    entrypoint: ["/entrypoint.sh"]
     ports:
       - "${APP_PORT}:8000"
     depends_on:
       - mysql
     volumes:
-      - laravel_storage:/var/www/html/storage
-      - laravel_cache:/var/www/html/bootstrap/cache
+      - laravel_storage:/app/storage
+      - laravel_cache:/app/bootstrap/cache
 
   mysql:
     image: mysql:8.0
@@ -30,7 +27,7 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     ports:
-      - "${DB_FORWARD_PORT:-3307}:3306"
+      - "${DB_PORT:-3307}:3306"
 
 volumes:
   mysql_data:

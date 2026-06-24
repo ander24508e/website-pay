@@ -46,7 +46,7 @@ COPY --from=node-build /app/public/build ./public/build
 RUN chown -R www-data:www-data /app \
     && chmod -R 775 storage bootstrap/cache
 
-COPY docker/entrypoint.sh /entrypoint.sh
+COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 EXPOSE 8000
