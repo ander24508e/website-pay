@@ -7,6 +7,9 @@ if [ ! -L public/storage ]; then
   php artisan storage:link
 fi
 
+echo "DB host: ${DB_HOST:-undefined}"
+echo "DB port: ${DB_PORT:-undefined}"
+echo "DB database: ${DB_DATABASE:-undefined}"
 echo "Esperando a la base de datos..."
 until php artisan migrate --force; do
   echo "MySQL no esta listo, reintentando..."
