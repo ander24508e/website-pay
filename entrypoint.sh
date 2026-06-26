@@ -2,6 +2,10 @@
 set -e
 
 php artisan optimize:clear
+php artisan config:clear
+php artisan cache:clear
+php artisan route:clear
+php artisan view:clear
 
 if [ ! -L public/storage ]; then
   php artisan storage:link
