@@ -2,31 +2,41 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 
 class RoleSeeder extends Seeder
 {
-    private const ROLES = [
-        'admin',
-        'empleado',
-        'cliente',
-    ];
-
     public function run(): void
     {
-        $permissionRegistrar = app(\Spatie\Permission\PermissionRegistrar::class);
-        $permissionRegistrar->forgetCachedPermissions();
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        foreach (self::ROLES as $role) {
-            Role::updateOrCreate(
-                ['name' => $role, 'guard_name' => 'web'],
-                ['name' => $role, 'guard_name' => 'web']
-            );
-        }
+        Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
+        Role::firstOrCreate(['name' => 'cliente', 'guard_name' => 'web']);
 
-        $permissionRegistrar->forgetCachedPermissions();
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@endara.com'],
+            [
+                'name' => 'Administrador',
+                'password' => bcrypt('Admin123'),
+                'email_verified_at' => now(),
+            ]
+        );
+        $admin->syncRoles(['admin']);
 
-        $this->command->info('Roles created: '.implode(', ', self::ROLES));
+        $cliente = User::firstOrCreate(
+            ['email' => 'cliente@test.com'],
+            [
+                'name' => 'Daniel',
+                'password' => bcrypt('Cliente123'),
+                'email_verified_at' => now(),
+            ]
+        );
+        $cliente->syncRoles(['cliente']);
+
+        $this->command->info('✅ Roles creados: admin, cliente');
+        $this->command->info('✅ Admin: admin@endara.com / Admin123');
+        $this->command->info('✅ Cliente: cliente@test.com / Cliente123');
     }
 }
