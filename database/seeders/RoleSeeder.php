@@ -7,14 +7,26 @@ use Spatie\Permission\Models\Role;
 
 class RoleSeeder extends Seeder
 {
+    private const ROLES = [
+        'admin',
+        'empleado',
+        'cliente',
+    ];
+
     public function run(): void
     {
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        $permissionRegistrar = app(\Spatie\Permission\PermissionRegistrar::class);
+        $permissionRegistrar->forgetCachedPermissions();
 
-        Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
-        Role::firstOrCreate(['name' => 'empleado', 'guard_name' => 'web']);
-        Role::firstOrCreate(['name' => 'cliente', 'guard_name' => 'web']);
+        foreach (self::ROLES as $role) {
+            Role::updateOrCreate(
+                ['name' => $role, 'guard_name' => 'web'],
+                ['name' => $role, 'guard_name' => 'web']
+            );
+        }
 
-        $this->command->info('Roles created: admin, empleado, cliente');
+        $permissionRegistrar->forgetCachedPermissions();
+
+        $this->command->info('Roles created: '.implode(', ', self::ROLES));
     }
 }
