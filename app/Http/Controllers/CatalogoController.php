@@ -256,22 +256,37 @@ class CatalogoController extends Controller
         return Vehicle::query()
             ->where('user_id', auth()->id())
             ->where('active', true)
-            ->whereNotNull('vehicle_type_id')
-            ->whereHas('type', fn ($query) => $query->where('active', true))
-            ->with(['brand:id,name', 'model:id,name', 'type:id,name'])
+            ->where(function ($query) {
+                $query->whereNotNull('vehicle_specification_id')
+                    ->orWhereNotNull('vehicle_type_id');
+            })
+            ->where(function ($query) {
+                $query->whereHas('specification.type', fn ($type) => $type->where('active', true))
+                    ->orWhereHas('type', fn ($type) => $type->where('active', true));
+            })
+            ->with([
+                'brand:id,name',
+                'model:id,name',
+                'type:id,name',
+                'specification.brand:id,name',
+                'specification.model:id,name',
+                'specification.type:id,name',
+            ])
             ->orderBy('plate')
             ->get()
             ->map(fn ($vehicle) => [
                 'id' => (int) $vehicle->id,
-                'vehicle_type_id' => (int) $vehicle->vehicle_type_id,
+                'vehicle_type_id' => (int) $vehicle->resolvedType()?->id,
                 'label' => trim(sprintf(
                     '%s - %s %s',
                     $vehicle->plate,
-                    $vehicle->brand?->name ?? '',
-                    $vehicle->model?->name ?? ''
+                    $vehicle->resolvedBrand()?->name ?? '',
+                    $vehicle->resolvedModel()?->name ?? ''
                 )),
-                'type_name' => $vehicle->type?->name,
-            ]);
+                'type_name' => $vehicle->resolvedType()?->name,
+            ])
+            ->filter(fn ($vehicle) => $vehicle['vehicle_type_id'] > 0)
+            ->values();
     }
 
     private function getActiveVehicleTypes()

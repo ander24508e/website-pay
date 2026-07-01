@@ -8,6 +8,7 @@ use App\Models\CatalogItem;
 use App\Models\CatalogItemVariant;
 use App\Models\CatalogType;
 use App\Models\Empresa;
+use App\Models\VehicleBrand;
 use App\Models\VehicleType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -144,6 +145,7 @@ class CatalogItemController extends Controller
             ->get();
         $returnToType = (bool) $request->boolean('return_to_type', $selectedTypeId > 0);
         $vehicleTypes = VehicleType::query()->where('active', true)->ordered()->get();
+        $brands = VehicleBrand::query()->where('active', true)->orderBy('name')->get(['id', 'name']);
 
         $view = $fromInventory || ($selectedType && $this->isProductBusiness($selectedType))
             ? 'admin.catalog.items.create-product'
@@ -159,7 +161,8 @@ class CatalogItemController extends Controller
             'selectedCategory',
             'returnToType',
             'fromInventory',
-            'vehicleTypes'
+            'vehicleTypes',
+            'brands'
         ));
     }
 

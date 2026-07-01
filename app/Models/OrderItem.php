@@ -61,8 +61,8 @@ class OrderItem extends Model
             return trim(sprintf(
                 '%s - %s %s',
                 $this->vehicle->plate,
-                $this->vehicle->brand?->name ?? '',
-                $this->vehicle->model?->name ?? ''
+                $this->vehicle->resolvedBrand()?->name ?? '',
+                $this->vehicle->resolvedModel()?->name ?? ''
             ));
         }
 

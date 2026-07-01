@@ -86,6 +86,12 @@ Route::middleware(['auth', 'role:admin'])
             ->only(['index', 'show', 'create', 'store', 'edit', 'update', 'destroy']);
         Route::get('/vehiculos/especificaciones', [VehicleSpecificationsController::class, 'index'])
             ->name('vehiculos.specifications.index');
+        Route::post('/vehiculos/especificaciones/relaciones', [VehicleSpecificationsController::class, 'storeSpecification'])
+            ->name('vehiculos.specifications.store');
+        Route::put('/vehiculos/especificaciones/relaciones/{vehicleSpecification}', [VehicleSpecificationsController::class, 'updateSpecification'])
+            ->name('vehiculos.specifications.update');
+        Route::delete('/vehiculos/especificaciones/relaciones/{vehicleSpecification}', [VehicleSpecificationsController::class, 'destroySpecification'])
+            ->name('vehiculos.specifications.destroy');
         Route::post('/vehiculos/especificaciones/tipos', [VehicleSpecificationsController::class, 'storeType'])
             ->name('vehiculos.specifications.types.store');
         Route::put('/vehiculos/especificaciones/tipos/{vehicleType}', [VehicleSpecificationsController::class, 'updateType'])

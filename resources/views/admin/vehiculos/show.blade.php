@@ -13,7 +13,7 @@
                 </a>
                 <div class="min-w-0">
                     <h2 class="text-2xl font-bold text-gray-800 break-words">{{ $vehiculo->plate }}</h2>
-                    <p class="text-gray-500 text-sm mt-1 break-words">{{ $vehiculo->brand?->name }} {{ $vehiculo->model?->name }}</p>
+                    <p class="text-gray-500 text-sm mt-1 break-words">{{ $vehiculo->resolvedBrand()?->name }} {{ $vehiculo->resolvedModel()?->name }}</p>
                 </div>
             </div>
 
@@ -48,11 +48,11 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-4 text-sm">
                     <div>
                         <p class="text-xs uppercase text-gray-400 font-semibold">Marca</p>
-                        <p class="font-medium text-gray-800 break-words">{{ $vehiculo->brand?->name ?? '-' }}</p>
+                        <p class="font-medium text-gray-800 break-words">{{ $vehiculo->resolvedBrand()?->name ?? '-' }}</p>
                     </div>
                     <div>
                         <p class="text-xs uppercase text-gray-400 font-semibold">Modelo</p>
-                        <p class="font-medium text-gray-800 break-words">{{ $vehiculo->model?->name ?? '-' }}</p>
+                        <p class="font-medium text-gray-800 break-words">{{ $vehiculo->resolvedModel()?->name ?? '-' }}</p>
                     </div>
                     <div>
                         <p class="text-xs uppercase text-gray-400 font-semibold">Placa</p>
@@ -68,7 +68,7 @@
                     </div>
                     <div>
                         <p class="text-xs uppercase text-gray-400 font-semibold">Tipo</p>
-                        <p class="font-medium text-gray-800">{{ $vehiculo->type?->name ?? '-' }}</p>
+                        <p class="font-medium text-gray-800">{{ $vehiculo->resolvedType()?->name ?? '-' }}</p>
                     </div>
                 </div>
             </section>

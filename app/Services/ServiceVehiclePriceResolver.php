@@ -43,16 +43,23 @@ class ServiceVehiclePriceResolver
                 ->whereKey($vehicleId)
                 ->where('user_id', $userId)
                 ->where('active', true)
-                ->with(['brand:id,name', 'model:id,name', 'type:id,name,active'])
+                ->with([
+                    'brand:id,name',
+                    'model:id,name',
+                    'type:id,name,active',
+                    'specification.brand:id,name',
+                    'specification.model:id,name',
+                    'specification.type:id,name,active',
+                ])
                 ->first();
 
-            if (!$vehicle || !$vehicle->type || !$vehicle->type->active) {
+            $vehicleType = $vehicle?->resolvedType();
+
+            if (!$vehicle || !$vehicleType || !$vehicleType->active) {
                 throw ValidationException::withMessages([
                     'vehicle_id' => 'El vehículo seleccionado no está disponible o no te pertenece.',
                 ]);
             }
-
-            $vehicleType = $vehicle->type;
         } elseif ($vehicleTypeId) {
             $vehicleType = VehicleType::query()
                 ->whereKey($vehicleTypeId)
@@ -79,7 +86,7 @@ class ServiceVehiclePriceResolver
             'vehicle_id' => $vehicle?->id,
             'vehicle_type_id' => $vehicleType?->id,
             'vehicle_label' => $vehicle
-                ? trim(sprintf('%s - %s %s', $vehicle->plate, $vehicle->brand?->name ?? '', $vehicle->model?->name ?? ''))
+                ? trim(sprintf('%s - %s %s', $vehicle->plate, $vehicle->resolvedBrand()?->name ?? '', $vehicle->resolvedModel()?->name ?? ''))
                 : null,
             'vehicle_type_label' => $vehicleType?->name,
         ];

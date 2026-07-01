@@ -92,7 +92,7 @@
                         <div class="flex items-start justify-between gap-3">
                             <div class="min-w-0">
                                 <h3 class="font-bold text-gray-800 break-words">{{ $vehicle->plate }}</h3>
-                                <p class="text-sm text-gray-500 break-words">{{ $vehicle->brand?->name }} {{ $vehicle->model?->name }}</p>
+                                <p class="text-sm text-gray-500 break-words">{{ $vehicle->resolvedBrand()?->name }} {{ $vehicle->resolvedModel()?->name }}</p>
                             </div>
                             @if ($vehicle->active)
                                 <span class="shrink-0 bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-medium">Activo</span>
@@ -116,7 +116,7 @@
                             </div>
                             <div>
                                 <p class="text-xs uppercase text-gray-400 font-semibold">Tipo</p>
-                                <p class="text-gray-700">{{ $vehicle->type?->name ?? '-' }}</p>
+                                <p class="text-gray-700">{{ $vehicle->resolvedType()?->name ?? '-' }}</p>
                             </div>
                             <div>
                                 <p class="text-xs uppercase text-gray-400 font-semibold">Registro</p>
@@ -171,9 +171,9 @@
                             <tr class="border-t border-gray-100 hover:bg-gray-50">
                                 <td class="px-3 py-3 text-center font-semibold text-gray-800 truncate">{{ $vehicle->plate }}</td>
                                 <td class="px-3 py-3 text-center text-gray-700 truncate">{{ $vehicle->client?->name ?? '-' }}</td>
-                                <td class="px-3 py-3 text-center text-gray-700 truncate">{{ $vehicle->brand?->name ?? '-' }}</td>
-                                <td class="px-3 py-3 text-center text-gray-700 truncate">{{ $vehicle->model?->name ?? '-' }}</td>
-                                <td class="px-3 py-3 text-center text-gray-700 truncate">{{ $vehicle->type?->name ?? '-' }}</td>
+                                <td class="px-3 py-3 text-center text-gray-700 truncate">{{ $vehicle->resolvedBrand()?->name ?? '-' }}</td>
+                                <td class="px-3 py-3 text-center text-gray-700 truncate">{{ $vehicle->resolvedModel()?->name ?? '-' }}</td>
+                                <td class="px-3 py-3 text-center text-gray-700 truncate">{{ $vehicle->resolvedType()?->name ?? '-' }}</td>
                                 <td class="px-3 py-3 text-center text-gray-600 truncate">{{ $vehicle->color ?? '-' }}</td>
                                 <td class="px-3 py-3 text-center text-gray-600">{{ $vehicle->year ?? '-' }}</td>
                                 <td class="px-3 py-3 text-center">

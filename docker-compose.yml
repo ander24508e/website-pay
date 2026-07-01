@@ -12,8 +12,8 @@ services:
       DB_HOST: mysql
       DB_PORT: 3306
       DB_URL: ""
-    ports:
-      - "${APP_PORT}:8000"
+    expose:
+      - "8000"
     depends_on:
       mysql:
         condition: service_healthy

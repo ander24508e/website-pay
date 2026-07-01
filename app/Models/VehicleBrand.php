@@ -28,4 +28,9 @@ class VehicleBrand extends Model
     {
         return $this->hasMany(Vehicle::class);
     }
+
+    public function specifications(): HasMany
+    {
+        return $this->hasMany(VehicleSpecification::class);
+    }
 }

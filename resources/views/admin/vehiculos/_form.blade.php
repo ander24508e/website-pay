@@ -72,113 +72,44 @@
     <section class="bg-white rounded-xl border border-gray-100 p-6 shadow-sm space-y-5">
         <div>
             <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Especificaciones</p>
-            <p class="text-sm text-gray-500 mt-1">Selecciona datos existentes o crea nuevos desde este formulario.</p>
+            <p class="text-sm text-gray-500 mt-1">Selecciona la combinación de marca, modelo y tipo.</p>
         </div>
 
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de vehículo existente</label>
-            <select name="vehicle_type_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                <option value="">Selecciona un tipo</option>
-                @foreach ($vehicleTypes as $vehicleType)
-                    <option value="{{ $vehicleType->id }}" @selected(old('vehicle_type_id', $vehiculo->vehicle_type_id ?? '') == $vehicleType->id)>
-                        {{ $vehicleType->name }}
+            <label class="block text-sm font-medium text-gray-700 mb-1">Especificación del vehículo *</label>
+            <select name="vehicle_specification_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" required>
+                <option value="">Selecciona marca / modelo / tipo</option>
+                @foreach ($specifications as $specification)
+                    <option value="{{ $specification->id }}" @selected(old('vehicle_specification_id', $vehiculo->vehicle_specification_id ?? '') == $specification->id)>
+                        {{ $specification->brand?->name }} / {{ $specification->model?->name }} / {{ $specification->type?->name }}
                     </option>
                 @endforeach
             </select>
-        </div>
-
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Nuevo tipo de vehículo</label>
-            <input type="text" name="vehicle_type_name" value="{{ old('vehicle_type_name') }}"
-                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                placeholder="Ej: Automóvil, SUV, camioneta grande">
-            <p class="text-xs text-gray-400 mt-1">Si escribes un tipo nuevo, tendrá prioridad sobre la selección.</p>
-            @error('vehicle_type_id')
-                <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
-            @enderror
-            @error('vehicle_type_name')
-                <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+            @error('vehicle_specification_id')
+                <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
             @enderror
         </div>
 
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Marca existente</label>
-            <select id="vehicleBrandSelect" name="vehicle_brand_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                <option value="">Selecciona una marca</option>
-                @foreach ($brands as $brand)
-                    <option value="{{ $brand->id }}" @selected(old('vehicle_brand_id', $vehiculo->vehicle_brand_id ?? '') == $brand->id)>
-                        {{ $brand->name }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
-
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Nueva marca</label>
-            <input type="text" name="brand_name" value="{{ old('brand_name') }}"
-                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="Ej: Toyota, Ford, Chevrolet">
-            <p class="text-xs text-gray-400 mt-1">Si escribes una marca nueva, se usará esa sobre la selección.</p>
-        </div>
-
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Modelo existente</label>
-            <select id="vehicleModelSelect" name="vehicle_model_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                <option value="">Selecciona un modelo</option>
-                @foreach ($models as $model)
-                    <option value="{{ $model->id }}" data-brand="{{ $model->vehicle_brand_id }}"
-                        @selected(old('vehicle_model_id', $vehiculo->vehicle_model_id ?? '') == $model->id)>
-                        {{ $model->brand?->name }} — {{ $model->name }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
-
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Nuevo modelo</label>
-            <input type="text" name="model_name" value="{{ old('model_name') }}"
-                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="Ej: Grand Vitara, F-150">
-            <p class="text-xs text-gray-400 mt-1">Si escribes un modelo nuevo, se enlaza con la marca seleccionada o nueva.</p>
-        </div>
+        <a href="{{ route('admin.vehiculos.specifications.index') }}"
+            class="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-gray-100 px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-200">
+            <x-heroicon-o-adjustments-horizontal class="h-4 w-4" />
+            Administrar especificaciones
+        </a>
     </section>
 </div>
 
 <div class="flex flex-col sm:flex-row gap-3 justify-end">
-    <a href="{{ route('admin.vehiculos.index') }}" class="inline-flex items-center justify-center bg-gray-100 text-gray-700 px-5 py-2.5 rounded-lg text-sm font-semibold">
-        Cancelar
-    </a>
+    @if (!empty($modalCancel))
+        <button type="button" data-close-vehicle-modal
+            class="inline-flex items-center justify-center bg-gray-100 text-gray-700 px-5 py-2.5 rounded-lg text-sm font-semibold">
+            Cancelar
+        </button>
+    @else
+        <a href="{{ route('admin.vehiculos.index') }}" class="inline-flex items-center justify-center bg-gray-100 text-gray-700 px-5 py-2.5 rounded-lg text-sm font-semibold">
+            Cancelar
+        </a>
+    @endif
     <button class="inline-flex items-center justify-center bg-gray-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 transition">
         {{ $buttonText ?? 'Guardar vehículo' }}
     </button>
 </div>
-
-@push('scripts')
-    <script>
-        const brandSelect = document.getElementById('vehicleBrandSelect');
-        const modelSelect = document.getElementById('vehicleModelSelect');
-        const modelOptions = Array.from(modelSelect?.options ?? []);
-
-        function syncVehicleModels() {
-            if (!brandSelect || !modelSelect) return;
-
-            const selectedBrand = brandSelect.value;
-
-            modelOptions.forEach((option) => {
-                if (!option.value) {
-                    option.hidden = false;
-                    return;
-                }
-
-                option.hidden = selectedBrand && option.dataset.brand !== selectedBrand;
-            });
-
-            const selectedOption = modelSelect.options[modelSelect.selectedIndex];
-            if (selectedOption?.hidden) {
-                modelSelect.value = '';
-            }
-        }
-
-        brandSelect?.addEventListener('change', syncVehicleModels);
-        syncVehicleModels();
-
-    </script>
-@endpush
