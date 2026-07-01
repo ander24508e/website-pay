@@ -9,8 +9,11 @@ COPY package*.json ./
 RUN npm install
 
 COPY resources ./resources
-COPY public ./public 
+COPY public ./public
 COPY vite.config.* ./
+COPY tailwind.config.* ./
+COPY postcss.config.* ./
+
 RUN npm run build
 
 
@@ -37,10 +40,9 @@ RUN install-php-extensions \
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 COPY . .
-# 👉 INSTALAR DEPENDENCIAS (ESTO FALTABA)
+
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# 👉 COPIAR ASSETS COMPILADOS
 COPY --from=node-build /app/public/build ./public/build
 
 RUN chown -R www-data:www-data /app \
