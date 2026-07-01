@@ -1,9 +1,3 @@
-@vite([
-    'resources/css/app.css',
-    'resources/scss/admin/layout.scss',
-    'resources/js/app.js',
-])
-
 /* ========== VARIABLES ========== */
         :root {
             --primary: #d82128;
@@ -405,6 +399,10 @@
             justify-content: center;
         }
 
+        .menu-toggle-mobile {
+            display: none;
+        }
+
         .bottom-sheet-overlay {
             position: fixed;
             inset: 0;
@@ -594,6 +592,10 @@
                 display: flex;
             }
 
+            .menu-toggle-mobile {
+                display: none;
+            }
+
             .bottom-sheet {
                 display: block;
             }
@@ -611,7 +613,7 @@
                 font-size: 1.25rem;
                 cursor: pointer;
                 z-index: 100;
-                display: flex;
+                display: none;
                 align-items: center;
                 justify-content: center;
                 box-shadow: var(--shadow-lg);
@@ -689,4 +691,3 @@
                 transform: translateX(0);
             }
         }
-

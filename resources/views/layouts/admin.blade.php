@@ -9,6 +9,14 @@
 </head>
 
 <body>
+    <button type="button" class="menu-toggle-mobile" id="menuToggleMobile" aria-label="Abrir menu">
+        <x-heroicon-o-bars-3 class="w-6 h-6" />
+    </button>
+
+    <button type="button" class="bottom-sheet-trigger" id="bottomSheetTrigger" aria-label="Abrir navegacion">
+        <x-heroicon-o-bars-3 class="w-6 h-6" />
+    </button>
+
     <!-- Tooltip flotante para feedback -->
     <div class="sidebar-tooltip" id="sidebarTooltip"></div>
 
@@ -288,7 +296,7 @@
         });
 
         // Colapsar/expandir al hacer clic en el sidebar (solo en desktop)
-        sidebar.addEventListener('click', (e) => {
+        sidebar?.addEventListener('click', (e) => {
             // Solo en desktop (>= 768px)
             if (window.innerWidth >= 768) {
                 // Si el clic fue en un enlace o botÃ³n, no colapsar
@@ -389,11 +397,11 @@
 
         // Cerrar con swipe hacia abajo
         let sheetStartY = 0;
-        bottomSheet.addEventListener('touchstart', (e) => {
+        bottomSheet?.addEventListener('touchstart', (e) => {
             sheetStartY = e.touches[0].clientY;
         });
 
-        bottomSheet.addEventListener('touchmove', (e) => {
+        bottomSheet?.addEventListener('touchmove', (e) => {
             const currentY = e.touches[0].clientY;
             const delta = currentY - sheetStartY;
             if (delta > 30 && bottomSheet.classList.contains('open')) {
