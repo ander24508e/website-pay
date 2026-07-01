@@ -1,3 +1,9 @@
+@vite([
+    'resources/css/app.css',
+    'resources/scss/admin/layout.scss',
+    'resources/js/app.js',
+])
+
 /* ========== VARIABLES ========== */
         :root {
             --primary: #d82128;
