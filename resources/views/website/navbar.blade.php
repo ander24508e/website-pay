@@ -19,7 +19,7 @@
     {{-- Desktop links --}}
     <ul class="navbar-links">
         <li><a href="{{ route('home') }}#inicio">Inicio</a></li>
-        <li><a href="{{ route('home') }}#catalogo">Catalogo</a></li>
+        <li><a href="{{ route('home') }}#catalogo">Catalogote</a></li>
         <li><a href="{{ route('home') }}#contacto">Contacto</a></li>
         <li><a href="{{ route('carrito.index') }}">Carrito</a></li>
 
