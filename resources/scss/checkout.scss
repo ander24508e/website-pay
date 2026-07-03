@@ -115,7 +115,7 @@ h3 {
     margin: 0 auto;
     padding: 2.5rem 2rem 3rem;
     display: grid;
-    grid-template-columns: minmax(340px, 440px) minmax(620px, 1fr);
+    grid-template-columns: minmax(340px, 440px) minmax(0, 1fr);
     gap: 1.5rem;
     align-items: start;
 }
@@ -153,6 +153,10 @@ h3 {
 .checkout-card-header {
     padding: 1rem 1.2rem;
     border-block-end: 1px solid rgba(255, 255, 255, 0.055);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
 }
 
 .checkout-card-header h3 {
@@ -160,8 +164,55 @@ h3 {
     color: white;
 }
 
+.checkout-card-header span {
+    color: var(--gold);
+    font-size: 0.76rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
 .checkout-card-body {
     padding: 1.15rem;
+}
+
+.checkout-summary-card {
+    border-color: rgba(216, 33, 40, 0.14);
+    box-shadow: 0 20px 55px rgba(0, 0, 0, 0.18);
+}
+
+.summary-client {
+    padding-block-end: 1.1rem;
+    margin-block-end: 0.25rem;
+    border-block-end: 1px solid rgba(255, 255, 255, 0.065);
+}
+
+.summary-items {
+    padding-block: 0.35rem 0.75rem;
+}
+
+.summary-total {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block-start: 1rem;
+    border-block-start: 1px solid rgba(255, 255, 255, 0.085);
+}
+
+.summary-total span {
+    color: white;
+    font-size: 0.86rem;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+.summary-total strong {
+    color: var(--red);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2rem, 5vw, 2.5rem);
+    line-height: 1;
+    white-space: nowrap;
 }
 
 .client-row {
@@ -193,6 +244,7 @@ h3 {
     color: var(--muted);
     font-size: 0.78rem;
     margin-block-start: 0.15rem;
+    overflow-wrap: anywhere;
 }
 
 .checkout-item {
@@ -223,6 +275,11 @@ h3 {
     color: white;
     font-weight: 700;
     font-size: 0.85rem;
+    overflow-wrap: anywhere;
+}
+
+.checkout-item-info {
+    min-inline-size: 0;
 }
 
 .checkout-item-meta {
@@ -354,6 +411,7 @@ h3 {
 .payment-body {
     padding: 1rem;
     min-block-size: 460px;
+    overflow-x: auto;
 }
 
 .payment-methods-preview {
@@ -407,10 +465,14 @@ h3 {
 
 .payphone-box-wrap {
     display: none;
+    inline-size: 100%;
+    max-inline-size: 640px;
+    margin: 0 auto;
 }
 
 #pp-button {
     min-block-size: 420px;
+    inline-size: 100%;
 }
 
 #pay-status {
@@ -509,6 +571,11 @@ body.checkout-confirmacion {
     .payment-card {
         min-block-size: auto;
     }
+
+    body.payment-open .payment-card,
+    body.payment-open .payment-body {
+        min-block-size: auto;
+    }
 }
 
 @media (max-width: 768px) {
@@ -540,6 +607,7 @@ body.checkout-confirmacion {
 
     .payment-body {
         padding: 0.8rem;
+        min-block-size: auto;
     }
 
     .checkout-item {
@@ -550,6 +618,25 @@ body.checkout-confirmacion {
         grid-column: 2;
         justify-self: start;
         margin-block-start: -0.4rem;
+    }
+
+    .checkout-card-header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 0.35rem;
+    }
+
+    .summary-total {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .payment-card {
+        border-radius: 12px;
+    }
+
+    .payphone-box-wrap {
+        max-inline-size: 100%;
     }
 }
 

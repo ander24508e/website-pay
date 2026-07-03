@@ -62,89 +62,69 @@
                 <p>Revisa tu pedido antes de proceder al pago.</p>
             </div>
 
-            <div class="checkout-card">
+            <div class="checkout-card checkout-summary-card">
                 <div class="checkout-card-header">
-                    <h3>Datos del cliente</h3>
+                    <h3>Resumen de compra</h3>
+                    <span>{{ count($carrito) }} {{ count($carrito) === 1 ? '?tem' : '?tems' }}</span>
                 </div>
 
                 <div class="checkout-card-body">
-                    <div class="client-row">
-                        <div class="client-icon">
-                            <x-heroicon-o-user class="w-7 h-7" />
-                        </div>
+                    <div class="summary-client">
+                        <div class="client-row">
+                            <div class="client-icon">
+                                <x-heroicon-o-user class="w-7 h-7" />
+                            </div>
 
-                        <div>
-                            @auth
-                                <div class="client-name">{{ auth()->user()->name }}</div>
-                                <div class="client-email">{{ auth()->user()->email }}</div>
-                            @else
-                                <div class="client-name">Cliente Invitado</div>
-                                <div class="client-email">Compra sin iniciar sesión</div>
-                            @endauth
+                            <div class="min-w-0">
+                                @auth
+                                    <div class="client-name">{{ auth()->user()->name }}</div>
+                                    <div class="client-email">{{ auth()->user()->email }}</div>
+                                @else
+                                    <div class="client-name">Cliente invitado</div>
+                                    <div class="client-email">Compra sin iniciar sesi&oacute;n</div>
+                                @endauth
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <div class="checkout-card">
-                <div class="checkout-card-header">
-                    <h3>Ítems del pedido ({{ count($carrito) }})</h3>
-                </div>
+                    <div class="summary-items">
+                        @foreach ($carrito as $item)
+                            <div class="checkout-item">
+                                <div class="checkout-item-icon">
+                                    @if ($item['type'] === 'product')
+                                        <x-heroicon-o-cube class="w-5 h-5" />
+                                    @elseif($item['type'] === 'service')
+                                        <x-heroicon-o-wrench class="w-5 h-5" />
+                                    @else
+                                        <x-heroicon-o-archive-box class="w-5 h-5" />
+                                    @endif
+                                </div>
 
-                <div class="checkout-card-body">
-                    @foreach ($carrito as $item)
-                        <div class="checkout-item">
-                            <div class="checkout-item-icon">
-                                @if ($item['type'] === 'product')
-                                    <x-heroicon-o-cube class="w-5 h-5" />
-                                @elseif($item['type'] === 'service')
-                                    <x-heroicon-o-wrench class="w-5 h-5" />
-                                @else
-                                    <x-heroicon-o-archive-box class="w-5 h-5" />
-                                @endif
-                            </div>
+                                <div class="checkout-item-info">
+                                    <div class="checkout-item-name">{{ $item['name'] }}</div>
+                                    <div class="checkout-item-meta">
+                                        {{ $item['type_label'] ?? ($item['type'] === 'product' ? 'Producto' : ($item['type'] === 'service' ? 'Servicio' : 'Cat?logo')) }}
+                                        &times; {{ $item['quantity'] }}
+                                    </div>
+                                </div>
 
-                            <div class="checkout-item-info">
-                                <div class="checkout-item-name">{{ $item['name'] }}</div>
-                                <div class="checkout-item-meta">
-                                    {{ $item['type_label'] ?? ($item['type'] === 'product' ? 'Producto' : ($item['type'] === 'service' ? 'Servicio' : 'Catálogo')) }}
-                                    × {{ $item['quantity'] }}
+                                <div class="checkout-item-price">
+                                    ${{ number_format($item['price'] * $item['quantity'], 2) }}
                                 </div>
                             </div>
+                        @endforeach
+                    </div>
 
-                            <div class="checkout-item-price">
-                                ${{ number_format($item['price'] * $item['quantity'], 2) }}
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-
-            <div class="checkout-card total-card">
-                <div class="checkout-card-header">
-                    <h3>Total a pagar</h3>
-                </div>
-
-                <div class="checkout-card-body">
-                    @foreach ($carrito as $item)
-                        <div class="total-row">
-                            <span>{{ Str::limit($item['name'], 26) }} ×{{ $item['quantity'] }}</span>
-                            <strong>${{ number_format($item['price'] * $item['quantity'], 2) }}</strong>
-                        </div>
-                    @endforeach
-
-                    <div class="total-divider"></div>
-
-                    <div class="total-final">
+                    <div class="summary-total">
                         <span>Total</span>
                         <strong>${{ number_format($total, 2) }}</strong>
                     </div>
                 </div>
 
-                <div class="checkout-actions mx-auto">
-                    <a href="{{ route('home') }}#catalogo"
-                        style="background:var(--red);color:white;padding:0.85rem 2rem;border-radius:8px;font-weight:700;font-size:0.82rem;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;display:inline-block;transition:all 0.2s;">
-                        Comprar Más
+                <div class="checkout-actions">
+                    <a href="{{ route('home') }}#catalogo" class="btn-catalogo">
+                        <x-heroicon-o-arrow-left class="w-4 h-4" />
+                        Comprar m&aacute;s
                     </a>
                 </div>
             </div>
