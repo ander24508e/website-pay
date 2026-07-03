@@ -468,7 +468,8 @@
 
                 if (!requiresVehicle) return;
 
-                const compatibleVehicles = customerVehicles;
+                const pricedTypeIds = new Set(prices.map((price) => Number(price.vehicle_type_id)));
+                const compatibleVehicles = customerVehicles.filter((vehicle) => pricedTypeIds.has(Number(vehicle.vehicle_type_id)));
                 if (compatibleVehicles.length) {
                     const group = document.createElement('optgroup');
                     group.label = 'Mis vehiculos';
@@ -486,7 +487,14 @@
 
                 const genericGroup = document.createElement('optgroup');
                 genericGroup.label = compatibleVehicles.length ? 'Otro vehiculo por tipo' : 'Seleccionar por tipo';
-                vehicleTypes.forEach((vehicleType) => {
+                const pricedVehicleTypes = prices
+                    .filter((price) => Number(price.vehicle_type_id) > 0)
+                    .map((price) => ({
+                        id: Number(price.vehicle_type_id),
+                        name: price.vehicle_type_name || 'Tipo de vehiculo',
+                    }));
+
+                pricedVehicleTypes.forEach((vehicleType) => {
                         const option = document.createElement('option');
                         option.value = `type:${vehicleType.id}`;
                         option.dataset.vehicleTypeId = String(vehicleType.id);

@@ -333,6 +333,18 @@
     padding: 0.62rem 0.7rem;
 }
 
+#catalogo .catalogo-detail-vehicle select option,
+#catalogo .catalogo-detail-vehicle select optgroup {
+    background: #1e1e1e;
+    color: #ffffff;
+}
+
+#catalogo .catalogo-detail-vehicle select option:checked,
+#catalogo .catalogo-detail-vehicle select option:hover {
+    background: var(--brand-primary);
+    color: #ffffff;
+}
+
 #catalogo .catalogo-detail-vehicle select:focus {
     border-color: var(--brand-primary);
     outline: none;

@@ -81,7 +81,7 @@ class CatalogoController extends Controller
                     ->values();
                 $basePrice = (float) ($item->base_price ?? $item->display_price);
                 $publicPrice = $vehiclePrices->isNotEmpty()
-                    ? min($basePrice, (float) $vehiclePrices->min('price'))
+                    ? (float) $vehiclePrices->min('price')
                     : $item->display_price;
 
                 return [

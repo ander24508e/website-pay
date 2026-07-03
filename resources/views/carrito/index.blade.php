@@ -29,13 +29,9 @@
     <header class="topbar">
         <a href="{{ route('home') }}" class="topbar-brand">{{ strtoupper($empresa->nombre_corto ?? 'CARWASH') }}</a>
         <nav class="topbar-nav">
-            <a href="{{ route('home') }}" class="flex items-center gap-1">
-                <x-heroicon-o-arrow-left class="w-4 h-4" />
-                Seguir comprando
-            </a>
             @auth
                 @if (auth()->user()->hasRole('admin'))
-                    <a href="{{ route('admin.dashboard') }}">Panel Admin</a>
+                    <a href="{{ route('admin.dashboard') }}">Panel de control</a>
                 @else
                     <a href="{{ route('customer.compras') }}">Mis Compras</a>
                 @endif
@@ -43,12 +39,27 @@
                 <a href="{{ route('login') }}">Acceder</a>
             @endauth
         </nav>
+        <button type="button" class="cart-menu-toggle" id="cartMenuToggle" aria-label="Abrir menu" aria-controls="cartMobileMenu" aria-expanded="false">
+            <span></span><span></span><span></span>
+        </button>
     </header>
+
+    <div class="cart-mobile-menu" id="cartMobileMenu" hidden>
+        @auth
+            @if (auth()->user()->hasRole('admin'))
+                <a href="{{ route('admin.dashboard') }}">Panel de control</a>
+            @else
+                <a href="{{ route('customer.compras') }}">Mis Compras</a>
+            @endif
+        @else
+            <a href="{{ route('login') }}">Acceder</a>
+        @endauth
+    </div>
 
     <div class="container">
 
         <h1 class="page-title">MI <span>CARRITO</span></h1>
-        <p class="page-sub">{{ count($carrito) }} {{ count($carrito) === 1 ? 'Ã­tem' : 'Ã­tems' }} en tu carrito</p>
+        <p class="page-sub">{{ count($carrito) }} {{ count($carrito) === 1 ? 'Items' : 'Items' }} en tu carrito</p>
 
         {{-- Alertas --}}
         @if (session('success'))
@@ -167,7 +178,7 @@
                     </form>
 
                     {{-- BotÃ³n Seguir comprando (ahora fuera del formulario) --}}
-                    <a href="{{ route('home') }}" class="btn-seguir flex items-center justify-center gap-1"
+                    <a href="{{ route('home') }}#catalogo" class="btn-seguir flex items-center justify-center gap-1"
                         style="margin: 0 auto;">
                         <x-heroicon-o-arrow-left class="w-4 h-4 inline mr-1" />
                         Seguir comprando
@@ -180,6 +191,29 @@
     </div>
 
     @include('website.whatsapp-float')
+    <script>
+        (() => {
+            const toggle = document.getElementById('cartMenuToggle');
+            const menu = document.getElementById('cartMobileMenu');
+
+            if (!toggle || !menu) return;
+
+            toggle.addEventListener('click', () => {
+                const isOpen = !menu.hasAttribute('hidden');
+
+                if (isOpen) {
+                    menu.setAttribute('hidden', '');
+                    toggle.classList.remove('is-open');
+                    toggle.setAttribute('aria-expanded', 'false');
+                    return;
+                }
+
+                menu.removeAttribute('hidden');
+                toggle.classList.add('is-open');
+                toggle.setAttribute('aria-expanded', 'true');
+            });
+        })();
+    </script>
 </body>
 
 </html>
