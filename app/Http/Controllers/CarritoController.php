@@ -150,6 +150,46 @@ class CarritoController extends Controller
         return redirect()->back()->with('error', $message);
     }
 
+    public function actualizar(Request $request, string $id)
+    {
+        $data = $request->validate([
+            'quantity' => ['required', 'integer', 'min:1'],
+        ]);
+
+        $carrito = session()->get('carrito', []);
+
+        if (!isset($carrito[$id])) {
+            return redirect()->route('carrito.index')->with('error', 'El ítem no existe en el carrito.');
+        }
+
+        $quantity = (int) $data['quantity'];
+        $cartItem = $carrito[$id];
+        $catalogItem = CatalogItem::query()->find($cartItem['id'] ?? null);
+
+        if ($catalogItem?->uses_inventory) {
+            $variant = CatalogItemVariant::query()
+                ->where('catalog_item_id', $catalogItem->id)
+                ->find($cartItem['variant_id'] ?? null);
+
+            if (!$variant) {
+                return redirect()->route('carrito.index')
+                    ->with('error', 'Este producto no tiene una presentación inventariable disponible.');
+            }
+
+            $availableStock = max(0, (int) ($variant->stock ?? 0));
+
+            if ($quantity > $availableStock) {
+                return redirect()->route('carrito.index')
+                    ->with('error', "Solo hay {$availableStock} unidad(es) disponibles de este producto.");
+            }
+        }
+
+        $carrito[$id]['quantity'] = $quantity;
+        session()->put('carrito', $carrito);
+
+        return redirect()->route('carrito.index')->with('success', 'Cantidad actualizada.');
+    }
+
     public function quitar($id)
     {
         $carrito = session()->get('carrito', []);

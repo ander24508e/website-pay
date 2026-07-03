@@ -59,7 +59,7 @@
     <div class="container">
 
         <h1 class="page-title">MI <span>CARRITO</span></h1>
-        <p class="page-sub">{{ count($carrito) }} {{ count($carrito) === 1 ? 'Items' : 'Items' }} en tu carrito</p>
+        <p class="page-sub">{{ count($carrito) }} {{ count($carrito) === 1 ? 'ítem' : 'ítems' }} en tu carrito</p>
 
         {{-- Alertas --}}
         @if (session('success'))
@@ -76,12 +76,12 @@
         @endif
 
         @if (empty($carrito))
-            {{-- Estado vacÃ­o --}}
+            {{-- Estado vacio --}}
             <div class="empty-state">
                 <div class="empty-icon">
                     <x-heroicon-o-shopping-cart class="w-16 h-16 text-gray-400 mx-auto" />
                 </div>
-                <p class="empty-text">Tu carrito esta vacio.<br>¡Revisa nuestro catálogo!.</p>
+                <p class="empty-text">Tu carrito está vacío.<br>¡Revisa nuestro catálogo!</p>
                 <a href="{{ route('home') }}#catalogo"
                     style="background:var(--red);color:white;padding:0.85rem 2rem;border-radius:8px;font-weight:700;font-size:0.82rem;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;display:inline-block;transition:all 0.2s;">
                     Ver Catálogo
@@ -93,9 +93,21 @@
                 {{-- Lista de items --}}
                 <div class="items-card">
                     <div class="items-header">
-                        <h3>Items seleccionados</h3>
-                        <span style="font-size:0.75rem;color:var(--muted);">{{ count($carrito) }}
-                            {{ count($carrito) === 1 ? 'Item' : 'Items' }}</span>
+                        <div>
+                            <h3>Items seleccionados</h3>
+                            <span class="items-count">{{ count($carrito) }}
+                                {{ count($carrito) === 1 ? 'Item' : 'Items' }}</span>
+                        </div>
+
+                        <form action="{{ route('carrito.limpiar') }}" method="POST"
+                            onsubmit="return confirm('\u00bfVaciar todo el carrito?')">
+                            @csrf
+                            @method('DELETE')
+                            <button class="btn-clear-cart" type="submit">
+                                <x-heroicon-o-trash class="w-4 h-4" />
+                                Vaciar carrito
+                            </button>
+                        </form>
                     </div>
 
                     @foreach ($carrito as $key => $item)
@@ -111,12 +123,12 @@
 
                             {{-- Info --}}
                             <div class="item-info">
-                                <div class="item-type">{{ $item['type_label'] ?? ($item['type'] === 'product' ? 'Producto' : ($item['type'] === 'service' ? 'Servicio' : 'Catalogo')) }}
+                                <div class="item-type">{{ $item['type_label'] ?? ($item['type'] === 'product' ? 'Producto' : ($item['type'] === 'service' ? 'Servicio' : 'Catálogo')) }}
                                 </div>
                                 <div class="item-name">{{ $item['name'] }}</div>
                                 @if (!empty($item['vehicle_label']) || !empty($item['vehicle_type_label']))
                                     <div class="item-unit">
-                                        Vehiculo: {{ $item['vehicle_label'] ?? $item['vehicle_type_label'] }}
+                                        Vehículo: {{ $item['vehicle_label'] ?? $item['vehicle_type_label'] }}
                                     </div>
                                 @endif
                                 <div class="item-unit">${{ number_format($item['price'], 2) }} c/u</div>
@@ -124,7 +136,22 @@
 
                             {{-- Cantidad --}}
                             <div class="item-qty">
+                                <form action="{{ route('carrito.actualizar', $key) }}" method="POST">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="quantity" value="{{ max(1, (int) $item['quantity'] - 1) }}">
+                                    <button class="qty-btn" type="submit" aria-label="Restar cantidad"
+                                        {{ (int) $item['quantity'] <= 1 ? 'disabled' : '' }}>−</button>
+                                </form>
+
                                 <span class="qty-val">{{ $item['quantity'] }}</span>
+
+                                <form action="{{ route('carrito.actualizar', $key) }}" method="POST">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="quantity" value="{{ (int) $item['quantity'] + 1 }}">
+                                    <button class="qty-btn" type="submit" aria-label="Sumar cantidad">+</button>
+                                </form>
                             </div>
 
                             {{-- Precio total --}}
@@ -158,31 +185,18 @@
                         <span class="resumen-total-value">${{ number_format($total, 2) }}</span>
                     </div>
 
-                    {{-- BotÃ³n Proceder al Pago --}}
-                    <a href="{{ route('checkout') }}" class="btn-checkout flex items-center justify-center gap-2"
-                        style="margin: 0 auto;">
-                        <x-heroicon-o-credit-card class="w-4 h-4 inline mr-1"/>
-                        Proceder al Pago
-                    </a>
+                    <div class="resumen-actions">
+                        <a href="{{ route('checkout') }}" class="btn-checkout">
+                            <x-heroicon-o-credit-card class="w-4 h-4" />
+                            Proceder al Pago
+                        </a>
 
-                    {{-- BotÃ³n Vaciar carrito --}}
-                    <form action="{{ route('carrito.limpiar') }}" method="POST"
-                        onsubmit="return confirm('Â¿Vaciar todo el carrito?')">
-                        @csrf
-                        @method('DELETE')
-                        <button class="btn-limpiar flex items-center justify-center gap-2 w-full"
-                            style="margin: 0 auto;">
-                            <x-heroicon-o-trash class="w-4 h-4 inline mr-1"/>
-                            Vaciar carrito
-                        </button>
-                    </form>
 
-                    {{-- BotÃ³n Seguir comprando (ahora fuera del formulario) --}}
-                    <a href="{{ route('home') }}#catalogo" class="btn-seguir flex items-center justify-center gap-1"
-                        style="margin: 0 auto;">
-                        <x-heroicon-o-arrow-left class="w-4 h-4 inline mr-1" />
-                        Seguir comprando
-                    </a>
+                        <a href="{{ route('home') }}#catalogo" class="btn-seguir">
+                            <x-heroicon-o-arrow-left class="w-4 h-4" />
+                            Seguir comprando
+                        </a>
+                    </div>
                 </div>
 
             </div>
