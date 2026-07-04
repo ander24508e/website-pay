@@ -8,6 +8,7 @@ export default defineConfig({
                 'resources/css/app.css',
                 'resources/scss/website.scss',
                 'resources/scss/checkout.scss',
+                'resources/scss/checkout-confirmacion.scss',
                 'resources/scss/auth.scss',
                 'resources/scss/profile/profile-edit.scss',
                 'resources/scss/profile/customer-perfil.scss',

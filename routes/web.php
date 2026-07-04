@@ -44,6 +44,46 @@ Route::get('/transaccion-exitosa', [TransactionController::class, 'success'])->n
 Route::get('/payphone/success', [TransactionController::class, 'success'])->name('payphone.success');
 Route::get('/payphone/cancel', [TransactionController::class, 'cancel'])->name('payphone.cancel');
 
+if (app()->environment('local')) {
+    Route::get('/dev/preview/confirmacion', function () {
+        $order = \App\Models\Order::query()
+            ->with(['items.itemable', 'transaction', 'user'])
+            ->latest()
+            ->first();
+
+        if (!$order) {
+            $order = new \App\Models\Order([
+                'user_id' => null,
+                'total' => 15.00,
+                'status' => 'paid',
+                'order_type' => 'purchase',
+            ]);
+            $order->id = 999999;
+            $order->created_at = now();
+            $order->updated_at = now();
+
+            $item = new \App\Models\OrderItem([
+                'quantity' => 1,
+                'unit_price' => 15.00,
+            ]);
+            $item->setRelation('itemable', new \App\Models\CatalogItem(['name' => 'Lavada Completa']));
+
+            $transaction = new \App\Models\Transaction([
+                'payphone_ref' => 'PREVIEW-' . now()->format('YmdHis'),
+                'amount' => 15.00,
+                'status' => 'approved',
+                'client_transaction_id' => 'preview-' . \Illuminate\Support\Str::uuid(),
+            ]);
+
+            $order->setRelation('items', collect([$item]));
+            $order->setRelation('transaction', $transaction);
+            $order->setRelation('user', auth()->user());
+        }
+
+        return view('checkout.confirmacion', compact('order'));
+    })->name('dev.preview.confirmacion');
+}
+
 // Redireccion post-login segun rol
 Route::get('/dashboard', function () {
     if (Auth::user()->hasRole('admin')) {
