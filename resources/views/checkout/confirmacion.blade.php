@@ -6,27 +6,64 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     @php
         $empresa = App\Models\Empresa::first();
-        $primario = $empresa->color_primario_hex ?? '#D82128';
-        $secundario = $empresa->color_secundario_hex ?? '#F0B429';
-        $terciario = $empresa->color_terciario_hex ?? '#94a3b8';
+        $primario = $empresa?->color_primario_hex ?? '#D82128';
+        $secundario = $empresa?->color_secundario_hex ?? '#F0B429';
+        $terciario = $empresa?->color_terciario_hex ?? '#94a3b8';
         $transaction = $order->transaction;
         $verificationUrl = route('orden.confirmacion', $order);
         $orderCode = 'ORD-' . str_pad((string) $order->id, 6, '0', STR_PAD_LEFT);
-        $transactionCode = $transaction?->payphone_ref ?: $orderCode;
-        $whatsappPhone = preg_replace('/\D+/', '', (string) ($empresa->telefono_contacto ?? ''));
-        $whatsappMessage =
-            "Hola, adjunto la captura de mi comprobante de pago.\n" .
-            'Orden: ' .
-            $orderCode .
-            "\n" .
-            'Total: $' .
-            number_format($order->total, 2) .
-            "\n" .
-            'Verificacion QR: ' .
-            $verificationUrl;
+        $storedWhatsappUrl = trim((string) ($empresa?->getRawOriginal('whatsapp_url') ?? ''));
+        $storedPhone = trim((string) ($empresa?->telefono ?? ''));
+        $whatsappMessage = implode("\n", [
+            'Hola, adjunto la captura de mi comprobante de pago.',
+            'Orden: ' . $orderCode,
+            'Total: $' . number_format($order->total, 2),
+            'Verificacion QR: ' . $verificationUrl,
+        ]);
+
+        $extractWhatsappPhone = function (?string $url): ?string {
+            $url = trim((string) $url);
+
+            if ($url === '') {
+                return null;
+            }
+
+            if (preg_match('~wa\.me/(\d+)~i', $url, $matches)) {
+                return $matches[1];
+            }
+
+            $query = parse_url($url, PHP_URL_QUERY);
+            parse_str((string) $query, $params);
+
+            if (!empty($params['phone'])) {
+                return preg_replace('/\D+/', '', (string) $params['phone']);
+            }
+
+            return null;
+        };
+
+        $normalizeWhatsappPhone = function (?string $phone): ?string {
+            $digits = preg_replace('/\D+/', '', (string) $phone);
+
+            if ($digits === '') {
+                return null;
+            }
+
+            if (str_starts_with($digits, '0') && strlen($digits) === 10) {
+                return '593' . substr($digits, 1);
+            }
+
+            if (str_starts_with($digits, '9') && strlen($digits) === 9) {
+                return '593' . $digits;
+            }
+
+            return $digits;
+        };
+
+        $whatsappPhone = $extractWhatsappPhone($storedWhatsappUrl) ?: $normalizeWhatsappPhone($storedPhone);
         $whatsappUrl = $whatsappPhone
             ? 'https://wa.me/' . $whatsappPhone . '?text=' . rawurlencode($whatsappMessage)
-            : $empresa->whatsapp_url ?? null;
+            : null;
     @endphp
     <title>Pago exitoso - {{ $empresa->nombre ?? 'Endara Carwash' }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
