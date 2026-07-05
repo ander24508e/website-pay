@@ -6,6 +6,7 @@ use App\Models\CatalogItem;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Transaction;
+use App\Services\CheckoutReceiptService;
 use App\Services\ServiceVehiclePriceResolver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -241,8 +242,9 @@ class OrderController extends Controller
     public function confirmacion(Order $order)
     {
         $order->load('items.itemable', 'items.vehicle.brand', 'items.vehicle.model', 'items.vehicleType', 'transaction');
+        $receipt = app(CheckoutReceiptService::class)->build($order);
 
-        return view('checkout.confirmacion', compact('order'));
+        return view('checkout.confirmacion', ['order' => $order, ...$receipt]);
     }
 
     public function index(Request $request)

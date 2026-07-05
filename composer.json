@@ -12,6 +12,7 @@
         "blade-ui-kit/blade-icons": "^1.9",
         "daljo25/blade-pixelicon-icons": "^1.0",
         "davidhsianturi/blade-bootstrap-icons": "^2.2",
+        "endroid/qr-code": "^6.0",
         "laravel/framework": "^12.0",
         "laravel/octane": "^2.17",
         "laravel/tinker": "^2.10.1",

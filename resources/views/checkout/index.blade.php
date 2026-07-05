@@ -65,7 +65,7 @@
             <div class="checkout-card checkout-summary-card">
                 <div class="checkout-card-header">
                     <h3>Resumen de compra</h3>
-                    <span>{{ count($carrito) }} {{ count($carrito) === 1 ? '?tem' : '?tems' }}</span>
+                    <span>{{ count($carrito) }} {{ count($carrito) === 1 ? 'Item' : 'Items' }}</span>
                 </div>
 
                 <div class="checkout-card-body">

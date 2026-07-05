@@ -80,7 +80,9 @@ if (app()->environment('local')) {
             $order->setRelation('user', auth()->user());
         }
 
-        return view('checkout.confirmacion', compact('order'));
+        $receipt = app(\App\Services\CheckoutReceiptService::class)->build($order);
+
+        return view('checkout.confirmacion', ['order' => $order, ...$receipt]);
     })->name('dev.preview.confirmacion');
 }
 

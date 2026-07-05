@@ -128,17 +128,17 @@ class Empresa extends Model
     {
         $value = $this->normalizeExternalUrl($value);
 
-        if ($value) {
+        if ($value && !Str::contains($value, '593999999999')) {
             return $value;
         }
 
-        $digits = preg_replace('/\D+/', '', (string) $this->telefono_contacto);
+        $digits = $this->normalizeWhatsappPhone($this->telefono);
 
         if (!$digits) {
             return null;
         }
 
-        return 'https://wa.me/' . $digits . '?text=' . rawurlencode('¡Hola me gustaria mas informacion!');
+        return 'https://wa.me/' . $digits . '?text=' . rawurlencode('Hola, me gustaria mas informacion.');
     }
 
     public function getUbicacionMapaUrlAttribute(): string
@@ -196,6 +196,29 @@ class Empresa extends Model
         }
 
         return $fallback;
+    }
+
+    private function normalizeWhatsappPhone(?string $phone): ?string
+    {
+        $digits = preg_replace('/\D+/', '', (string) $phone);
+
+        if ($digits === '') {
+            return null;
+        }
+
+        if (Str::startsWith($digits, '00')) {
+            $digits = substr($digits, 2);
+        }
+
+        if (Str::startsWith($digits, '0') && strlen($digits) === 10) {
+            return '593' . substr($digits, 1);
+        }
+
+        if (Str::startsWith($digits, '9') && strlen($digits) === 9) {
+            return '593' . $digits;
+        }
+
+        return $digits;
     }
 
     private function normalizeExternalUrl(?string $value): ?string
