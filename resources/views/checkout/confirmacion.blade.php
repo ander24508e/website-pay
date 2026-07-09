@@ -21,55 +21,81 @@
     <main class="receipt-layout">
         <section class="receipt" aria-label="Comprobante de pago">
             <div class="receipt-hero">
-                <div class="qr-card">
-                    <img src="{{ $qrCodeDataUri }}" alt="QR de verificaci&oacute;n de {{ $orderCode }}" class="receipt-qr-image">
+                <div class="receipt-hero-overlay"></div>
+                <div class="receipt-logo-wrap">
+                    <img src="{{ $empresa?->logo_url }}" alt="{{ $empresa->nombre ?? 'Logo del negocio' }}"
+                        class="receipt-logo">
                 </div>
-                <h1 class="receipt-title">Pago Exitoso</h1>
-                <p class="receipt-subtitle">Tu compra ha sido realizada correctamente.</p>
             </div>
 
             <div class="receipt-body">
-                <div class="detail-list">
-                    <div class="detail-row">
-                        <span>N&uacute;mero de orden:</span>
-                        <strong>{{ $orderCode }}</strong>
+                <div class="receipt-status">
+                    <div class="status-qr" aria-label="QR de verificaci&oacute;n de {{ $orderCode }}">
+                        <img src="{{ $qrCodeDataUri }}" alt="QR de verificaci&oacute;n de {{ $orderCode }}"
+                            class="status-qr-image">
                     </div>
-                    <div class="detail-row">
-                        <span>Cliente:</span>
-                        <strong>{{ $order->user->name ?? 'Invitado' }}</strong>
+                    <h1 class="receipt-title">&iexcl;Pago <span>Exitoso!</span></h1>
+                    <p class="receipt-subtitle">Tu compra ha sido realizada correctamente.</p>
+                </div>
+
+                <div class="receipt-detail-card">
+                    <div class="receipt-icons" aria-hidden="true">
+                        <span><x-heroicon-o-receipt-percent class="receipt-side-icon" /></span>
+                        <span><x-heroicon-o-user class="receipt-side-icon" /></span>
+                        <span><x-heroicon-o-calendar-days class="receipt-side-icon" /></span>
+                        <span><x-heroicon-o-credit-card class="receipt-side-icon" /></span>
+                        <span><x-heroicon-o-shopping-bag class="receipt-side-icon" /></span>
+                        <span><x-heroicon-o-currency-dollar class="receipt-side-icon" /></span>
                     </div>
-                    <div class="detail-row">
-                        <span>Fecha y hora:</span>
-                        <strong>{{ $order->updated_at->format('d/m/Y - H:i') }}</strong>
-                    </div>
-                    <div class="detail-row">
-                        <span>Canal:</span>
-                        <strong>PayPhone</strong>
-                    </div>
-                    <div class="detail-row receipt-items">
-                        <span>Detalle de Compra:</span>
-                        <strong class="receipt-items-list">
-                            @foreach ($itemsSummary as $itemSummary)
-                                <span>{{ $itemSummary }}</span>
-                            @endforeach
-                        </strong>
-                    </div>
-                    <div class="detail-row total">
-                        <span>Total pagado:</span>
-                        <strong>${{ number_format($order->total, 2) }}</strong>
+
+                    <div class="detail-list">
+                        <div class="detail-row">
+                            <span>N&uacute;mero de orden:</span>
+                            <strong>{{ $orderCode }}</strong>
+                        </div>
+                        <div class="detail-row">
+                            <span>Cliente:</span>
+                            <strong>{{ $order->user->name ?? 'Invitado' }}</strong>
+                        </div>
+                        <div class="detail-row">
+                            <span>Fecha y hora:</span>
+                            <strong>{{ $order->updated_at->format('d/m/Y - H:i') }}</strong>
+                        </div>
+                        <div class="detail-row">
+                            <span>Canal:</span>
+                            <strong>PayPhone</strong>
+                        </div>
+                        <div class="detail-row receipt-items">
+                            <span>Detalle de Compra:</span>
+                            <strong class="receipt-items-list">
+                                @foreach ($itemsSummary as $itemSummary)
+                                    <span>{{ $itemSummary }}</span>
+                                @endforeach
+                            </strong>
+                        </div>
+                        <div class="detail-row total">
+                            <span>Total pagado:</span>
+                            <strong>${{ number_format($order->total, 2) }}</strong>
+                        </div>
                     </div>
                 </div>
 
-                <p class="receipt-note">
-                    Escanea el QR para verificar este comprobante directamente en el sistema.
-                </p>
+                <footer class="receipt-footer">
+                    <div class="receipt-footer-brand">
+                        <img src="{{ $empresa?->logo_url }}" alt="{{ $empresa->nombre ?? 'Logo del negocio' }}">
+                        <p>Gracias por confiar en <strong>{{ $empresa->nombre ?? 'Mi negocio' }}</strong></p>
+                    </div>
+                    <div class="receipt-footer-secure">
+                        <x-heroicon-o-shield-check class="receipt-footer-icon" />
+                        <span>Transacci&oacute;n segura</span>
+                    </div>
+                </footer>
             </div>
         </section>
 
         <aside class="desktop-panel">
             <section class="panel-card action-card">
                 <h3>Acciones</h3>
-                <p class="action-copy">Abre WhatsApp con los datos del comprobante. Adjunta la captura manualmente si necesitas enviar imagen.</p>
                 <div class="actions">
                     @if ($whatsappUrl)
                         <a href="{{ $whatsappUrl }}" target="_blank" rel="noopener noreferrer"

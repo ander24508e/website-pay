@@ -25,25 +25,15 @@ class CheckoutReceiptService
             ->map(fn ($item) => ($item->itemable->name ?? $item->item_display_name) . ' × ' . $item->quantity)
             ->values();
 
-        $qrPayload = [
-            'business' => $empresa->nombre ?? 'Mi negocio',
-            'client' => $order->user->name ?? 'Invitado',
-            'items' => $itemsSummary->implode(', '),
-            'order' => $orderCode,
-            'total' => number_format((float) $order->total, 2, '.', ''),
-            'transaction' => $transactionCode,
-            'verify' => $verificationUrl,
-        ];
-
         $qrResult = (new Builder(
             writer: new SvgWriter(),
             writerOptions: [],
             validateResult: false,
-            data: json_encode($qrPayload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+            data: $verificationUrl,
             encoding: new Encoding('UTF-8'),
             errorCorrectionLevel: ErrorCorrectionLevel::High,
-            size: 240,
-            margin: 12,
+            size: 280,
+            margin: 18,
             roundBlockSizeMode: RoundBlockSizeMode::Margin
         ))->build();
 
