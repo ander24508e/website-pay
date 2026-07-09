@@ -9,6 +9,7 @@ export default defineConfig({
                 'resources/scss/website.scss',
                 'resources/scss/checkout.scss',
                 'resources/scss/checkout-confirmacion.scss',
+                'resources/scss/checkout-comprobante.scss',
                 'resources/scss/auth.scss',
                 'resources/scss/profile/profile-edit.scss',
                 'resources/scss/profile/customer-perfil.scss',

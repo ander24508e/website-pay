@@ -40,6 +40,8 @@ Route::post('/orden/crear', [OrderController::class, 'store'])->name('orden.stor
 Route::post('/orden/cajita', [OrderController::class, 'prepareBox'])->name('orden.cajita');
 Route::post('/reservas/catalogo', [OrderController::class, 'reservarCatalogo'])->name('reservas.catalogo');
 Route::get('/orden/{order}/confirmacion', [OrderController::class, 'confirmacion'])->name('orden.confirmacion');
+Route::get('/orden/{order}/comprobante', [OrderController::class, 'comprobante'])->name('orden.comprobante');
+Route::get('/orden/{order}/comprobante/descargar', [OrderController::class, 'descargarComprobante'])->name('orden.comprobante.descargar');
 Route::get('/transaccion-exitosa', [TransactionController::class, 'success'])->name('transaccion.exitosa');
 Route::get('/payphone/success', [TransactionController::class, 'success'])->name('payphone.success');
 Route::get('/payphone/cancel', [TransactionController::class, 'cancel'])->name('payphone.cancel');
@@ -84,6 +86,21 @@ if (app()->environment('local')) {
 
         return view('checkout.confirmacion', ['order' => $order, ...$receipt]);
     })->name('dev.preview.confirmacion');
+
+    Route::get('/dev/preview/comprobante', function () {
+        $order = \App\Models\Order::query()
+            ->with(['items.itemable', 'transaction', 'user'])
+            ->latest()
+            ->first();
+
+        if (!$order) {
+            abort(404, 'Crea una orden o usa primero la previsualizacion de confirmacion.');
+        }
+
+        $receipt = app(\App\Services\CheckoutReceiptService::class)->build($order);
+
+        return view('checkout.comprobante', ['order' => $order, ...$receipt]);
+    })->name('dev.preview.comprobante');
 }
 
 // Redireccion post-login segun rol

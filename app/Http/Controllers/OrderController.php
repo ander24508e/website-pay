@@ -12,8 +12,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
+use Spatie\Browsershot\Browsershot;
 
 class OrderController extends Controller
 {
@@ -245,6 +247,97 @@ class OrderController extends Controller
         $receipt = app(CheckoutReceiptService::class)->build($order);
 
         return view('checkout.confirmacion', ['order' => $order, ...$receipt]);
+    }
+
+    public function comprobante(Order $order)
+    {
+        $order->load('items.itemable', 'items.vehicle.brand', 'items.vehicle.model', 'items.vehicleType', 'transaction', 'user');
+        $receipt = app(CheckoutReceiptService::class)->build($order);
+
+        return view('checkout.comprobante', ['order' => $order, ...$receipt]);
+    }
+
+    public function descargarComprobante(Order $order)
+    {
+        $order->load('items.itemable', 'items.vehicle.brand', 'items.vehicle.model', 'items.vehicleType', 'transaction', 'user');
+        $receipt = app(CheckoutReceiptService::class)->build($order);
+        $fileName = 'comprobante-' . $receipt['orderCode'] . '.png';
+
+        $html = $this->makeReceiptHtml($order, $receipt);
+        $screenshot = $this->makeReceiptScreenshot($html);
+
+        return response($screenshot, 200, [
+            'Content-Type' => 'image/png',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+        ]);
+    }
+
+    private function makeReceiptHtml(Order $order, array $receipt): string
+    {
+        $receipt['inlineStyles'] = $this->receiptInlineStyles();
+        $receipt['receiptLogoUrl'] = $this->receiptLogoDataUri($receipt['empresa'] ?? null)
+            ?: ($receipt['empresa']?->logo_url ?? null);
+
+        return view('checkout.comprobante', ['order' => $order, ...$receipt])->render();
+    }
+
+    private function receiptInlineStyles(): string
+    {
+        $styles = [
+            resource_path('scss/checkout-comprobante.scss'),
+        ];
+
+        return collect($styles)
+            ->filter(fn (string $path) => is_file($path))
+            ->map(fn (string $path) => file_get_contents($path))
+            ->implode("\n");
+    }
+
+    private function receiptLogoDataUri($empresa): ?string
+    {
+        $path = null;
+
+        if ($empresa?->logo && Storage::disk('public')->exists($empresa->logo)) {
+            $path = Storage::disk('public')->path($empresa->logo);
+        } elseif (is_file(public_path('Images/empresa-logo.jpg'))) {
+            $path = public_path('Images/empresa-logo.jpg');
+        }
+
+        if (!$path || !is_file($path)) {
+            return null;
+        }
+
+        $mime = mime_content_type($path) ?: 'image/jpeg';
+
+        return 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($path));
+    }
+
+    private function makeReceiptScreenshot(string $html): string
+    {
+        $browser = Browsershot::html($html)
+            ->windowSize(820, 1200)
+            ->deviceScaleFactor(2)
+            ->waitUntilNetworkIdle(false)
+            ->timeout(60)
+            ->noSandbox()
+            ->addChromiumArguments([
+                'disable-dev-shm-usage',
+                'disable-gpu',
+            ]);
+
+        if ($nodeBinary = env('BROWSERSHOT_NODE_BINARY')) {
+            $browser->setNodeBinary($nodeBinary);
+        }
+
+        if ($npmBinary = env('BROWSERSHOT_NPM_BINARY')) {
+            $browser->setNpmBinary($npmBinary);
+        }
+
+        if ($chromePath = env('BROWSERSHOT_CHROME_PATH')) {
+            $browser->setChromePath($chromePath);
+        }
+
+        return $browser->screenshot();
     }
 
     public function index(Request $request)

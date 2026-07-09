@@ -98,6 +98,9 @@
                             Enviar por WhatsApp
                         </a>
                     @endif
+                    <a href="{{ route('orden.comprobante.descargar', $order) }}" class="btn btn-ghost">
+                        Descargar comprobante
+                    </a>
                     <a href="{{ route('home') }}" class="btn btn-main">Regresar</a>
                     @auth
                         <a href="{{ route('customer.compras') }}" class="btn btn-ghost btn-full">Ver mis compras</a>

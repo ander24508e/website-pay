@@ -1,0 +1,253 @@
+:root {
+    --brand: #d82128;
+    --brand-dark: #a7171d;
+    --ink: #171717;
+    --muted: #585858;
+    --line: rgba(17, 24, 39, .16);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    min-height: 100%;
+    font-family: 'Montserrat', sans-serif;
+    background: #f2f2f2;
+    color: var(--ink);
+}
+
+body {
+    display: grid;
+    place-items: start center;
+    padding: 0;
+}
+
+.voucher {
+    width: 800px;
+    overflow: hidden;
+    background: #fff;
+    border-radius: 28px;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, .18);
+}
+
+.voucher-hero {
+    position: relative;
+    height: 230px;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    background:
+        linear-gradient(rgba(0, 0, 0, .72), rgba(0, 0, 0, .70)),
+        radial-gradient(circle at 70% 35%, rgba(255, 255, 255, .15), transparent 22%),
+        linear-gradient(135deg, #090909, #2a2a2a 48%, #0a0a0a);
+}
+
+.voucher-hero::after {
+    content: '';
+    position: absolute;
+    left: -8%;
+    right: -8%;
+    bottom: -76px;
+    height: 145px;
+    background: #fff;
+    border-top: 20px solid var(--brand);
+    border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+    z-index: 2;
+}
+
+.voucher-hero-pattern {
+    position: absolute;
+    inset: 0;
+    opacity: .55;
+    background: repeating-linear-gradient(145deg, rgba(255, 255, 255, .04) 0 1px, transparent 1px 16px);
+}
+
+.voucher-logo {
+    position: relative;
+    z-index: 3;
+    max-width: 290px;
+    max-height: 180px;
+    object-fit: contain;
+    filter: drop-shadow(0 18px 28px rgba(0, 0, 0, .62));
+}
+
+.voucher-body {
+    padding: 34px 56px 0;
+    text-align: center;
+}
+
+.voucher-qr {
+    width: 154px;
+    height: 154px;
+    margin: 0 auto 18px;
+    display: grid;
+    place-items: center;
+    border-radius: 28px;
+    background: #fff;
+    border: 1px solid rgba(17, 24, 39, .08);
+    box-shadow:
+        0 0 0 12px color-mix(in srgb, var(--brand) 10%, transparent),
+        0 18px 45px rgba(17, 24, 39, .16);
+}
+
+.voucher-qr img {
+    display: block;
+    width: 128px;
+    height: 128px;
+    border-radius: 10px;
+}
+
+.voucher h1 {
+    margin: 0;
+    color: #202020;
+    font-size: 50px;
+    line-height: 1;
+    font-weight: 800;
+}
+
+.voucher h1 span {
+    color: var(--brand);
+}
+
+.voucher-subtitle {
+    margin: 10px 0 22px;
+    color: #3f3f46;
+    font-size: 20px;
+}
+
+.voucher-details {
+    display: grid;
+    grid-template-columns: 78px 1fr;
+    gap: 18px;
+    padding: 14px 18px 14px 14px;
+    border: 1px solid rgba(17, 24, 39, .08);
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 18px 50px rgba(17, 24, 39, .12);
+    text-align: left;
+}
+
+.voucher-icons {
+    overflow: hidden;
+    border-radius: 14px;
+    background: var(--brand);
+}
+
+.voucher-icons span {
+    min-height: 66px;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    border-bottom: 1px solid rgba(255, 255, 255, .38);
+}
+
+.voucher-icons span:last-child {
+    border-bottom: 0;
+}
+
+.voucher-icon {
+    width: 31px;
+    height: 31px;
+}
+
+.voucher-row {
+    min-height: 66px;
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    align-items: center;
+    gap: 18px;
+    border-bottom: 1px dashed var(--line);
+    font-size: 18px;
+}
+
+.voucher-row:last-child {
+    border-bottom: 0;
+}
+
+.voucher-row span {
+    font-weight: 800;
+}
+
+.voucher-row strong {
+    text-align: right;
+    font-weight: 800;
+}
+
+.voucher-row small {
+    display: block;
+    font-size: 16px;
+    line-height: 1.35;
+}
+
+.voucher-total {
+    min-height: 72px;
+    margin-top: 6px;
+    padding: 0 16px;
+    border: 1px solid color-mix(in srgb, var(--brand) 16%, transparent);
+    border-radius: 14px;
+    background: linear-gradient(90deg, color-mix(in srgb, var(--brand) 8%, #fff), #fff);
+}
+
+.voucher-total span,
+.voucher-total strong {
+    color: var(--brand);
+}
+
+.voucher-total strong {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 44px;
+    letter-spacing: .04em;
+}
+
+.voucher-note {
+    margin: 20px 0 0;
+    padding: 18px 22px;
+    border: 1px solid rgba(17, 24, 39, .08);
+    border-radius: 16px;
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 1.55;
+}
+
+.voucher-footer {
+    margin-top: 18px;
+    min-height: 100px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 24px;
+    padding: 22px 56px;
+    color: #fff;
+    background:
+        linear-gradient(135deg, var(--brand) 0 8%, transparent 8% 92%, var(--brand) 92% 100%),
+        linear-gradient(135deg, #121212, #272727);
+    border-top: 5px solid var(--brand);
+    border-radius: 28px 28px 0 0;
+}
+
+.voucher-footer span {
+    display: block;
+    margin-bottom: 4px;
+    color: rgba(255, 255, 255, .76);
+}
+
+.voucher-footer strong {
+    font-size: 18px;
+}
+
+.voucher-secure {
+    min-height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    border-left: 1px solid rgba(255, 255, 255, .32);
+}
+
+.voucher-secure-icon {
+    width: 42px;
+    height: 42px;
+}
