@@ -110,8 +110,9 @@
                         </form>
                     </div>
 
-                    @foreach ($carrito as $key => $item)
-                        <div class="item-row">
+                    <div class="cart-items-scroll" aria-label="Items seleccionados en el carrito">
+                        @foreach ($carrito as $key => $item)
+                            <div class="item-row">
                             {{-- Imagen --}}
                             <div class="item-img">
                                 @if ($item['image'])
@@ -165,8 +166,9 @@
                                     <x-heroicon-o-trash class="w-5 h-5" />
                                 </button>
                             </form>
-                        </div>
-                    @endforeach
+                            </div>
+                        @endforeach
+                    </div>
                 </div>
 
                 {{-- Resumen --}}
