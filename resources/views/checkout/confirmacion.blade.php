@@ -43,7 +43,6 @@
                         <span><x-heroicon-o-receipt-percent class="receipt-side-icon" /></span>
                         <span><x-heroicon-o-user class="receipt-side-icon" /></span>
                         <span><x-heroicon-o-calendar-days class="receipt-side-icon" /></span>
-                        <span><x-heroicon-o-credit-card class="receipt-side-icon" /></span>
                         <span><x-heroicon-o-shopping-bag class="receipt-side-icon" /></span>
                         <span><x-heroicon-o-currency-dollar class="receipt-side-icon" /></span>
                     </div>
@@ -59,11 +58,7 @@
                         </div>
                         <div class="detail-row">
                             <span>Fecha y hora:</span>
-                            <strong>{{ $order->updated_at->format('d/m/Y - H:i') }}</strong>
-                        </div>
-                        <div class="detail-row">
-                            <span>Canal:</span>
-                            <strong>PayPhone</strong>
+                            <strong>{{ ($order->transaction?->updated_at ?? $order->updated_at)->timezone(config('app.timezone'))->format('d/m/Y - H:i') }}</strong>
                         </div>
                         <div class="detail-row receipt-items">
                             <span>Detalle de Compra:</span>
