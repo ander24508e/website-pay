@@ -88,35 +88,35 @@ body {
 }
 
 .voucher-body {
-    padding: 34px 56px 0;
+    padding: 24px 56px 0;
     text-align: center;
 }
 
 .voucher-qr {
-    width: 154px;
-    height: 154px;
-    margin: 0 auto 18px;
+    width: 224px;
+    height: 224px;
+    margin: 0 auto 16px;
     display: grid;
     place-items: center;
-    border-radius: 28px;
+    border-radius: 34px;
     background: #fff;
     border: 1px solid rgba(17, 24, 39, .08);
     box-shadow:
-        0 0 0 12px color-mix(in srgb, var(--brand) 10%, transparent),
+        0 0 0 14px color-mix(in srgb, var(--brand) 10%, transparent),
         0 18px 45px rgba(17, 24, 39, .16);
 }
 
 .voucher-qr img {
     display: block;
-    width: 128px;
-    height: 128px;
-    border-radius: 10px;
+    width: 186px;
+    height: 186px;
+    border-radius: 12px;
 }
 
 .voucher h1 {
     margin: 0;
     color: #202020;
-    font-size: 50px;
+    font-size: 48px;
     line-height: 1;
     font-weight: 800;
 }
@@ -126,7 +126,7 @@ body {
 }
 
 .voucher-subtitle {
-    margin: 10px 0 22px;
+    margin: 8px 0 18px;
     color: #3f3f46;
     font-size: 20px;
 }
@@ -150,7 +150,7 @@ body {
 }
 
 .voucher-icons span {
-    min-height: 66px;
+    min-height: 58px;
     display: grid;
     place-items: center;
     color: #fff;
@@ -167,13 +167,13 @@ body {
 }
 
 .voucher-row {
-    min-height: 66px;
+    min-height: 58px;
     display: grid;
-    grid-template-columns: 220px 1fr;
+    grid-template-columns: 245px 1fr;
     align-items: center;
-    gap: 18px;
+    gap: 14px;
     border-bottom: 1px dashed var(--line);
-    font-size: 18px;
+    font-size: 17px;
 }
 
 .voucher-row:last-child {
@@ -187,6 +187,7 @@ body {
 .voucher-row strong {
     text-align: right;
     font-weight: 800;
+    overflow-wrap: anywhere;
 }
 
 .voucher-row small {
@@ -196,7 +197,7 @@ body {
 }
 
 .voucher-total {
-    min-height: 72px;
+    min-height: 68px;
     margin-top: 6px;
     padding: 0 16px;
     border: 1px solid color-mix(in srgb, var(--brand) 16%, transparent);

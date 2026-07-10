@@ -32,8 +32,8 @@ class CheckoutReceiptService
             data: $verificationUrl,
             encoding: new Encoding('UTF-8'),
             errorCorrectionLevel: ErrorCorrectionLevel::High,
-            size: 280,
-            margin: 18,
+            size: 420,
+            margin: 24,
             roundBlockSizeMode: RoundBlockSizeMode::Margin
         ))->build();
 

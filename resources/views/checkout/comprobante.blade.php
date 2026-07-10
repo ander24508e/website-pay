@@ -35,12 +35,13 @@
                 <img src="{{ $qrCodeDataUri }}" alt="QR de verificaci&oacute;n de {{ $orderCode }}">
             </div>
 
-            <h1>&iexcl;Pago <span>Exitoso!</span></h1>
+            <h1>&iexcl;Transaccion <span>Exitosa!</span></h1>
             <p class="voucher-subtitle">Tu compra ha sido realizada correctamente.</p>
 
             <section class="voucher-details">
                 <div class="voucher-icons" aria-hidden="true">
                     <span><x-heroicon-o-receipt-percent class="voucher-icon" /></span>
+                    <span><x-heroicon-o-credit-card class="voucher-icon" /></span>
                     <span><x-heroicon-o-user class="voucher-icon" /></span>
                     <span><x-heroicon-o-calendar-days class="voucher-icon" /></span>
                     <span><x-heroicon-o-shopping-bag class="voucher-icon" /></span>
@@ -51,6 +52,10 @@
                     <div class="voucher-row">
                         <span>N&uacute;mero de orden:</span>
                         <strong>{{ $orderCode }}</strong>
+                    </div>
+                    <div class="voucher-row">
+                        <span>N&uacute;mero de transacci&oacute;n:</span>
+                        <strong>{{ $transactionCode }}</strong>
                     </div>
                     <div class="voucher-row">
                         <span>Cliente:</span>
@@ -74,8 +79,6 @@
                     </div>
                 </div>
             </section>
-
-            <p class="voucher-note">Escanea el QR para verificar este comprobante directamente en el sistema.</p>
         </section>
 
         <footer class="voucher-footer">
