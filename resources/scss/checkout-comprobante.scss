@@ -25,6 +25,19 @@ body {
     padding: 0;
 }
 
+.voucher-alert {
+    width: min(800px, calc(100vw - 24px));
+    margin: 16px auto;
+    padding: 14px 18px;
+    border: 1px solid rgba(216, 33, 40, .28);
+    border-radius: 14px;
+    background: #fff5f5;
+    color: #9f1239;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: center;
+}
+
 .voucher {
     width: 800px;
     overflow: hidden;

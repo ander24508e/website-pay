@@ -19,6 +19,10 @@
 </head>
 
 <body style="--brand: {{ $primario }}; --brand-dark: color-mix(in srgb, {{ $primario }} 82%, black);">
+    @if (session('error'))
+        <div class="voucher-alert">{{ session('error') }}</div>
+    @endif
+
     <main class="voucher">
         <header class="voucher-hero">
             <div class="voucher-hero-pattern"></div>

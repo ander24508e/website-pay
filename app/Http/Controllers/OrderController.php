@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
 use Spatie\Browsershot\Browsershot;
+use Throwable;
 
 class OrderController extends Controller
 {
@@ -263,8 +264,19 @@ class OrderController extends Controller
         $receipt = app(CheckoutReceiptService::class)->build($order);
         $fileName = 'comprobante-' . $receipt['orderCode'] . '.png';
 
-        $html = $this->makeReceiptHtml($order, $receipt);
-        $screenshot = $this->makeReceiptScreenshot($html);
+        try {
+            $html = $this->makeReceiptHtml($order, $receipt);
+            $screenshot = $this->makeReceiptScreenshot($html);
+        } catch (Throwable $exception) {
+            Log::error('No se pudo generar el comprobante descargable.', [
+                'order_id' => $order->id,
+                'message' => $exception->getMessage(),
+            ]);
+
+            return redirect()
+                ->route('orden.comprobante', $order)
+                ->with('error', 'No se pudo descargar la imagen del comprobante. Puedes guardar esta vista como captura.');
+        }
 
         return response($screenshot, 200, [
             'Content-Type' => 'image/png',
