@@ -3,9 +3,20 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\CatalogItem;
+use App\Models\CatalogItemVariant;
+use App\Models\CatalogType;
+use App\Models\InventoryMovement;
 use App\Models\Order;
+use App\Models\Sale;
 use App\Models\User;
+use App\Models\Vehicle;
+use App\Models\VehicleType;
+use App\Services\ServiceVehiclePriceResolver;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class VentasController extends Controller
 {
@@ -13,107 +24,430 @@ class VentasController extends Controller
     {
         $search = trim((string) $request->query('q', ''));
         $status = trim((string) $request->query('status', ''));
+        $origin = trim((string) $request->query('origin', ''));
+        $sort = $request->query('sort') === 'oldest' ? 'oldest' : 'newest';
         $dateFrom = $request->query('date_from');
         $dateTo = $request->query('date_to');
 
-        $query = Order::query()->with(['user', 'transaction', 'items']);
+        if ($origin === 'sistema') {
+            $origin = 'internal';
+        }
 
-        if ($search !== '') {
-            $query->where(function ($q) use ($search) {
-                $q->where('id', 'like', "%{$search}%")
-                    ->orWhere('status', 'like', "%{$search}%")
-                    ->orWhereHas('user', function ($u) use ($search) {
-                        $u->where('name', 'like', "%{$search}%")
-                            ->orWhere('email', 'like', "%{$search}%");
+        $orders = collect();
+        $sales = collect();
+
+        if ($origin === '' || $origin === 'web') {
+            $orders = Order::query()
+                ->with(['user', 'items', 'transaction'])
+                ->when($search !== '', function ($query) use ($search) {
+                    $query->where(function ($sub) use ($search) {
+                        $sub->where('id', 'like', "%{$search}%")
+                            ->orWhere('status', 'like', "%{$search}%")
+                            ->orWhereHas('user', function ($user) use ($search) {
+                                $user->where('name', 'like', "%{$search}%")
+                                    ->orWhere('email', 'like', "%{$search}%");
+                            });
                     });
-            });
+                })
+                ->when($status !== '', fn ($query) => $query->where('status', $status))
+                ->when($dateFrom, fn ($query) => $query->whereDate('created_at', '>=', $dateFrom))
+                ->when($dateTo, fn ($query) => $query->whereDate('created_at', '<=', $dateTo))
+                ->latest()
+                ->get()
+                ->map(fn (Order $order) => $this->mapOrderRow($order));
         }
 
-        if ($status !== '') {
-            $query->where('status', $status);
+        if ($origin === '' || $origin === 'internal') {
+            $sales = Sale::query()
+                ->with(['user', 'items', 'attendedBy'])
+                ->when($search !== '', function ($query) use ($search) {
+                    $query->where(function ($sub) use ($search) {
+                        $sub->where('id', 'like', "%{$search}%")
+                            ->orWhere('status', 'like', "%{$search}%")
+                            ->orWhere('payment_method', 'like', "%{$search}%")
+                            ->orWhereHas('user', function ($user) use ($search) {
+                                $user->where('name', 'like', "%{$search}%")
+                                    ->orWhere('email', 'like', "%{$search}%");
+                            });
+                    });
+                })
+                ->when($status !== '', fn ($query) => $query->where('status', $status))
+                ->when($dateFrom, fn ($query) => $query->whereDate('created_at', '>=', $dateFrom))
+                ->when($dateTo, fn ($query) => $query->whereDate('created_at', '<=', $dateTo))
+                ->latest()
+                ->get()
+                ->map(fn (Sale $sale) => $this->mapSaleRow($sale));
         }
 
-        if ($dateFrom) {
-            $query->whereDate('created_at', '>=', $dateFrom);
-        }
+        $rows = $orders
+            ->merge($sales)
+            ->when(
+                $sort === 'oldest',
+                fn ($collection) => $collection->sortBy('created_at'),
+                fn ($collection) => $collection->sortByDesc('created_at')
+            )
+            ->values();
 
-        if ($dateTo) {
-            $query->whereDate('created_at', '<=', $dateTo);
-        }
-
-        $ventas = $query->latest()->paginate(15)->withQueryString();
-
-        $baseKpiQuery = Order::query();
-        if ($dateFrom) {
-            $baseKpiQuery->whereDate('created_at', '>=', $dateFrom);
-        }
-        if ($dateTo) {
-            $baseKpiQuery->whereDate('created_at', '<=', $dateTo);
-        }
+        $page = LengthAwarePaginator::resolveCurrentPage();
+        $perPage = 15;
+        $ventas = new LengthAwarePaginator(
+            $rows->forPage($page, $perPage)->values(),
+            $rows->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
 
         $stats = [
-            'total_ventas' => (float) (clone $baseKpiQuery)->where('status', 'paid')->sum('total'),
-            'total_ordenes' => (int) (clone $baseKpiQuery)->count(),
-            'ordenes_pagadas' => (int) (clone $baseKpiQuery)->where('status', 'paid')->count(),
-            'ticket_promedio' => (float) ((clone $baseKpiQuery)->where('status', 'paid')->avg('total') ?? 0),
+            'total_ventas' => (float) Order::query()->where('status', 'paid')->sum('total')
+                + (float) Sale::query()->where('status', 'paid')->sum('total'),
+            'total_ordenes' => (int) Order::query()->count(),
+            'ventas_internas' => (int) Sale::query()->count(),
+            'ticket_promedio' => (float) $this->paidAverageTicket(),
         ];
 
-        return view('admin.ventas.index', compact('ventas', 'stats', 'search', 'status', 'dateFrom', 'dateTo'));
+        return view('admin.ventas.index', compact('ventas', 'stats', 'search', 'status', 'origin', 'sort', 'dateFrom', 'dateTo'));
     }
 
-    public function show(Order $venta)
+    public function show(string $venta)
     {
-        $venta->load(['user', 'items.itemable', 'items.vehicle.brand', 'items.vehicle.model', 'items.vehicleType', 'transaction']);
+        [$origin, $id] = $this->parseVentaKey($venta);
 
-        return view('admin.ventas.show', compact('venta'));
+        if ($origin === 'web') {
+            $record = Order::query()
+                ->with(['user', 'items.itemable', 'items.vehicle.brand', 'items.vehicle.model', 'items.vehicleType', 'transaction'])
+                ->findOrFail($id);
+
+            return view('admin.ventas.show', [
+                'origin' => 'web',
+                'record' => $record,
+                'items' => $record->items,
+            ]);
+        }
+
+        $record = Sale::query()
+            ->with(['user', 'vehicle.brand', 'vehicle.model', 'vehicle.type', 'attendedBy', 'items.catalogItem', 'items.variant', 'items.vehicle', 'items.vehicleType'])
+            ->findOrFail($id);
+
+        return view('admin.ventas.show', [
+            'origin' => 'internal',
+            'record' => $record,
+            'items' => $record->items,
+        ]);
     }
 
     public function create()
     {
-        $clientes = User::query()->orderBy('name')->get(['id', 'name', 'email']);
-
-        return view('admin.ventas.create', compact('clientes'));
+        return view('admin.ventas.create', $this->formData());
     }
 
-    public function store(Request $request)
+    public function store(Request $request, ServiceVehiclePriceResolver $priceResolver)
     {
         $data = $request->validate([
             'user_id' => ['nullable', 'integer', 'exists:users,id'],
-            'total' => ['required', 'numeric', 'min:0'],
-            'status' => ['required', 'in:pending,paid,reserved,failed,cancelled'],
-            'order_type' => ['required', 'in:purchase,reservation'],
+            'vehicle_id' => ['nullable', 'integer', 'exists:vehicles,id'],
+            'attended_by' => ['nullable', 'integer', 'exists:users,id'],
+            'status' => ['required', 'in:pending,paid'],
+            'payment_status' => ['required', 'in:pending,paid'],
+            'payment_method' => ['required', 'in:cash,transfer,card,other'],
+            'notes' => ['nullable', 'string', 'max:2000'],
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.catalog_item_id' => ['required', 'integer', 'exists:catalog_items,id'],
+            'items.*.catalog_item_variant_id' => ['nullable', 'integer', 'exists:catalog_item_variants,id'],
+            'items.*.vehicle_id' => ['nullable', 'integer', 'exists:vehicles,id'],
+            'items.*.vehicle_type_id' => ['nullable', 'integer', 'exists:vehicle_types,id'],
+            'items.*.quantity' => ['required', 'integer', 'min:1'],
         ]);
 
-        $venta = Order::create($data);
+        $resolvedItems = $this->resolveSaleItems($data['items'], $priceResolver, !empty($data['user_id']) ? (int) $data['user_id'] : null);
+        $subtotal = collect($resolvedItems)->sum('subtotal');
+        $discount = 0.0;
+        $total = $subtotal;
 
-        return redirect()->route('admin.ventas.show', $venta)->with('success', 'Venta creada correctamente.');
+        $sale = DB::transaction(function () use ($data, $resolvedItems, $subtotal, $discount, $total) {
+            $sale = Sale::create([
+                'user_id' => $data['user_id'] ?? null,
+                'vehicle_id' => $data['vehicle_id'] ?? null,
+                'attended_by' => $data['attended_by'] ?? auth()->id(),
+                'status' => $data['status'],
+                'payment_status' => $data['payment_status'],
+                'payment_method' => $data['payment_method'],
+                'subtotal' => $subtotal,
+                'discount' => $discount,
+                'total' => $total,
+                'notes' => trim((string) ($data['notes'] ?? '')) ?: null,
+            ]);
+
+            foreach ($resolvedItems as $item) {
+                $sale->items()->create($item['payload']);
+
+                if ($sale->status === 'paid' && $item['variant'] && $item['uses_inventory']) {
+                    $this->discountVariantStock($item['variant'], $item['payload']['quantity'], $sale->id);
+                }
+            }
+
+            return $sale;
+        });
+
+        return redirect()->route('admin.ventas.show', 'internal-' . $sale->id)
+            ->with('success', 'Venta del sistema creada correctamente.');
     }
 
-    public function edit(Order $venta)
+    public function edit(string $venta)
     {
-        $clientes = User::query()->orderBy('name')->get(['id', 'name', 'email']);
+        [$origin, $id] = $this->parseVentaKey($venta);
 
-        return view('admin.ventas.edit', compact('venta', 'clientes'));
+        if ($origin === 'web') {
+            return redirect()->route('admin.ventas.show', 'web-' . $id)
+                ->with('error', 'Las compras web se gestionan desde Ordenes.');
+        }
+
+        $sale = Sale::query()->with(['items'])->findOrFail($id);
+
+        if ($sale->status === 'paid') {
+            return redirect()->route('admin.ventas.show', 'internal-' . $sale->id)
+                ->with('error', 'Una venta pagada no debe editarse. Puedes cancelarla si corresponde.');
+        }
+
+        return view('admin.ventas.edit', array_merge($this->formData(), compact('sale')));
     }
 
-    public function update(Request $request, Order $venta)
+    public function update(Request $request, string $venta)
     {
+        [$origin, $id] = $this->parseVentaKey($venta);
+
+        if ($origin === 'web') {
+            return redirect()->route('admin.ventas.show', 'web-' . $id)
+                ->with('error', 'Las compras web se gestionan desde Ordenes.');
+        }
+
+        $sale = Sale::findOrFail($id);
+
+        if ($sale->status === 'paid') {
+            return redirect()->route('admin.ventas.show', 'internal-' . $sale->id)
+                ->with('error', 'Una venta pagada no debe editarse.');
+        }
+
         $data = $request->validate([
             'user_id' => ['nullable', 'integer', 'exists:users,id'],
-            'total' => ['required', 'numeric', 'min:0'],
-            'status' => ['required', 'in:pending,paid,reserved,failed,cancelled'],
-            'order_type' => ['required', 'in:purchase,reservation'],
+            'vehicle_id' => ['nullable', 'integer', 'exists:vehicles,id'],
+            'attended_by' => ['nullable', 'integer', 'exists:users,id'],
+            'status' => ['required', 'in:pending'],
+            'payment_status' => ['required', 'in:pending'],
+            'payment_method' => ['required', 'in:cash,transfer,card,other'],
+            'notes' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        $venta->update($data);
+        $sale->update([
+            'user_id' => $data['user_id'] ?? null,
+            'vehicle_id' => $data['vehicle_id'] ?? null,
+            'attended_by' => $data['attended_by'] ?? null,
+            'status' => $data['status'],
+            'payment_status' => $data['payment_status'],
+            'payment_method' => $data['payment_method'],
+            'discount' => 0,
+            'total' => (float) $sale->subtotal,
+            'notes' => trim((string) ($data['notes'] ?? '')) ?: null,
+        ]);
 
-        return redirect()->route('admin.ventas.show', $venta)->with('success', 'Venta actualizada correctamente.');
+        return redirect()->route('admin.ventas.show', 'internal-' . $sale->id)
+            ->with('success', 'Venta actualizada correctamente.');
     }
 
-    public function destroy(Order $venta)
+    public function destroy(string $venta)
     {
-        $venta->delete();
+        [$origin, $id] = $this->parseVentaKey($venta);
+
+        if ($origin === 'web') {
+            return redirect()->route('admin.ventas.index')
+                ->with('error', 'Las compras web no se eliminan desde Ventas.');
+        }
+
+        $sale = Sale::findOrFail($id);
+
+        if ($sale->status === 'paid') {
+            return redirect()->route('admin.ventas.show', 'internal-' . $sale->id)
+                ->with('error', 'Una venta pagada no se elimina. Mantén el historial.');
+        }
+
+        $sale->delete();
 
         return redirect()->route('admin.ventas.index')->with('success', 'Venta eliminada correctamente.');
+    }
+
+    private function formData(): array
+    {
+        return [
+            'clientes' => User::query()->role('cliente')->orderBy('name')->get(['id', 'name', 'email']),
+            'usuarios' => User::query()->orderBy('name')->get(['id', 'name', 'email']),
+            'vehicles' => Vehicle::query()
+                ->with(['client:id,name,email', 'brand:id,name', 'model:id,name', 'type:id,name', 'specification.brand:id,name', 'specification.model:id,name', 'specification.type:id,name'])
+                ->where('active', true)
+                ->orderBy('plate')
+                ->get(),
+            'vehicleTypes' => VehicleType::query()->where('active', true)->ordered()->get(['id', 'name']),
+            'catalogItems' => CatalogItem::query()
+                ->with([
+                    'type:id,name,business_model',
+                    'activeVariants:id,catalog_item_id,name,presentation,specification,sku,price,stock,active,is_default',
+                    'vehicleTypePrices:id,catalog_item_id,vehicle_type_id,price',
+                ])
+                ->where('active', true)
+                ->where('purchasable', true)
+                ->orderBy('name')
+                ->get(),
+        ];
+    }
+
+    private function resolveSaleItems(array $items, ServiceVehiclePriceResolver $priceResolver, ?int $userId): array
+    {
+        $resolved = [];
+
+        foreach ($items as $index => $row) {
+            $catalogItem = CatalogItem::query()
+                ->with(['type', 'activeVariants', 'vehicleTypePrices.vehicleType'])
+                ->where('active', true)
+                ->where('purchasable', true)
+                ->find((int) ($row['catalog_item_id'] ?? 0));
+
+            if (!$catalogItem) {
+                throw ValidationException::withMessages(["items.{$index}.catalog_item_id" => 'El item seleccionado no esta disponible.']);
+            }
+
+            $quantity = max(1, (int) ($row['quantity'] ?? 1));
+            $isProduct = ($catalogItem->type?->business_model ?? CatalogType::BUSINESS_MODEL_SERVICES) === CatalogType::BUSINESS_MODEL_PRODUCTS;
+            $variant = null;
+            $unitPrice = (float) $catalogItem->display_price;
+
+            if ($isProduct) {
+                $variant = $this->resolveVariant($catalogItem, $row['catalog_item_variant_id'] ?? null);
+                $unitPrice = (float) ($variant?->price ?? $catalogItem->display_price);
+
+                if ($catalogItem->uses_inventory && (!$variant || (int) $variant->stock < $quantity)) {
+                    throw ValidationException::withMessages(["items.{$index}.quantity" => 'No hay stock suficiente para este producto.']);
+                }
+            } else {
+                $vehicleContext = $priceResolver->resolve(
+                    $catalogItem,
+                    !empty($row['vehicle_id']) ? (int) $row['vehicle_id'] : null,
+                    !empty($row['vehicle_type_id']) ? (int) $row['vehicle_type_id'] : null,
+                    $userId
+                );
+                $unitPrice = (float) $vehicleContext['price'];
+            }
+
+            $vehicleId = !empty($row['vehicle_id']) ? (int) $row['vehicle_id'] : null;
+            $vehicleTypeId = !empty($row['vehicle_type_id']) ? (int) $row['vehicle_type_id'] : null;
+            $subtotal = $unitPrice * $quantity;
+
+            $resolved[] = [
+                'variant' => $variant,
+                'uses_inventory' => (bool) $catalogItem->uses_inventory,
+                'subtotal' => $subtotal,
+                'payload' => [
+                    'catalog_item_id' => $catalogItem->id,
+                    'catalog_item_variant_id' => $variant?->id,
+                    'vehicle_id' => $vehicleId,
+                    'vehicle_type_id' => $vehicleTypeId,
+                    'name_snapshot' => $catalogItem->name,
+                    'type_snapshot' => $catalogItem->type?->name,
+                    'quantity' => $quantity,
+                    'unit_price' => $unitPrice,
+                    'subtotal' => $subtotal,
+                ],
+            ];
+        }
+
+        return $resolved;
+    }
+
+    private function resolveVariant(CatalogItem $catalogItem, mixed $variantId): ?CatalogItemVariant
+    {
+        if ($variantId) {
+            return CatalogItemVariant::query()
+                ->where('catalog_item_id', $catalogItem->id)
+                ->where('active', true)
+                ->findOrFail((int) $variantId);
+        }
+
+        return $catalogItem->activeVariants
+            ->sortByDesc('is_default')
+            ->first();
+    }
+
+    private function discountVariantStock(CatalogItemVariant $variant, int $quantity, int $saleId): void
+    {
+        $stockBefore = (int) $variant->stock;
+        $stockAfter = max(0, $stockBefore - $quantity);
+        $variant->update(['stock' => $stockAfter]);
+
+        InventoryMovement::create([
+            'catalog_item_variant_id' => $variant->id,
+            'user_id' => auth()->id(),
+            'type' => 'out',
+            'quantity' => $quantity,
+            'stock_before' => $stockBefore,
+            'stock_after' => $stockAfter,
+            'notes' => 'Venta sistema #' . $saleId,
+        ]);
+    }
+
+    private function parseVentaKey(string $key): array
+    {
+        if (str_starts_with($key, 'web-')) {
+            return ['web', (int) substr($key, 4)];
+        }
+
+        if (str_starts_with($key, 'internal-')) {
+            return ['internal', (int) substr($key, 9)];
+        }
+
+        return ['web', (int) $key];
+    }
+
+    private function mapOrderRow(Order $order): object
+    {
+        return (object) [
+            'key' => 'web-' . $order->id,
+            'id' => $order->id,
+            'origin' => 'Web',
+            'origin_key' => 'web',
+            'client' => $order->user?->name ?? 'Invitado',
+            'type' => ($order->order_type ?? 'purchase') === 'reservation' ? 'Reserva' : 'Compra',
+            'status' => $order->status,
+            'items_count' => $order->items->count(),
+            'total' => (float) $order->total,
+            'created_at' => $order->created_at,
+            'editable' => false,
+            'deletable' => false,
+        ];
+    }
+
+    private function mapSaleRow(Sale $sale): object
+    {
+        return (object) [
+            'key' => 'internal-' . $sale->id,
+            'id' => $sale->id,
+            'origin' => 'Sistema',
+            'origin_key' => 'internal',
+            'client' => $sale->user?->name ?? 'Invitado',
+            'type' => 'Venta directa',
+            'status' => $sale->status,
+            'items_count' => $sale->items->count(),
+            'total' => (float) $sale->total,
+            'created_at' => $sale->created_at,
+            'editable' => $sale->status !== 'paid',
+            'deletable' => $sale->status !== 'paid',
+        ];
+    }
+
+    private function paidAverageTicket(): float
+    {
+        $total = (float) Order::query()->where('status', 'paid')->sum('total')
+            + (float) Sale::query()->where('status', 'paid')->sum('total');
+        $count = (int) Order::query()->where('status', 'paid')->count()
+            + (int) Sale::query()->where('status', 'paid')->count();
+
+        return $count > 0 ? $total / $count : 0;
     }
 }
