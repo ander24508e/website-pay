@@ -13,10 +13,6 @@
         <x-heroicon-o-bars-3 class="w-6 h-6" />
     </button>
 
-    <button type="button" class="bottom-sheet-trigger" id="bottomSheetTrigger" aria-label="Abrir navegacion">
-        <x-heroicon-o-bars-3 class="w-6 h-6" />
-    </button>
-
     <!-- Tooltip flotante para feedback -->
     <div class="sidebar-tooltip" id="sidebarTooltip"></div>
 
