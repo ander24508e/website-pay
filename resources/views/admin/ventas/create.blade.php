@@ -24,7 +24,7 @@
 <div class="max-w-6xl mx-auto space-y-6">
     <div class="flex items-center justify-between gap-3">
         <div>
-            <h2 class="text-2xl font-bold text-gray-800">Nueva Venta Sistema</h2>
+            <h2 class="text-2xl font-bold text-gray-800">Agregar Venta </h2>
             <p class="text-sm text-gray-500">Registra ventas del panel sin mezclar el flujo web de checkout.</p>
         </div>
         <a href="{{ route('admin.ventas.index') }}" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium">Volver</a>
@@ -57,9 +57,9 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Veh&iacute;culo principal</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Vehiculo</label>
                     <select name="vehicle_id" id="mainVehicleSelect" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                        <option value="">Sin veh&iacute;culo</option>
+                        <option value="">Buscar</option>
                         @foreach($vehicles as $vehicle)
                             <option value="{{ $vehicle->id }}" data-client="{{ $vehicle->user_id }}" data-type="{{ $vehicle->resolvedType()?->id }}">
                                 {{ $vehicle->plate }} - {{ $vehicle->resolvedBrand()?->name }} {{ $vehicle->resolvedModel()?->name }}
@@ -69,7 +69,7 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Atendido por</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Trabajador</label>
                     <select name="attended_by" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                         <option value="">Usuario actual</option>
                         @foreach($usuarios as $usuario)

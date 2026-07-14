@@ -25,7 +25,7 @@ class VentasController extends Controller
         $search = trim((string) $request->query('q', ''));
         $status = trim((string) $request->query('status', ''));
         $origin = trim((string) $request->query('origin', ''));
-        $sort = $request->query('sort') === 'oldest' ? 'oldest' : 'newest';
+        $sort = 'oldest';
         $dateFrom = $request->query('date_from');
         $dateTo = $request->query('date_to');
 
@@ -81,11 +81,7 @@ class VentasController extends Controller
 
         $rows = $orders
             ->merge($sales)
-            ->when(
-                $sort === 'oldest',
-                fn ($collection) => $collection->sortBy('created_at'),
-                fn ($collection) => $collection->sortByDesc('created_at')
-            )
+            ->sortBy('created_at')
             ->values();
 
         $page = LengthAwarePaginator::resolveCurrentPage();

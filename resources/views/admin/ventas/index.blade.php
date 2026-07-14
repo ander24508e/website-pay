@@ -39,22 +39,22 @@
         </div>
 
         <div class="bg-white rounded-xl border border-gray-100 p-2 shadow-sm flex flex-wrap gap-2">
-            <a href="{{ route('admin.ventas.index', array_filter(['q' => $search, 'status' => $status, 'sort' => $sort, 'date_from' => $dateFrom, 'date_to' => $dateTo])) }}"
+            <a href="{{ route('admin.ventas.index', array_filter(['q' => $search, 'status' => $status, 'date_from' => $dateFrom, 'date_to' => $dateTo])) }}"
                 class="inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-semibold transition {{ $origin === '' ? 'bg-gray-900 text-white' : 'text-gray-600 hover:bg-gray-100' }}">
                 Todos
             </a>
-            <a href="{{ route('admin.ventas.index', array_filter(['origin' => 'internal', 'q' => $search, 'status' => $status, 'sort' => $sort, 'date_from' => $dateFrom, 'date_to' => $dateTo])) }}"
+            <a href="{{ route('admin.ventas.index', array_filter(['origin' => 'internal', 'q' => $search, 'status' => $status, 'date_from' => $dateFrom, 'date_to' => $dateTo])) }}"
                 class="inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-semibold transition {{ $origin === 'internal' ? 'bg-gray-900 text-white' : 'text-gray-600 hover:bg-gray-100' }}">
                 Sistema
             </a>
-            <a href="{{ route('admin.ventas.index', array_filter(['origin' => 'web', 'q' => $search, 'status' => $status, 'sort' => $sort, 'date_from' => $dateFrom, 'date_to' => $dateTo])) }}"
+            <a href="{{ route('admin.ventas.index', array_filter(['origin' => 'web', 'q' => $search, 'status' => $status, 'date_from' => $dateFrom, 'date_to' => $dateTo])) }}"
                 class="inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-semibold transition {{ $origin === 'web' ? 'bg-gray-900 text-white' : 'text-gray-600 hover:bg-gray-100' }}">
                 Web
             </a>
         </div>
 
         <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-            <form method="GET" class="grid grid-cols-1 md:grid-cols-6 gap-3">
+            <form method="GET" class="grid grid-cols-1 md:grid-cols-5 gap-3">
                 @if ($origin !== '')
                     <input type="hidden" name="origin" value="{{ $origin }}">
                 @endif
@@ -66,10 +66,6 @@
                     @foreach (['pending' => 'Pendiente', 'reserved' => 'Reservada', 'paid' => 'Pagada', 'failed' => 'Fallida', 'cancelled' => 'Cancelada'] as $key => $label)
                         <option value="{{ $key }}" @selected($status === $key)>{{ $label }}</option>
                     @endforeach
-                </select>
-                <select name="sort" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                    <option value="newest" @selected($sort === 'newest')>Más nuevas primero</option>
-                    <option value="oldest" @selected($sort === 'oldest')>Más antiguas primero</option>
                 </select>
                 <input type="date" name="date_from" value="{{ $dateFrom }}"
                     class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
@@ -163,8 +159,8 @@
                 <table class="w-full table-fixed text-sm">
                     <thead class="bg-gray-50 border-b sticky top-0 z-10 text-xs uppercase text-gray-500">
                         <tr>
+                            <th class="px-4 py-3 text-center w-[10%]">ID</th>
                             <th class="px-4 py-3 text-center w-[10%]">Origen</th>
-                            <th class="px-4 py-3 text-center w-[10%]">#</th>
                             <th class="px-4 py-3 text-center w-[20%]">Cliente</th>
                             <th class="px-4 py-3 text-center w-[13%]">Tipo</th>
                             <th class="px-4 py-3 text-center w-[12%]">Estado</th>
@@ -195,12 +191,13 @@
                                     ][$venta->status] ?? ucfirst((string) $venta->status);
                             @endphp
                             <tr class="border-t border-gray-100">
+                                <td class="px-4 py-3 font-semibold text-gray-700 text-center truncate">
+                                    #{{ $venta->id }}</td>
                                 <td class="px-4 py-3 text-center">
                                     <span
                                         class="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold {{ $venta->origin_key === 'web' ? 'bg-blue-50 text-blue-700' : 'bg-gray-100 text-gray-700' }}">{{ $venta->origin }}</span>
                                 </td>
-                                <td class="px-4 py-3 font-semibold text-gray-700 text-center truncate">
-                                    #{{ $venta->id }}</td>
+
                                 <td class="px-4 py-3 text-gray-600 text-center truncate">{{ $venta->client }}</td>
                                 <td class="px-4 py-3 text-gray-600 text-center truncate">{{ $venta->type }}</td>
                                 <td class="px-4 py-3 text-center"><span
