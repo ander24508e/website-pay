@@ -89,11 +89,11 @@
             <a href="{{ route('profile.edit', ['tab' => 'security']) }}" class="profile-switch-link {{ ($activeTab ?? 'account') === 'security' ? 'active' : '' }}">Seguridad</a>
         </div>
 
-        <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data" class="profile-form-grid">
+        <form action="{{ route('profile.account.update') }}" method="POST" enctype="multipart/form-data" class="profile-form-grid {{ ($activeTab ?? 'account') === 'security' ? 'is-hidden' : '' }}">
             @csrf
             @method('PATCH')
 
-            <section class="profile-left-stack {{ ($activeTab ?? 'account') === 'security' ? 'is-hidden' : '' }}">
+            <section class="profile-left-stack">
                 <article class="profile-card profile-card--avatar">
                     @include('profile.partials.form-avatar', ['user' => $user])
                 </article>
@@ -109,8 +109,13 @@
                     </button>
                 </div>
             </section>
+        </form>
 
-            <section class="profile-card profile-card--security {{ ($activeTab ?? 'account') === 'account' ? 'is-hidden' : '' }}">
+        <form action="{{ route('profile.security.update') }}" method="POST" class="profile-form-grid {{ ($activeTab ?? 'account') === 'account' ? 'is-hidden' : '' }}">
+            @csrf
+            @method('PATCH')
+
+            <section class="profile-card profile-card--security">
                 @includeIf('profile.partials.form-security')
 
                 <div class="save-row">
@@ -144,10 +149,16 @@
             }
         }
 
-        function togglePass(inputId) {
+        function togglePass(inputId, trigger) {
             const input = document.getElementById(inputId);
             if (!input) return;
-            input.type = input.type === 'password' ? 'text' : 'password';
+            const isVisible = input.type === 'text';
+            input.type = isVisible ? 'password' : 'text';
+
+            if (trigger) {
+                trigger.classList.toggle('is-active', !isVisible);
+                trigger.setAttribute('aria-pressed', !isVisible ? 'true' : 'false');
+            }
         }
 
         function initProfileBrandVars() {
