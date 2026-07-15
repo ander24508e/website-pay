@@ -30,13 +30,13 @@
         <a href="{{ route('admin.ventas.index') }}" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium">Volver</a>
     </div>
 
-    <form method="POST" action="{{ route('admin.ventas.store') }}" id="saleForm" class="space-y-5">
+    <form method="POST" action="{{ route('admin.ventas.store') }}" id="saleForm" class="space-y-5" enctype="multipart/form-data">
         @csrf
 
         <section class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm space-y-4">
             <div>
                 <h3 class="font-bold text-gray-800">Datos de la venta</h3>
-                <p class="text-xs text-gray-400">Define cliente, veh&iacute;culo, responsable y estado antes de agregar items.</p>
+                <p class="text-xs text-gray-400">Define cliente, veh&iacute;culo, responsable y observaciones internas.</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
@@ -78,31 +78,6 @@
                     </select>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
-                    <select name="status" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                        <option value="pending" @selected(old('status') === 'pending')>Pendiente</option>
-                        <option value="paid" @selected(old('status', 'paid') === 'paid')>Pagada</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Pago</label>
-                    <select name="payment_status" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                        <option value="pending" @selected(old('payment_status') === 'pending')>Pendiente</option>
-                        <option value="paid" @selected(old('payment_status', 'paid') === 'paid')>Pagado</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">M&eacute;todo de pago</label>
-                    <select name="payment_method" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                        @foreach(['cash' => 'Efectivo', 'transfer' => 'Transferencia', 'card' => 'Tarjeta', 'other' => 'Otro'] as $key => $label)
-                            <option value="{{ $key }}" @selected(old('payment_method', 'cash') === $key)>{{ $label }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
                 <div class="xl:col-span-2">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Notas</label>
                     <textarea name="notes" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">{{ old('notes') }}</textarea>
@@ -130,13 +105,62 @@
                 @enderror
             </section>
 
-            <aside class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm space-y-4 h-fit">
-                <h3 class="font-bold text-gray-800">Resumen</h3>
-                <div class="rounded-xl bg-gray-50 border border-gray-100 p-4 space-y-2">
-                    <div class="flex justify-between text-sm"><span class="text-gray-500">Subtotal</span><strong id="subtotalText">$0.00</strong></div>
-                    <div class="flex justify-between border-t border-gray-200 pt-3"><span class="font-semibold text-gray-800">Total</span><strong id="totalText" class="text-2xl text-gray-900">$0.00</strong></div>
-                </div>
-                <button class="w-full bg-gray-900 text-white px-5 py-3 rounded-lg text-sm font-semibold hover:bg-gray-700">Guardar Venta</button>
+            <aside class="space-y-5 h-fit">
+                <section class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm space-y-4">
+                    <h3 class="font-bold text-gray-800">Resumen</h3>
+                    <div class="rounded-xl bg-gray-50 border border-gray-100 p-4 space-y-2">
+                        <div class="flex justify-between text-sm"><span class="text-gray-500">Subtotal</span><strong id="subtotalText">$0.00</strong></div>
+                        <div class="flex justify-between text-sm"><span class="text-gray-500">Descuentos</span><strong id="discountText">$0.00</strong></div>
+                        <div class="flex justify-between text-sm"><span class="text-gray-500">Impuestos</span><strong id="taxText">$0.00</strong></div>
+                        <div class="flex justify-between border-t border-gray-200 pt-3"><span class="font-semibold text-gray-800">Total</span><strong id="totalText" class="text-2xl text-gray-900">$0.00</strong></div>
+                    </div>
+                </section>
+
+                <section class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm space-y-4">
+                    <div>
+                        <h3 class="font-bold text-gray-800">Pago</h3>
+                        <p class="text-xs text-gray-400">El sistema asigna estados autom&aacute;ticamente seg&uacute;n el m&eacute;todo.</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">M&eacute;todo de pago</label>
+                        <select name="payment[method]" id="paymentMethod" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                            @foreach(['cash' => 'Efectivo', 'payphone' => 'PayPhone', 'transfer' => 'Transferencia', 'card' => 'Tarjeta', 'credit' => 'Cr&eacute;dito'] as $key => $label)
+                                <option value="{{ $key }}" @selected(old('payment.method', 'cash') === $key)>{!! $label !!}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="payment-fields space-y-3" data-payment-fields="cash">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Monto recibido</label>
+                        <input type="number" step="0.01" min="0" name="payment[received_amount]" id="receivedAmount" value="{{ old('payment.received_amount') }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <p class="text-sm text-gray-500">Cambio: <strong id="changeText">$0.00</strong></p>
+                    </div>
+
+                    <div class="payment-fields hidden space-y-3" data-payment-fields="payphone">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ID de transacci&oacute;n PayPhone</label>
+                        <input type="text" name="payment[transaction_id]" value="{{ old('payment.transaction_id') }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    </div>
+
+                    <div class="payment-fields hidden space-y-3" data-payment-fields="transfer">
+                        <input type="text" name="payment[bank]" value="{{ old('payment.bank') }}" placeholder="Banco" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <input type="text" name="payment[reference]" value="{{ old('payment.reference') }}" placeholder="Referencia" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <input type="file" name="payment[proof]" accept=".jpg,.jpeg,.png,.webp,.pdf" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    </div>
+
+                    <div class="payment-fields hidden space-y-3" data-payment-fields="card">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">C&oacute;digo de autorizaci&oacute;n</label>
+                        <input type="text" name="payment[authorization_code]" value="{{ old('payment.authorization_code') }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    </div>
+
+                    <div class="payment-fields hidden space-y-3" data-payment-fields="credit">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Fecha de vencimiento</label>
+                        <input type="date" name="payment[due_date]" value="{{ old('payment.due_date') }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <textarea name="payment[notes]" rows="2" placeholder="Observaciones" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">{{ old('payment.notes') }}</textarea>
+                    </div>
+
+                    <button class="w-full bg-gray-900 text-white px-5 py-3 rounded-lg text-sm font-semibold hover:bg-gray-700">Guardar Venta</button>
+                </section>
             </aside>
         </div>
     </form>
@@ -193,7 +217,7 @@
 <template id="saleItemTemplate">
     <div class="sale-item-row rounded-xl border border-gray-100 bg-gray-50 p-4">
         <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
-            <div class="md:col-span-4">
+            <div class="md:col-span-3">
                 <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Producto/Servicio</label>
                 <select data-field="catalog_item_id" class="catalog-select w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" required>
                     <option value="">Selecciona un item</option>
@@ -231,6 +255,15 @@
             <div class="md:col-span-1">
                 <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Cant.</label>
                 <input type="number" data-field="quantity" value="1" min="1" class="quantity-input w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+            </div>
+            <div class="md:col-span-1">
+                <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">P. unit.</label>
+                <div class="unit-price w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-800">$0.00</div>
+            </div>
+            <div class="md:col-span-1 flex items-end justify-end">
+                <button type="button" class="remove-sale-item inline-flex items-center justify-center w-10 h-10 rounded-lg bg-red-50 text-red-700 hover:bg-red-100">
+                    <x-heroicon-o-trash class="w-5 h-5" />
+                </button>
             </div>
         </div>
         <div class="mt-3 text-right text-sm text-gray-500">Subtotal l&iacute;nea: <strong class="line-subtotal text-gray-800">$0.00</strong></div>
@@ -296,13 +329,66 @@ function recalculate() {
     let subtotal = 0;
     saleItems.querySelectorAll('.sale-item-row').forEach((row) => {
         const quantity = Math.max(1, Number(row.querySelector('.quantity-input')?.value || 1));
-        const lineSubtotal = linePrice(row) * quantity;
+        const unitPrice = linePrice(row);
+        const lineSubtotal = unitPrice * quantity;
+        row.querySelector('.unit-price').textContent = money(unitPrice);
         row.querySelector('.line-subtotal').textContent = money(lineSubtotal);
         subtotal += lineSubtotal;
     });
 
+    const discount = 0;
+    const tax = 0;
+    const total = subtotal - discount + tax;
+
     document.getElementById('subtotalText').textContent = money(subtotal);
-    document.getElementById('totalText').textContent = money(subtotal);
+    document.getElementById('discountText').textContent = money(discount);
+    document.getElementById('taxText').textContent = money(tax);
+    document.getElementById('totalText').textContent = money(total);
+    refreshPaymentFields();
+}
+
+function optionMatchesClient(option, clientId) {
+    return !clientId || !option.dataset.client || option.dataset.client === clientId;
+}
+
+function filterVehicleSelect(select, clientId) {
+    Array.from(select.options).forEach((option) => {
+        if (!option.value) return;
+        const visible = optionMatchesClient(option, clientId);
+        option.hidden = !visible;
+        option.disabled = !visible;
+    });
+
+    if (select.value && select.selectedOptions[0]?.disabled) {
+        select.value = '';
+    }
+}
+
+function filterVehiclesByClient() {
+    const clientId = clientSelect?.value || '';
+    const mainVehicleSelect = document.getElementById('mainVehicleSelect');
+    if (mainVehicleSelect) {
+        filterVehicleSelect(mainVehicleSelect, clientId);
+    }
+
+    saleItems.querySelectorAll('.vehicle-select').forEach((select) => {
+        filterVehicleSelect(select, clientId);
+    });
+}
+
+function refreshPaymentFields() {
+    const method = document.getElementById('paymentMethod')?.value || 'cash';
+    document.querySelectorAll('.payment-fields').forEach((section) => {
+        section.classList.toggle('hidden', section.dataset.paymentFields !== method);
+    });
+
+    const total = Number((document.getElementById('totalText')?.textContent || '$0').replace('$', '')) || 0;
+    const received = Number(document.getElementById('receivedAmount')?.value || 0);
+    const change = Math.max(0, received - total);
+    const changeText = document.getElementById('changeText');
+    if (changeText) {
+        changeText.textContent = money(change);
+    }
 }
 
 function addRow() {
@@ -311,6 +397,7 @@ function addRow() {
     row.dataset.index = itemIndex++;
     refreshNames(row);
     saleItems.appendChild(fragment);
+    filterVehiclesByClient();
     recalculate();
 }
 
@@ -343,6 +430,26 @@ saleItems?.addEventListener('click', (event) => {
 });
 
 addRow();
+
+document.getElementById('paymentMethod')?.addEventListener('change', refreshPaymentFields);
+document.getElementById('receivedAmount')?.addEventListener('input', refreshPaymentFields);
+clientSelect?.addEventListener('change', () => {
+    filterVehiclesByClient();
+    recalculate();
+});
+document.getElementById('mainVehicleSelect')?.addEventListener('change', (event) => {
+    const typeId = event.target.selectedOptions?.[0]?.dataset?.type;
+    if (!typeId) return;
+
+    saleItems.querySelectorAll('.sale-item-row').forEach((row) => {
+        if (!row.querySelector('.vehicle-select')?.value) {
+            row.querySelector('.vehicle-type-select').value = typeId;
+        }
+    });
+    recalculate();
+});
+filterVehiclesByClient();
+refreshPaymentFields();
 
 function openQuickClientModal() {
     quickClientModal.classList.remove('hidden');
@@ -401,6 +508,7 @@ quickClientForm?.addEventListener('submit', async (event) => {
         const cliente = data.cliente;
         clientSelect.add(new Option(cliente.label, cliente.id, true, true));
         clientSelect.value = cliente.id;
+        filterVehiclesByClient();
         closeQuickClientModal();
     } catch (error) {
         showQuickClientErrors({});

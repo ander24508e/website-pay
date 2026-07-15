@@ -3,20 +3,18 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Data\SaleData;
+use App\Http\Requests\Admin\StoreSaleRequest;
+use App\Http\Requests\Admin\UpdateSaleRequest;
 use App\Models\CatalogItem;
-use App\Models\CatalogItemVariant;
-use App\Models\CatalogType;
-use App\Models\InventoryMovement;
 use App\Models\Order;
 use App\Models\Sale;
 use App\Models\User;
 use App\Models\Vehicle;
 use App\Models\VehicleType;
-use App\Services\ServiceVehiclePriceResolver;
+use App\Services\Sales\CreateSaleService;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 
 class VentasController extends Controller
 {
@@ -122,7 +120,7 @@ class VentasController extends Controller
         }
 
         $record = Sale::query()
-            ->with(['user', 'vehicle.brand', 'vehicle.model', 'vehicle.type', 'attendedBy', 'items.catalogItem', 'items.variant', 'items.vehicle', 'items.vehicleType'])
+            ->with(['user', 'vehicle.brand', 'vehicle.model', 'vehicle.type', 'attendedBy', 'items.catalogItem', 'items.variant', 'items.vehicle', 'items.vehicleType', 'payments'])
             ->findOrFail($id);
 
         return view('admin.ventas.show', [
@@ -137,53 +135,9 @@ class VentasController extends Controller
         return view('admin.ventas.create', $this->formData());
     }
 
-    public function store(Request $request, ServiceVehiclePriceResolver $priceResolver)
+    public function store(StoreSaleRequest $request, CreateSaleService $createSaleService)
     {
-        $data = $request->validate([
-            'user_id' => ['nullable', 'integer', 'exists:users,id'],
-            'vehicle_id' => ['nullable', 'integer', 'exists:vehicles,id'],
-            'attended_by' => ['nullable', 'integer', 'exists:users,id'],
-            'status' => ['required', 'in:pending,paid'],
-            'payment_status' => ['required', 'in:pending,paid'],
-            'payment_method' => ['required', 'in:cash,transfer,card,other'],
-            'notes' => ['nullable', 'string', 'max:2000'],
-            'items' => ['required', 'array', 'min:1'],
-            'items.*.catalog_item_id' => ['required', 'integer', 'exists:catalog_items,id'],
-            'items.*.catalog_item_variant_id' => ['nullable', 'integer', 'exists:catalog_item_variants,id'],
-            'items.*.vehicle_id' => ['nullable', 'integer', 'exists:vehicles,id'],
-            'items.*.vehicle_type_id' => ['nullable', 'integer', 'exists:vehicle_types,id'],
-            'items.*.quantity' => ['required', 'integer', 'min:1'],
-        ]);
-
-        $resolvedItems = $this->resolveSaleItems($data['items'], $priceResolver, !empty($data['user_id']) ? (int) $data['user_id'] : null);
-        $subtotal = collect($resolvedItems)->sum('subtotal');
-        $discount = 0.0;
-        $total = $subtotal;
-
-        $sale = DB::transaction(function () use ($data, $resolvedItems, $subtotal, $discount, $total) {
-            $sale = Sale::create([
-                'user_id' => $data['user_id'] ?? null,
-                'vehicle_id' => $data['vehicle_id'] ?? null,
-                'attended_by' => $data['attended_by'] ?? auth()->id(),
-                'status' => $data['status'],
-                'payment_status' => $data['payment_status'],
-                'payment_method' => $data['payment_method'],
-                'subtotal' => $subtotal,
-                'discount' => $discount,
-                'total' => $total,
-                'notes' => trim((string) ($data['notes'] ?? '')) ?: null,
-            ]);
-
-            foreach ($resolvedItems as $item) {
-                $sale->items()->create($item['payload']);
-
-                if ($sale->status === 'paid' && $item['variant'] && $item['uses_inventory']) {
-                    $this->discountVariantStock($item['variant'], $item['payload']['quantity'], $sale->id);
-                }
-            }
-
-            return $sale;
-        });
+        $sale = $createSaleService->create(SaleData::fromArray($request->validated()));
 
         return redirect()->route('admin.ventas.show', 'internal-' . $sale->id)
             ->with('success', 'Venta del sistema creada correctamente.');
@@ -200,7 +154,7 @@ class VentasController extends Controller
 
         $sale = Sale::query()->with(['items'])->findOrFail($id);
 
-        if ($sale->status === 'paid') {
+        if ($sale->status === Sale::STATUS_PAID) {
             return redirect()->route('admin.ventas.show', 'internal-' . $sale->id)
                 ->with('error', 'Una venta pagada no debe editarse. Puedes cancelarla si corresponde.');
         }
@@ -208,7 +162,7 @@ class VentasController extends Controller
         return view('admin.ventas.edit', array_merge($this->formData(), compact('sale')));
     }
 
-    public function update(Request $request, string $venta)
+    public function update(UpdateSaleRequest $request, string $venta)
     {
         [$origin, $id] = $this->parseVentaKey($venta);
 
@@ -219,30 +173,17 @@ class VentasController extends Controller
 
         $sale = Sale::findOrFail($id);
 
-        if ($sale->status === 'paid') {
+        if ($sale->status === Sale::STATUS_PAID) {
             return redirect()->route('admin.ventas.show', 'internal-' . $sale->id)
                 ->with('error', 'Una venta pagada no debe editarse.');
         }
 
-        $data = $request->validate([
-            'user_id' => ['nullable', 'integer', 'exists:users,id'],
-            'vehicle_id' => ['nullable', 'integer', 'exists:vehicles,id'],
-            'attended_by' => ['nullable', 'integer', 'exists:users,id'],
-            'status' => ['required', 'in:pending'],
-            'payment_status' => ['required', 'in:pending'],
-            'payment_method' => ['required', 'in:cash,transfer,card,other'],
-            'notes' => ['nullable', 'string', 'max:2000'],
-        ]);
+        $data = $request->validated();
 
         $sale->update([
             'user_id' => $data['user_id'] ?? null,
             'vehicle_id' => $data['vehicle_id'] ?? null,
             'attended_by' => $data['attended_by'] ?? null,
-            'status' => $data['status'],
-            'payment_status' => $data['payment_status'],
-            'payment_method' => $data['payment_method'],
-            'discount' => 0,
-            'total' => (float) $sale->subtotal,
             'notes' => trim((string) ($data['notes'] ?? '')) ?: null,
         ]);
 
@@ -261,7 +202,7 @@ class VentasController extends Controller
 
         $sale = Sale::findOrFail($id);
 
-        if ($sale->status === 'paid') {
+        if ($sale->status === Sale::STATUS_PAID) {
             return redirect()->route('admin.ventas.show', 'internal-' . $sale->id)
                 ->with('error', 'Una venta pagada no se elimina. Mantén el historial.');
         }
@@ -293,99 +234,6 @@ class VentasController extends Controller
                 ->orderBy('name')
                 ->get(),
         ];
-    }
-
-    private function resolveSaleItems(array $items, ServiceVehiclePriceResolver $priceResolver, ?int $userId): array
-    {
-        $resolved = [];
-
-        foreach ($items as $index => $row) {
-            $catalogItem = CatalogItem::query()
-                ->with(['type', 'activeVariants', 'vehicleTypePrices.vehicleType'])
-                ->where('active', true)
-                ->where('purchasable', true)
-                ->find((int) ($row['catalog_item_id'] ?? 0));
-
-            if (!$catalogItem) {
-                throw ValidationException::withMessages(["items.{$index}.catalog_item_id" => 'El item seleccionado no esta disponible.']);
-            }
-
-            $quantity = max(1, (int) ($row['quantity'] ?? 1));
-            $isProduct = ($catalogItem->type?->business_model ?? CatalogType::BUSINESS_MODEL_SERVICES) === CatalogType::BUSINESS_MODEL_PRODUCTS;
-            $variant = null;
-            $unitPrice = (float) $catalogItem->display_price;
-
-            if ($isProduct) {
-                $variant = $this->resolveVariant($catalogItem, $row['catalog_item_variant_id'] ?? null);
-                $unitPrice = (float) ($variant?->price ?? $catalogItem->display_price);
-
-                if ($catalogItem->uses_inventory && (!$variant || (int) $variant->stock < $quantity)) {
-                    throw ValidationException::withMessages(["items.{$index}.quantity" => 'No hay stock suficiente para este producto.']);
-                }
-            } else {
-                $vehicleContext = $priceResolver->resolve(
-                    $catalogItem,
-                    !empty($row['vehicle_id']) ? (int) $row['vehicle_id'] : null,
-                    !empty($row['vehicle_type_id']) ? (int) $row['vehicle_type_id'] : null,
-                    $userId
-                );
-                $unitPrice = (float) $vehicleContext['price'];
-            }
-
-            $vehicleId = !empty($row['vehicle_id']) ? (int) $row['vehicle_id'] : null;
-            $vehicleTypeId = !empty($row['vehicle_type_id']) ? (int) $row['vehicle_type_id'] : null;
-            $subtotal = $unitPrice * $quantity;
-
-            $resolved[] = [
-                'variant' => $variant,
-                'uses_inventory' => (bool) $catalogItem->uses_inventory,
-                'subtotal' => $subtotal,
-                'payload' => [
-                    'catalog_item_id' => $catalogItem->id,
-                    'catalog_item_variant_id' => $variant?->id,
-                    'vehicle_id' => $vehicleId,
-                    'vehicle_type_id' => $vehicleTypeId,
-                    'name_snapshot' => $catalogItem->name,
-                    'type_snapshot' => $catalogItem->type?->name,
-                    'quantity' => $quantity,
-                    'unit_price' => $unitPrice,
-                    'subtotal' => $subtotal,
-                ],
-            ];
-        }
-
-        return $resolved;
-    }
-
-    private function resolveVariant(CatalogItem $catalogItem, mixed $variantId): ?CatalogItemVariant
-    {
-        if ($variantId) {
-            return CatalogItemVariant::query()
-                ->where('catalog_item_id', $catalogItem->id)
-                ->where('active', true)
-                ->findOrFail((int) $variantId);
-        }
-
-        return $catalogItem->activeVariants
-            ->sortByDesc('is_default')
-            ->first();
-    }
-
-    private function discountVariantStock(CatalogItemVariant $variant, int $quantity, int $saleId): void
-    {
-        $stockBefore = (int) $variant->stock;
-        $stockAfter = max(0, $stockBefore - $quantity);
-        $variant->update(['stock' => $stockAfter]);
-
-        InventoryMovement::create([
-            'catalog_item_variant_id' => $variant->id,
-            'user_id' => auth()->id(),
-            'type' => 'out',
-            'quantity' => $quantity,
-            'stock_before' => $stockBefore,
-            'stock_after' => $stockAfter,
-            'notes' => 'Venta sistema #' . $saleId,
-        ]);
     }
 
     private function parseVentaKey(string $key): array
@@ -432,8 +280,8 @@ class VentasController extends Controller
             'items_count' => $sale->items->count(),
             'total' => (float) $sale->total,
             'created_at' => $sale->created_at,
-            'editable' => $sale->status !== 'paid',
-            'deletable' => $sale->status !== 'paid',
+            'editable' => $sale->status !== Sale::STATUS_PAID,
+            'deletable' => $sale->status !== Sale::STATUS_PAID,
         ];
     }
 
@@ -447,3 +295,4 @@ class VentasController extends Controller
         return $count > 0 ? $total / $count : 0;
     }
 }
+

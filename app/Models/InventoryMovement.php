@@ -9,6 +9,8 @@ class InventoryMovement extends Model
     protected $fillable = [
         'catalog_item_variant_id',
         'user_id',
+        'sale_id',
+        'sale_item_id',
         'type',
         'quantity',
         'stock_before',
@@ -31,5 +33,14 @@ class InventoryMovement extends Model
     {
         return $this->belongsTo(User::class);
     }
-}
 
+    public function sale()
+    {
+        return $this->belongsTo(Sale::class);
+    }
+
+    public function saleItem()
+    {
+        return $this->belongsTo(SaleItem::class);
+    }
+}

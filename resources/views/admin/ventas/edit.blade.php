@@ -7,7 +7,7 @@
     <div class="flex items-center justify-between gap-3">
         <div>
             <h2 class="text-2xl font-bold text-gray-800">Editar Venta Sistema #{{ $sale->id }}</h2>
-            <p class="text-sm text-gray-500">Solo se editan datos generales mientras la venta no esté pagada.</p>
+            <p class="text-sm text-gray-500">Solo se editan datos generales mientras la venta no est&eacute; pagada.</p>
         </div>
         <a href="{{ route('admin.ventas.show', 'internal-' . $sale->id) }}" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium">Volver</a>
     </div>
@@ -28,11 +28,11 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Vehículo</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Veh&iacute;culo</label>
                 <select name="vehicle_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                    <option value="">Sin vehículo</option>
+                    <option value="">Sin veh&iacute;culo</option>
                     @foreach($vehicles as $vehicle)
-                        <option value="{{ $vehicle->id }}" @selected(old('vehicle_id', $sale->vehicle_id) == $vehicle->id)>{{ $vehicle->plate }} - {{ $vehicle->resolvedBrand()?->name }} {{ $vehicle->resolvedModel()?->name }}</option>
+                        <option value="{{ $vehicle->id }}" data-client="{{ $vehicle->user_id }}" @selected(old('vehicle_id', $sale->vehicle_id) == $vehicle->id)>{{ $vehicle->plate }} - {{ $vehicle->resolvedBrand()?->name }} {{ $vehicle->resolvedModel()?->name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -47,29 +47,6 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
-                <select name="status" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                    <option value="pending" @selected(old('status', $sale->status) === 'pending')>Pendiente</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Pago</label>
-                <select name="payment_status" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                    <option value="pending" @selected(old('payment_status', $sale->payment_status) === 'pending')>Pendiente</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Método</label>
-                <select name="payment_method" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                    @foreach(['cash' => 'Efectivo', 'transfer' => 'Transferencia', 'card' => 'Tarjeta', 'other' => 'Otro'] as $key => $label)
-                        <option value="{{ $key }}" @selected(old('payment_method', $sale->payment_method) === $key)>{{ $label }}</option>
-                    @endforeach
-                </select>
-            </div>
-        </div>
-
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Notas</label>
             <textarea name="notes" rows="4" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">{{ old('notes', $sale->notes) }}</textarea>
@@ -79,3 +56,27 @@
     </form>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+const editClientSelect = document.querySelector('select[name="user_id"]');
+const editVehicleSelect = document.querySelector('select[name="vehicle_id"]');
+
+function filterEditVehicles() {
+    const clientId = editClientSelect?.value || '';
+    Array.from(editVehicleSelect?.options || []).forEach((option) => {
+        if (!option.value) return;
+        const visible = !clientId || !option.dataset.client || option.dataset.client === clientId;
+        option.hidden = !visible;
+        option.disabled = !visible;
+    });
+
+    if (editVehicleSelect?.value && editVehicleSelect.selectedOptions[0]?.disabled) {
+        editVehicleSelect.value = '';
+    }
+}
+
+editClientSelect?.addEventListener('change', filterEditVehicles);
+filterEditVehicles();
+</script>
+@endpush

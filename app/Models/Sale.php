@@ -11,6 +11,11 @@ class Sale extends Model
 {
     use HasFactory;
 
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_PAID = 'paid';
+    public const STATUS_FAILED = 'failed';
+    public const STATUS_CANCELLED = 'cancelled';
+
     protected $fillable = [
         'user_id',
         'vehicle_id',
@@ -20,6 +25,7 @@ class Sale extends Model
         'payment_method',
         'subtotal',
         'discount',
+        'tax_total',
         'total',
         'notes',
     ];
@@ -27,6 +33,7 @@ class Sale extends Model
     protected $casts = [
         'subtotal' => 'decimal:2',
         'discount' => 'decimal:2',
+        'tax_total' => 'decimal:2',
         'total' => 'decimal:2',
     ];
 
@@ -48,5 +55,15 @@ class Sale extends Model
     public function items(): HasMany
     {
         return $this->hasMany(SaleItem::class);
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(SalePayment::class);
+    }
+
+    public function audits(): HasMany
+    {
+        return $this->hasMany(SaleAudit::class);
     }
 }
