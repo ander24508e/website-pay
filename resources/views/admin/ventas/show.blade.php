@@ -43,7 +43,6 @@
 <div class="space-y-6">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div class="flex flex-wrap items-center gap-3">
-            <span class="text-xs text-gray-600">{{ $isWeb ? 'Web' : 'Sistema' }}</span>
             <h2 class="text-2xl font-bold text-gray-900">{{ $isWeb ? 'Orden' : 'Venta' }} #{{ $record->id }}</h2>
         </div>
 
@@ -66,7 +65,12 @@
 
     <div class="grid grid-cols-1 xl:grid-cols-12 gap-5">
         <section class="xl:col-span-8 bg-white rounded-xl border border-gray-100 p-4 sm:p-5 shadow-sm">
-            <h3 class="font-semibold text-gray-900 mb-4">Detallación de la Venta</h3>
+            <div class="flex items-center justify-between gap-3 mb-4">
+                <h3 class="font-semibold text-gray-900">Detalle de Venta</h3>
+                <span class="shrink-0 inline-flex rounded-full px-3 py-1 text-xs font-semibold {{ $isWeb ? 'bg-blue-50 text-blue-700' : 'bg-gray-100 text-gray-700' }}">
+                    {{ $isWeb ? 'Web' : 'Sistema' }}
+                </span>
+            </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <article class="rounded-lg border border-gray-200 overflow-hidden">
