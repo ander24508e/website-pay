@@ -219,7 +219,7 @@ class TransactionController extends Controller
                         });
                 });
             })
-            ->latest()
+            ->orderBy('id')
             ->paginate(15)
             ->withQueryString();
 

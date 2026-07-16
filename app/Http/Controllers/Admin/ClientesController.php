@@ -24,7 +24,7 @@ class ClientesController extends Controller
                         ->orWhere('telefono', 'like', "%{$search}%");
                 });
             })
-            ->latest()
+            ->orderBy('id')
             ->paginate(15)
             ->withQueryString();
 
@@ -43,7 +43,7 @@ class ClientesController extends Controller
         abort_unless($cliente->hasRole('cliente'), 404);
 
         $cliente->load([
-            'orders' => fn ($q) => $q->with(['items.itemable', 'transaction'])->latest(),
+            'orders' => fn ($q) => $q->with(['items.itemable', 'transaction'])->orderBy('id'),
         ]);
 
         $resumen = [
