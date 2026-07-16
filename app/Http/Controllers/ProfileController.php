@@ -28,6 +28,11 @@ class ProfileController extends Controller
 
     public function update(Request $request): RedirectResponse
     {
+        return $this->updateAccount($request);
+    }
+
+    public function updateAccount(Request $request): RedirectResponse
+    {
         $user = $request->user();
         $hasTelefono = Schema::hasColumn('users', 'telefono');
         $hasDireccion = Schema::hasColumn('users', 'direccion');
@@ -36,8 +41,6 @@ class ProfileController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
             'foto_perfil' => 'nullable|image|mimes:jpeg,png,jpg|max:4096',
-            'current_password' => 'nullable|string',
-            'password' => 'nullable|min:8|confirmed',
         ];
 
         if ($hasTelefono) {
@@ -50,7 +53,6 @@ class ProfileController extends Controller
 
         $request->validate($rules);
 
-        // 1. Informacion personal
         $user->name = $request->name;
         $user->email = $request->email;
 
@@ -62,33 +64,38 @@ class ProfileController extends Controller
             $user->direccion = trim((string) $request->direccion) !== '' ? $request->direccion : null;
         }
 
-        // 2. Foto de perfil
         if ($request->hasFile('foto_perfil') && $request->file('foto_perfil')->isValid()) {
+            $foto = $request->file('foto_perfil');
+
             if ($user->foto_perfil && Storage::disk('public')->exists($user->foto_perfil)) {
                 Storage::disk('public')->delete($user->foto_perfil);
             }
-            $fileName = 'profile-' . $user->id . '-' . time() . '.' . $request->foto_perfil->getClientOriginalExtension();
-            $user->foto_perfil = $request->foto_perfil->storeAs('fotos_perfil', $fileName, 'public');
+
+            $fileName = 'profile-' . $user->id . '-' . time() . '.' . $foto->getClientOriginalExtension();
+            $user->foto_perfil = $foto->storeAs('fotos_perfil', $fileName, 'public');
         }
 
-        // 3. Contrasena opcional
-        if ($request->filled('current_password')) {
-            if (!Hash::check($request->current_password, $user->password)) {
-                return back()->withErrors(['current_password' => 'La contrasena actual no es correcta.']);
-            }
-            if ($request->filled('password')) {
-                $user->password = Hash::make($request->password);
-            }
-        }
-
-        // 4. Invalidar email si cambio
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
         }
 
         $user->save();
 
-        return Redirect::route('profile.edit')->with('success', 'Perfil actualizado correctamente.');
+        return Redirect::route('profile.edit', ['tab' => 'account'])->with('success', 'Datos de la cuenta actualizados correctamente.');
+    }
+
+    public function updateSecurity(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'current_password' => ['required', 'current_password'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $user = $request->user();
+        $user->password = Hash::make($data['password']);
+        $user->save();
+
+        return Redirect::route('profile.edit', ['tab' => 'security'])->with('success', 'Contrasena actualizada correctamente.');
     }
 
     public function destroy(Request $request): RedirectResponse

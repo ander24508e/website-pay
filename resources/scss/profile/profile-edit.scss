@@ -364,6 +364,14 @@ body {
     transition: border-color 0.2s, background 0.2s;
 }
 
+.form-input:-webkit-autofill,
+.form-input:-webkit-autofill:hover,
+.form-input:-webkit-autofill:focus {
+    -webkit-text-fill-color: #fff;
+    box-shadow: 0 0 0 1000px rgba(210, 220, 236, 0.16) inset;
+    transition: background-color 9999s ease-out 0s;
+}
+
 .form-input::placeholder {
     color: rgba(255, 255, 255, 0.28);
 }
@@ -384,17 +392,51 @@ body {
 
 .eye-btn {
     position: absolute;
-    right: 0.75rem;
+    right: 0.55rem;
     top: 50%;
     transform: translateY(-50%);
-    border: none;
-    background: none;
-    color: rgba(255, 255, 255, 0.45);
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(11, 17, 28, 0.78);
+    border-radius: 999px;
+    color: rgba(255, 255, 255, 0.82);
     cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
 }
 
 .eye-btn:hover {
     color: #fff;
+    background: rgba(216, 33, 40, 0.22);
+    border-color: rgba(216, 33, 40, 0.45);
+}
+
+.input-wrap:focus-within .eye-btn,
+.eye-btn.is-active {
+    color: #fff;
+    background: rgba(216, 33, 40, 0.2);
+    border-color: rgba(216, 33, 40, 0.48);
+}
+
+.eye-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.eye-icon--visible {
+    display: none;
+}
+
+.eye-btn.is-active .eye-icon--hidden {
+    display: none;
+}
+
+.eye-btn.is-active .eye-icon--visible {
+    display: inline-flex;
 }
 
 .field-error {

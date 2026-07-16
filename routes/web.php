@@ -117,6 +117,8 @@ Route::middleware('auth')->group(function () {
     // Perfil
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::patch('/profile/account', [ProfileController::class, 'updateAccount'])->name('profile.account.update');
+    Route::patch('/profile/security', [ProfileController::class, 'updateSecurity'])->name('profile.security.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Detalle de orden para usuarios autenticados
