@@ -32,10 +32,43 @@
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Nueva Contraseña (opcional)</label>
-            <input type="password" name="password" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+            <div class="relative">
+                <input type="password" name="password" data-password-field
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 pr-11 text-sm">
+                <button type="button" data-toggle-password
+                    class="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-gray-400 transition hover:text-gray-700"
+                    aria-label="Ver contraseña">
+                    <x-heroicon-o-eye class="h-5 w-5" data-eye-open />
+                    <x-heroicon-o-eye-slash class="hidden h-5 w-5" data-eye-closed />
+                </button>
+            </div>
         </div>
         <button class="bg-gray-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold">Actualizar Cliente</button>
     </form>
 </div>
 @endsection
 
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('[data-toggle-password]').forEach((button) => {
+                button.addEventListener('click', () => {
+                    const wrapper = button.closest('.relative');
+                    const input = wrapper?.querySelector('[data-password-field]');
+                    const eyeOpen = button.querySelector('[data-eye-open]');
+                    const eyeClosed = button.querySelector('[data-eye-closed]');
+
+                    if (!input) {
+                        return;
+                    }
+
+                    const shouldShow = input.type === 'password';
+                    input.type = shouldShow ? 'text' : 'password';
+                    button.setAttribute('aria-label', shouldShow ? 'Ocultar contraseña' : 'Ver contraseña');
+                    eyeOpen?.classList.toggle('hidden', shouldShow);
+                    eyeClosed?.classList.toggle('hidden', !shouldShow);
+                });
+            });
+        });
+    </script>
+@endpush

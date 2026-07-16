@@ -67,7 +67,8 @@
                 <span>Transacciones</span>
             </a>
 
-            <p class="px-3 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">Activos Operacionales</p>
+            <p class="px-3 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">Activos
+                Operacionales</p>
 
             <a href="{{ route('admin.catalog.index') }}"
                 class="{{ request()->routeIs('admin.catalog.*') || request()->routeIs('admin.catalog-types.*') || request()->routeIs('admin.catalog-categories.*') || request()->routeIs('admin.catalog-items.*') || request()->routeIs('admin.catalog-variants.*') || request()->routeIs('admin.catalog.*') ? 'active' : '' }}">
@@ -87,11 +88,7 @@
 
             <p class="px-4 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">
                 Administracion</p>
-            <a href="{{ route('admin.empresa.edit') }}"
-                class="{{ request()->routeIs('admin.empresa.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-building-office class="w-5 h-5" /></span>
-                <span>Mi Empresa</span>
-            </a>
+
 
             <a href="{{ route('admin.clientes.index') }}"
                 class="{{ request()->routeIs('admin.clientes.*') ? 'active' : '' }}">
@@ -114,6 +111,11 @@
                     <span>Configuracion</span>
                 </summary>
                 <div class="sidebar-settings-links">
+                    <a href="{{ route('admin.empresa.edit') }}"
+                        class="{{ request()->routeIs('admin.empresa.*') ? 'active' : '' }}">
+                        <span><x-heroicon-o-building-office class="w-5 h-5" /></span>
+                        <span>Mi Empresa</span>
+                    </a>
                     <a href="{{ route('profile.edit', ['tab' => 'account']) }}"
                         class="{{ request()->routeIs('profile.edit') && request('tab', 'account') === 'account' ? 'active' : '' }}">Cuenta</a>
                     <a href="{{ route('profile.edit', ['tab' => 'security']) }}"
@@ -165,7 +167,7 @@
                 <span><x-heroicon-o-globe-alt class="w-5 h-5" /></span>
                 <span>Pagina web</span>
             </a>
-            
+
             <a href="{{ route('admin.dashboard') }}"
                 class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                 <span><x-heroicon-o-chart-bar class="w-5 h-5" /></span>
@@ -197,7 +199,8 @@
                 <span>Transacciones</span>
             </a>
 
-            <p class="px-3 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">Activos Operacionales</p>
+            <p class="px-3 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">Activos
+                Operacionales</p>
 
             <a href="{{ route('admin.catalog.index') }}"
                 class="{{ request()->routeIs('admin.catalog.*') || request()->routeIs('admin.catalog-types.*') || request()->routeIs('admin.catalog-categories.*') || request()->routeIs('admin.catalog-items.*') || request()->routeIs('admin.catalog-variants.*') || request()->routeIs('admin.catalog.*') ? 'active' : '' }}">
@@ -218,12 +221,6 @@
 
             <p class="px-3 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">
                 Administracion</p>
-            <a href="{{ route('admin.empresa.edit') }}"
-                class="{{ request()->routeIs('admin.empresa.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-building-office class="w-5 h-5" /></span>
-                <span>Mi Empresa</span>
-            </a>
-
             <a href="{{ route('admin.clientes.index') }}"
                 class="{{ request()->routeIs('admin.clientes.*') ? 'active' : '' }}">
                 <span><x-heroicon-o-users class="w-5 h-5" /></span>
@@ -244,6 +241,12 @@
                     <span>Configuracion</span>
                 </summary>
                 <div class="sidebar-settings-links">
+                    <a href="{{ route('admin.empresa.edit') }}"
+                        class="{{ request()->routeIs('admin.empresa.*') ? 'active' : '' }}">
+
+                        <span>Mi Empresa</span>
+                        <span><x-heroicon-o-building-office class="w-5 h-5" /></span>
+                    </a>
                     <a href="{{ route('profile.edit', ['tab' => 'account']) }}"
                         class="{{ request()->routeIs('profile.edit') && request('tab', 'account') === 'account' ? 'active' : '' }}">Cuenta</a>
                     <a href="{{ route('profile.edit', ['tab' => 'security']) }}"

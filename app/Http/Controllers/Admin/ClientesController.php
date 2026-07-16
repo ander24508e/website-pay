@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\VehicleSpecification;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 
@@ -44,6 +45,9 @@ class ClientesController extends Controller
 
         $cliente->load([
             'orders' => fn ($q) => $q->with(['items.itemable', 'transaction'])->orderBy('id'),
+            'vehicles' => fn ($q) => $q
+                ->with(['brand:id,name', 'model:id,name', 'type:id,name', 'specification.brand:id,name', 'specification.model:id,name', 'specification.type:id,name'])
+                ->orderBy('id'),
         ]);
 
         $resumen = [
@@ -53,7 +57,13 @@ class ClientesController extends Controller
             'ultima_compra' => $cliente->orders->first()?->created_at,
         ];
 
-        return view('admin.clientes.show', compact('cliente', 'resumen'));
+        $vehicleSpecifications = VehicleSpecification::query()
+            ->where('active', true)
+            ->with(['brand:id,name', 'model:id,name,vehicle_brand_id', 'type:id,name'])
+            ->ordered()
+            ->get(['id', 'vehicle_brand_id', 'vehicle_model_id', 'vehicle_type_id', 'sort_order', 'active']);
+
+        return view('admin.clientes.show', compact('cliente', 'resumen', 'vehicleSpecifications'));
     }
 
     public function create()

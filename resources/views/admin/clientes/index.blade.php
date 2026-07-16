@@ -269,7 +269,6 @@
                                         >
                                             @csrf
                                             @method('DELETE')
-
                                             <button
                                                 type="submit"
                                                 class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-red-600 transition hover:bg-red-50 hover:text-red-800"
@@ -281,7 +280,6 @@
                                         </form>
                                     </div>
                                 </td>
-
                             </tr>
                         @empty
                             <tr>
@@ -290,15 +288,12 @@
                                         <div class="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
                                             <x-heroicon-o-users class="h-6 w-6 text-gray-400" />
                                         </div>
-
                                         <p class="mt-3 font-medium text-gray-600">
                                             No hay clientes registrados
                                         </p>
-
                                         <p class="mt-1 text-sm text-gray-400">
                                             Registra un cliente para comenzar.
                                         </p>
-
                                         <a
                                             href="{{ route('admin.clientes.create') }}"
                                             class="mt-4 inline-flex items-center justify-center rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-700"
@@ -315,13 +310,11 @@
                 </table>
             </div>
         </div>
-
         {{-- Paginación --}}
         @if ($clientes->hasPages())
             <div>
                 {{ $clientes->links() }}
             </div>
         @endif
-
     </div>
 @endsection
