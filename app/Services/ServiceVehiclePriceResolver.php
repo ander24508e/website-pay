@@ -44,9 +44,6 @@ class ServiceVehiclePriceResolver
                 ->where('user_id', $userId)
                 ->where('active', true)
                 ->with([
-                    'brand:id,name',
-                    'model:id,name',
-                    'type:id,name,active',
                     'specification.brand:id,name',
                     'specification.model:id,name',
                     'specification.type:id,name,active',

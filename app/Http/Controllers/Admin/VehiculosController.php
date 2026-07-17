@@ -23,7 +23,7 @@ class VehiculosController extends Controller
         $status = trim((string) $request->query('status', ''));
 
         $vehicles = Vehicle::query()
-            ->with(['client', 'brand', 'model', 'type', 'specification.brand', 'specification.model', 'specification.type'])
+            ->with(['client', 'specification.brand', 'specification.model', 'specification.type'])
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($sub) use ($search) {
                     $sub->where('plate', 'like', "%{$search}%")
@@ -34,24 +34,16 @@ class VehiculosController extends Controller
                                 ->orWhere('email', 'like', "%{$search}%")
                                 ->orWhere('telefono', 'like', "%{$search}%");
                         })
-                        ->orWhereHas('brand', fn ($brand) => $brand->where('name', 'like', "%{$search}%"))
-                        ->orWhereHas('model', fn ($model) => $model->where('name', 'like', "%{$search}%"))
                         ->orWhereHas('specification.brand', fn ($brand) => $brand->where('name', 'like', "%{$search}%"))
                         ->orWhereHas('specification.model', fn ($model) => $model->where('name', 'like', "%{$search}%"))
                         ->orWhereHas('specification.type', fn ($type) => $type->where('name', 'like', "%{$search}%"));
                 });
             })
             ->when($brandId, function ($query) use ($brandId) {
-                $query->where(function ($sub) use ($brandId) {
-                    $sub->where('vehicle_brand_id', $brandId)
-                        ->orWhereHas('specification', fn ($specification) => $specification->where('vehicle_brand_id', $brandId));
-                });
+                $query->whereHas('specification', fn ($specification) => $specification->where('vehicle_brand_id', $brandId));
             })
             ->when($vehicleTypeId, function ($query) use ($vehicleTypeId) {
-                $query->where(function ($sub) use ($vehicleTypeId) {
-                    $sub->where('vehicle_type_id', $vehicleTypeId)
-                        ->orWhereHas('specification', fn ($specification) => $specification->where('vehicle_type_id', $vehicleTypeId));
-                });
+                $query->whereHas('specification', fn ($specification) => $specification->where('vehicle_type_id', $vehicleTypeId));
             })
             ->when($status !== '', fn ($query) => $query->where('active', $status === 'active'))
             ->latest()
@@ -88,13 +80,27 @@ class VehiculosController extends Controller
         return redirect()->route('admin.vehiculos.show', $vehicle)->with('success', 'Vehiculo creado correctamente.');
     }
 
+    public function quickStore(Request $request)
+    {
+        $vehicle = Vehicle::create($this->validatedData($request))
+            ->load(['client:id,name,email', 'specification.brand:id,name', 'specification.model:id,name', 'specification.type:id,name']);
+
+        return response()->json([
+            'message' => 'Vehiculo creado correctamente.',
+            'vehicle' => [
+                'id' => $vehicle->id,
+                'user_id' => $vehicle->user_id,
+                'vehicle_type_id' => $vehicle->resolvedType()?->id,
+                'plate' => $vehicle->plate,
+                'label' => trim($vehicle->plate . ' - ' . $vehicle->resolvedBrand()?->name . ' ' . $vehicle->resolvedModel()?->name),
+            ],
+        ]);
+    }
+
     public function show(Vehicle $vehiculo)
     {
         $vehiculo->load([
             'client',
-            'brand',
-            'model',
-            'type',
             'specification.brand',
             'specification.model',
             'specification.type',
@@ -106,7 +112,7 @@ class VehiculosController extends Controller
 
     public function edit(Vehicle $vehiculo)
     {
-        $vehiculo->load(['client', 'brand', 'model', 'type', 'specification.brand', 'specification.model', 'specification.type']);
+        $vehiculo->load(['client', 'specification.brand', 'specification.model', 'specification.type']);
 
         return view('admin.vehiculos.edit', array_merge($this->formData(), compact('vehiculo')));
     }
@@ -148,13 +154,7 @@ class VehiculosController extends Controller
                 'integer',
                 'exists:users,id',
             ],
-            'vehicle_brand_id' => ['nullable', 'integer', 'exists:vehicle_brands,id'],
-            'vehicle_model_id' => ['nullable', 'integer', 'exists:vehicle_models,id'],
-            'vehicle_type_id' => ['nullable', 'integer', 'exists:vehicle_types,id'],
-            'vehicle_specification_id' => ['nullable', 'integer', 'exists:vehicle_specifications,id'],
-            'vehicle_type_name' => ['nullable', 'string', 'max:255'],
-            'brand_name' => ['nullable', 'string', 'max:255'],
-            'model_name' => ['nullable', 'string', 'max:255'],
+            'vehicle_specification_id' => ['required', 'integer', 'exists:vehicle_specifications,id'],
             'plate' => ['required', 'string', 'max:20', Rule::unique('vehicles', 'plate')->ignore($vehicle?->id)],
             'color' => ['nullable', 'string', 'max:80'],
             'year' => ['nullable', 'integer', 'min:1900', 'max:' . (now()->year + 1)],
@@ -162,99 +162,26 @@ class VehiculosController extends Controller
             'active' => ['nullable', 'boolean'],
         ]);
 
-        $brandName = trim((string) ($data['brand_name'] ?? ''));
-        $modelName = trim((string) ($data['model_name'] ?? ''));
-        $vehicleTypeName = trim((string) ($data['vehicle_type_name'] ?? ''));
-
         if (!User::query()->role('cliente')->whereKey($data['user_id'])->exists()) {
             throw ValidationException::withMessages([
                 'user_id' => 'El usuario seleccionado debe tener rol de cliente.',
             ]);
         }
 
-        if (!empty($data['vehicle_specification_id'])) {
-            $specification = VehicleSpecification::query()
-                ->whereKey($data['vehicle_specification_id'])
-                ->where('active', true)
-                ->with(['brand', 'model', 'type'])
-                ->first();
+        $specification = VehicleSpecification::query()
+            ->whereKey($data['vehicle_specification_id'])
+            ->where('active', true)
+            ->with(['brand', 'model', 'type'])
+            ->first();
 
-            if (!$specification || !$specification->brand?->active || !$specification->model?->active || !$specification->type?->active) {
-                throw ValidationException::withMessages([
-                    'vehicle_specification_id' => 'La especificación seleccionada no está disponible.',
-                ]);
-            }
-
-            return [
-                'user_id' => $data['user_id'],
-                'vehicle_brand_id' => $specification->vehicle_brand_id,
-                'vehicle_model_id' => $specification->vehicle_model_id,
-                'vehicle_type_id' => $specification->vehicle_type_id,
-                'vehicle_specification_id' => $specification->id,
-                'plate' => mb_strtoupper(trim((string) $data['plate'])),
-                'color' => trim((string) ($data['color'] ?? '')) ?: null,
-                'year' => $data['year'] ?? null,
-                'observations' => trim((string) ($data['observations'] ?? '')) ?: null,
-                'active' => $request->boolean('active'),
-            ];
-        }
-
-        if ($vehicleTypeName !== '') {
-            $vehicleType = VehicleType::firstOrCreate(
-                ['name' => $vehicleTypeName],
-                ['description' => null, 'sort_order' => 0, 'active' => true]
-            );
-            if (!$vehicleType->active) {
-                $vehicleType->update(['active' => true]);
-            }
-            $data['vehicle_type_id'] = $vehicleType->id;
-        } elseif (empty($data['vehicle_type_id'])) {
+        if (!$specification || !$specification->brand?->active || !$specification->model?->active || !$specification->type?->active) {
             throw ValidationException::withMessages([
-                'vehicle_type_id' => 'Selecciona un tipo de vehículo o escribe uno nuevo.',
+                'vehicle_specification_id' => 'La especificación seleccionada no está disponible.',
             ]);
         }
-
-        if ($brandName !== '') {
-            $brand = VehicleBrand::firstOrCreate(['name' => $brandName], ['active' => true]);
-            $data['vehicle_brand_id'] = $brand->id;
-        } elseif (empty($data['vehicle_brand_id'])) {
-            throw ValidationException::withMessages([
-                'vehicle_brand_id' => 'Selecciona una marca o escribe una nueva.',
-            ]);
-        } else {
-            $brand = VehicleBrand::findOrFail($data['vehicle_brand_id']);
-        }
-
-        if ($modelName !== '') {
-            $model = VehicleModel::firstOrCreate([
-                'vehicle_brand_id' => $brand->id,
-                'name' => $modelName,
-            ], ['active' => true]);
-
-            $data['vehicle_model_id'] = $model->id;
-        } elseif (empty($data['vehicle_model_id'])) {
-            throw ValidationException::withMessages([
-                'vehicle_model_id' => 'Selecciona un modelo o escribe uno nuevo.',
-            ]);
-        } else {
-            $model = VehicleModel::where('vehicle_brand_id', $brand->id)->findOrFail($data['vehicle_model_id']);
-            $data['vehicle_model_id'] = $model->id;
-        }
-
-        $specification = VehicleSpecification::firstOrCreate([
-            'vehicle_brand_id' => $data['vehicle_brand_id'],
-            'vehicle_model_id' => $data['vehicle_model_id'],
-            'vehicle_type_id' => $data['vehicle_type_id'],
-        ], [
-            'sort_order' => 0,
-            'active' => true,
-        ]);
 
         return [
             'user_id' => $data['user_id'],
-            'vehicle_brand_id' => $data['vehicle_brand_id'],
-            'vehicle_model_id' => $data['vehicle_model_id'],
-            'vehicle_type_id' => $data['vehicle_type_id'],
             'vehicle_specification_id' => $specification->id,
             'plate' => mb_strtoupper(trim((string) $data['plate'])),
             'color' => trim((string) ($data['color'] ?? '')) ?: null,

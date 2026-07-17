@@ -34,12 +34,23 @@ return new class extends Migration
             $table->unique(['vehicle_brand_id', 'name']);
         });
 
+        Schema::create('vehicle_specifications', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('vehicle_brand_id')->constrained('vehicle_brands')->restrictOnDelete();
+            $table->foreignId('vehicle_model_id')->constrained('vehicle_models')->restrictOnDelete();
+            $table->foreignId('vehicle_type_id')->constrained('vehicle_types')->restrictOnDelete();
+            $table->unsignedInteger('sort_order')->default(0);
+            $table->boolean('active')->default(true);
+            $table->timestamps();
+
+            $table->unique(['vehicle_brand_id', 'vehicle_model_id', 'vehicle_type_id'], 'vehicle_specs_unique');
+            $table->index(['active', 'sort_order']);
+        });
+
         Schema::create('vehicles', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('vehicle_brand_id')->constrained()->restrictOnDelete();
-            $table->foreignId('vehicle_model_id')->constrained()->restrictOnDelete();
-            $table->foreignId('vehicle_type_id')->constrained()->restrictOnDelete();
+            $table->foreignId('vehicle_specification_id')->constrained()->restrictOnDelete();
             $table->string('plate', 20)->unique();
             $table->string('color', 80)->nullable();
             $table->unsignedSmallInteger('year')->nullable();
@@ -48,14 +59,13 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['user_id', 'active']);
-            $table->index(['vehicle_brand_id', 'vehicle_model_id']);
-            $table->index(['vehicle_type_id', 'active']);
         });
     }
 
     public function down(): void
     {
         Schema::dropIfExists('vehicles');
+        Schema::dropIfExists('vehicle_specifications');
         Schema::dropIfExists('vehicle_models');
         Schema::dropIfExists('vehicle_brands');
         Schema::dropIfExists('vehicle_types');

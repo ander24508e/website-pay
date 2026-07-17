@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class VehicleBrand extends Model
 {
@@ -24,9 +25,16 @@ class VehicleBrand extends Model
         return $this->hasMany(VehicleModel::class);
     }
 
-    public function vehicles(): HasMany
+    public function vehicles(): HasManyThrough
     {
-        return $this->hasMany(Vehicle::class);
+        return $this->hasManyThrough(
+            Vehicle::class,
+            VehicleSpecification::class,
+            'vehicle_brand_id',
+            'vehicle_specification_id',
+            'id',
+            'id'
+        );
     }
 
     public function specifications(): HasMany

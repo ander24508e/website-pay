@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class VehicleType extends Model
 {
@@ -23,9 +24,16 @@ class VehicleType extends Model
         'active' => 'boolean',
     ];
 
-    public function vehicles(): HasMany
+    public function vehicles(): HasManyThrough
     {
-        return $this->hasMany(Vehicle::class);
+        return $this->hasManyThrough(
+            Vehicle::class,
+            VehicleSpecification::class,
+            'vehicle_type_id',
+            'vehicle_specification_id',
+            'id',
+            'id'
+        );
     }
 
     public function servicePrices(): HasMany

@@ -46,7 +46,7 @@ class ClientesController extends Controller
         $cliente->load([
             'orders' => fn ($q) => $q->with(['items.itemable', 'transaction'])->orderBy('id'),
             'vehicles' => fn ($q) => $q
-                ->with(['brand:id,name', 'model:id,name', 'type:id,name', 'specification.brand:id,name', 'specification.model:id,name', 'specification.type:id,name'])
+                ->with(['specification.brand:id,name', 'specification.model:id,name', 'specification.type:id,name'])
                 ->orderBy('id'),
         ]);
 

@@ -12,6 +12,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('catalog_item_variant_id')->constrained('catalog_item_variants')->cascadeOnDelete();
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('sale_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('sale_item_id')->nullable()->constrained()->nullOnDelete();
             $table->enum('type', ['in', 'out', 'adjust']);
             $table->integer('quantity');
             $table->integer('stock_before')->nullable();
@@ -26,4 +28,3 @@ return new class extends Migration
         Schema::dropIfExists('inventory_movements');
     }
 };
-

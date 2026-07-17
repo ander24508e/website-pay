@@ -256,18 +256,8 @@ class CatalogoController extends Controller
         return Vehicle::query()
             ->where('user_id', auth()->id())
             ->where('active', true)
-            ->where(function ($query) {
-                $query->whereNotNull('vehicle_specification_id')
-                    ->orWhereNotNull('vehicle_type_id');
-            })
-            ->where(function ($query) {
-                $query->whereHas('specification.type', fn ($type) => $type->where('active', true))
-                    ->orWhereHas('type', fn ($type) => $type->where('active', true));
-            })
+            ->whereHas('specification.type', fn ($type) => $type->where('active', true))
             ->with([
-                'brand:id,name',
-                'model:id,name',
-                'type:id,name',
                 'specification.brand:id,name',
                 'specification.model:id,name',
                 'specification.type:id,name',

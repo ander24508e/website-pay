@@ -11,6 +11,7 @@ use App\Models\Order;
 use App\Models\Sale;
 use App\Models\User;
 use App\Models\Vehicle;
+use App\Models\VehicleSpecification;
 use App\Models\VehicleType;
 use App\Services\Sales\CreateSaleService;
 use Illuminate\Http\Request;
@@ -109,7 +110,7 @@ class VentasController extends Controller
 
         if ($origin === 'web') {
             $record = Order::query()
-                ->with(['user', 'items.itemable', 'items.vehicle.brand', 'items.vehicle.model', 'items.vehicleType', 'transaction'])
+                ->with(['user', 'items.itemable', 'items.vehicle.specification.brand', 'items.vehicle.specification.model', 'items.vehicle.specification.type', 'items.vehicleType', 'transaction'])
                 ->findOrFail($id);
 
             return view('admin.ventas.show', [
@@ -120,7 +121,7 @@ class VentasController extends Controller
         }
 
         $record = Sale::query()
-            ->with(['user', 'vehicle.brand', 'vehicle.model', 'vehicle.type', 'attendedBy', 'items.catalogItem', 'items.variant', 'items.vehicle', 'items.vehicleType', 'payments'])
+            ->with(['user', 'vehicle.specification.brand', 'vehicle.specification.model', 'vehicle.specification.type', 'attendedBy', 'items.catalogItem', 'items.variant', 'items.vehicle.specification.brand', 'items.vehicle.specification.model', 'items.vehicle.specification.type', 'items.vehicleType', 'payments'])
             ->findOrFail($id);
 
         return view('admin.ventas.show', [
@@ -218,11 +219,16 @@ class VentasController extends Controller
             'clientes' => User::query()->role('cliente')->orderBy('name')->get(['id', 'name', 'email']),
             'usuarios' => User::query()->orderBy('name')->get(['id', 'name', 'email']),
             'vehicles' => Vehicle::query()
-                ->with(['client:id,name,email', 'brand:id,name', 'model:id,name', 'type:id,name', 'specification.brand:id,name', 'specification.model:id,name', 'specification.type:id,name'])
+                ->with(['client:id,name,email', 'specification.brand:id,name', 'specification.model:id,name', 'specification.type:id,name'])
                 ->where('active', true)
                 ->orderBy('plate')
                 ->get(),
             'vehicleTypes' => VehicleType::query()->where('active', true)->ordered()->get(['id', 'name']),
+            'vehicleSpecifications' => VehicleSpecification::query()
+                ->where('active', true)
+                ->with(['brand:id,name', 'model:id,name,vehicle_brand_id', 'type:id,name'])
+                ->ordered()
+                ->get(['id', 'vehicle_brand_id', 'vehicle_model_id', 'vehicle_type_id', 'sort_order', 'active']),
             'catalogItems' => CatalogItem::query()
                 ->with([
                     'type:id,name,business_model',

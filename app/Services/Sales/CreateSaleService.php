@@ -120,9 +120,9 @@ class CreateSaleService
                 'tax_amount' => $taxAmount,
                 'payload' => [
                     'catalog_item_id' => $catalogItem->id,
-                    'catalog_item_variant_id' => $variant?->id,
-                    'vehicle_id' => !empty($row['vehicle_id']) ? (int) $row['vehicle_id'] : null,
-                    'vehicle_type_id' => !empty($row['vehicle_type_id']) ? (int) $row['vehicle_type_id'] : null,
+                    'catalog_item_variant_id' => $isProduct ? $variant?->id : null,
+                    'vehicle_id' => !$isProduct && !empty($row['vehicle_id']) ? (int) $row['vehicle_id'] : null,
+                    'vehicle_type_id' => !$isProduct && !empty($row['vehicle_type_id']) ? (int) $row['vehicle_type_id'] : null,
                     'name_snapshot' => $catalogItem->name,
                     'type_snapshot' => $catalogItem->type?->name,
                     'description_snapshot' => $catalogItem->description,

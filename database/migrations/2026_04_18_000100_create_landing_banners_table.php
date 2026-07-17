@@ -18,7 +18,10 @@ return new class extends Migration
             $table->string('boton_link')->nullable();
             $table->unsignedInteger('orden')->default(0);
             $table->boolean('activo')->default(true);
+            $table->boolean('es_principal')->default(false);
             $table->timestamps();
+
+            $table->index(['empresa_id', 'es_principal']);
         });
     }
 

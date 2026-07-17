@@ -233,7 +233,7 @@ class OrderController extends Controller
     public function show(Order $order)
     {
         $this->authorize('view', $order);
-        $order->load('items.itemable', 'items.vehicle.brand', 'items.vehicle.model', 'items.vehicleType', 'transaction', 'user');
+        $order->load('items.itemable', 'items.vehicle.specification.brand', 'items.vehicle.specification.model', 'items.vehicle.specification.type', 'items.vehicleType', 'transaction', 'user');
 
         if (request()->routeIs('admin.orders.show')) {
             return view('admin.orders.show', compact('order'));
@@ -244,7 +244,7 @@ class OrderController extends Controller
 
     public function confirmacion(Order $order)
     {
-        $order->load('items.itemable', 'items.vehicle.brand', 'items.vehicle.model', 'items.vehicleType', 'transaction');
+        $order->load('items.itemable', 'items.vehicle.specification.brand', 'items.vehicle.specification.model', 'items.vehicle.specification.type', 'items.vehicleType', 'transaction');
         $receipt = app(CheckoutReceiptService::class)->build($order);
 
         return view('checkout.confirmacion', ['order' => $order, ...$receipt]);
@@ -252,7 +252,7 @@ class OrderController extends Controller
 
     public function comprobante(Order $order)
     {
-        $order->load('items.itemable', 'items.vehicle.brand', 'items.vehicle.model', 'items.vehicleType', 'transaction', 'user');
+        $order->load('items.itemable', 'items.vehicle.specification.brand', 'items.vehicle.specification.model', 'items.vehicle.specification.type', 'items.vehicleType', 'transaction', 'user');
         $receipt = app(CheckoutReceiptService::class)->build($order);
 
         return view('checkout.comprobante', ['order' => $order, ...$receipt]);
@@ -260,7 +260,7 @@ class OrderController extends Controller
 
     public function descargarComprobante(Order $order)
     {
-        $order->load('items.itemable', 'items.vehicle.brand', 'items.vehicle.model', 'items.vehicleType', 'transaction', 'user');
+        $order->load('items.itemable', 'items.vehicle.specification.brand', 'items.vehicle.specification.model', 'items.vehicle.specification.type', 'items.vehicleType', 'transaction', 'user');
         $receipt = app(CheckoutReceiptService::class)->build($order);
         $fileName = 'comprobante-' . $receipt['orderCode'] . '.png';
 

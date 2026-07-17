@@ -13,9 +13,6 @@ class Vehicle extends Model
 
     protected $fillable = [
         'user_id',
-        'vehicle_brand_id',
-        'vehicle_model_id',
-        'vehicle_type_id',
         'vehicle_specification_id',
         'plate',
         'color',
@@ -34,21 +31,6 @@ class Vehicle extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function brand(): BelongsTo
-    {
-        return $this->belongsTo(VehicleBrand::class, 'vehicle_brand_id');
-    }
-
-    public function model(): BelongsTo
-    {
-        return $this->belongsTo(VehicleModel::class, 'vehicle_model_id');
-    }
-
-    public function type(): BelongsTo
-    {
-        return $this->belongsTo(VehicleType::class, 'vehicle_type_id');
-    }
-
     public function specification(): BelongsTo
     {
         return $this->belongsTo(VehicleSpecification::class, 'vehicle_specification_id');
@@ -56,17 +38,17 @@ class Vehicle extends Model
 
     public function resolvedBrand(): ?VehicleBrand
     {
-        return $this->specification?->brand ?? $this->brand;
+        return $this->specification?->brand;
     }
 
     public function resolvedModel(): ?VehicleModel
     {
-        return $this->specification?->model ?? $this->model;
+        return $this->specification?->model;
     }
 
     public function resolvedType(): ?VehicleType
     {
-        return $this->specification?->type ?? $this->type;
+        return $this->specification?->type;
     }
 
     public function orderItems(): HasMany

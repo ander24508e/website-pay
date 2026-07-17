@@ -87,12 +87,6 @@ class VehicleSpecificationsController extends Controller
             'active' => $request->boolean('active'),
         ]);
 
-        $vehicleSpecification->vehicles()->update([
-            'vehicle_brand_id' => $data['vehicle_brand_id'],
-            'vehicle_model_id' => $model->id,
-            'vehicle_type_id' => $data['vehicle_type_id'],
-        ]);
-
         return back()->with('success', 'Especificación actualizada correctamente.');
     }
 
