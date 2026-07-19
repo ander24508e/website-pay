@@ -33,7 +33,7 @@
         </a>
     </div>
 
-    <div class="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-2 xl:grid-cols-5 gap-4 mb-6">
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
             <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Presentaciones</p>
             <p class="text-2xl font-bold text-gray-800 mt-2">{{ $stats['total'] }}</p>
@@ -49,6 +49,10 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
             <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Con Stock</p>
             <p class="text-2xl font-bold text-gray-800 mt-2">{{ $stats['with_stock'] }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+            <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Bajo mínimo</p>
+            <p class="text-2xl font-bold text-amber-700 mt-2">{{ $stats['low_stock'] }}</p>
         </div>
     </div>
 
@@ -105,8 +109,12 @@
                         <p class="font-semibold text-gray-800">{{ $variant->price !== null ? '$' . number_format((float) $variant->price, 2) : '-' }}</p>
                     </div>
                     <div>
+                        <p class="text-xs uppercase text-gray-400 font-semibold">Costo</p>
+                        <p class="font-semibold text-gray-800">{{ $variant->cost_price !== null ? '$' . number_format((float) $variant->cost_price, 2) : '-' }}</p>
+                    </div>
+                    <div>
                         <p class="text-xs uppercase text-gray-400 font-semibold">Stock</p>
-                        <p class="text-gray-700">{{ $variant->stock ?? '-' }}</p>
+                        <p class="text-gray-700">{{ $variant->stock ?? '-' }} / mín. {{ $variant->min_stock ?? 0 }}</p>
                     </div>
                 </div>
 
@@ -141,14 +149,16 @@
             <table class="w-full table-fixed text-sm text-left">
                 <thead class="bg-gray-50 border-b sticky top-0 z-10 text-xs uppercase text-gray-500">
                     <tr>
-                        <th class="px-3 py-3 text-center w-[20%]">Presentación</th>
-                        <th class="px-3 py-3 text-center w-[18%]">Ítem</th>
-                        <th class="px-3 py-3 text-center w-[13%]">Sección</th>
-                        <th class="px-3 py-3 text-center w-[12%]">SKU</th>
-                        <th class="px-3 py-3 text-center w-[10%]">Precio</th>
-                        <th class="px-3 py-3 text-center w-[8%]">Stock</th>
-                        <th class="px-3 py-3 text-center w-[11%]">Estado</th>
-                        <th class="px-3 py-3 text-center w-[10%]">Acc.</th>
+                        <th class="px-3 py-3 text-center w-[17%]">Presentación</th>
+                        <th class="px-3 py-3 text-center w-[15%]">Ítem</th>
+                        <th class="px-3 py-3 text-center w-[10%]">Sección</th>
+                        <th class="px-3 py-3 text-center w-[10%]">SKU</th>
+                        <th class="px-3 py-3 text-center w-[8%]">Precio</th>
+                        <th class="px-3 py-3 text-center w-[8%]">Costo</th>
+                        <th class="px-3 py-3 text-center w-[7%]">Stock</th>
+                        <th class="px-3 py-3 text-center w-[7%]">Mín.</th>
+                        <th class="px-3 py-3 text-center w-[10%]">Estado</th>
+                        <th class="px-3 py-3 text-center w-[8%]">Acc.</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y">
@@ -176,7 +186,9 @@
                             <td class="px-3 py-3 text-gray-700 text-center truncate">{{ $variant->item?->type?->name ?? 'Sin sección' }}</td>
                             <td class="px-3 py-3 text-gray-500 text-center font-mono text-xs truncate">{{ $variant->sku ?: '-' }}</td>
                             <td class="px-3 py-3 font-semibold text-gray-800 text-center truncate">{{ $variant->price !== null ? '$' . number_format((float) $variant->price, 2) : '-' }}</td>
+                            <td class="px-3 py-3 font-semibold text-gray-800 text-center truncate">{{ $variant->cost_price !== null ? '$' . number_format((float) $variant->cost_price, 2) : '-' }}</td>
                             <td class="px-3 py-3 text-gray-700 text-center">{{ $variant->stock ?? '-' }}</td>
+                            <td class="px-3 py-3 text-gray-700 text-center">{{ $variant->min_stock ?? 0 }}</td>
                             <td class="px-3 py-3 text-center">
                                 <div class="flex flex-wrap justify-center gap-1">
                                     @if($variant->active)
@@ -214,7 +226,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center py-10 text-gray-400">No hay presentaciones registradas</td>
+                            <td colspan="10" class="text-center py-10 text-gray-400">No hay presentaciones registradas</td>
                         </tr>
                     @endforelse
                 </tbody>

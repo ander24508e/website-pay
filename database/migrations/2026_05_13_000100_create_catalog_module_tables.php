@@ -73,7 +73,9 @@ return new class extends Migration
             $table->string('specification')->nullable();
             $table->string('sku')->nullable();
             $table->decimal('price', 10, 2)->nullable();
+            $table->decimal('cost_price', 10, 2)->nullable();
             $table->integer('stock')->nullable();
+            $table->unsignedInteger('min_stock')->default(0);
             $table->boolean('active')->default(true);
             $table->boolean('is_default')->default(false);
             $table->unsignedInteger('sort_order')->default(0);

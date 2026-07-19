@@ -14,7 +14,9 @@ class CatalogItemVariant extends Model
         'specification',
         'sku',
         'price',
+        'cost_price',
         'stock',
+        'min_stock',
         'active',
         'is_default',
         'sort_order',
@@ -23,7 +25,9 @@ class CatalogItemVariant extends Model
 
     protected $casts = [
         'price' => 'decimal:2',
+        'cost_price' => 'decimal:2',
         'stock' => 'integer',
+        'min_stock' => 'integer',
         'active' => 'boolean',
         'is_default' => 'boolean',
         'sort_order' => 'integer',
@@ -38,6 +42,11 @@ class CatalogItemVariant extends Model
     public function inventoryMovements()
     {
         return $this->hasMany(InventoryMovement::class, 'catalog_item_variant_id');
+    }
+
+    public function locationStocks()
+    {
+        return $this->hasMany(InventoryStock::class, 'catalog_item_variant_id');
     }
 
     public function scopeActive(Builder $query): Builder

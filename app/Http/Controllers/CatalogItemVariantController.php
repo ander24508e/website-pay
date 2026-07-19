@@ -46,6 +46,11 @@ class CatalogItemVariantController extends Controller
             'active' => (clone $baseQuery)->where('active', true)->count(),
             'default' => (clone $baseQuery)->where('is_default', true)->count(),
             'with_stock' => (clone $baseQuery)->whereNotNull('stock')->count(),
+            'low_stock' => (clone $baseQuery)
+                ->whereNotNull('stock')
+                ->whereColumn('stock', '<=', 'min_stock')
+                ->where('min_stock', '>', 0)
+                ->count(),
         ];
 
         return view('admin.catalog.variants.index', compact('empresa', 'variants', 'stats'));
@@ -82,7 +87,9 @@ class CatalogItemVariantController extends Controller
             'specification' => ['nullable', 'string', 'max:255'],
             'sku' => ['nullable', 'string', 'max:255'],
             'price' => ['nullable', 'numeric', 'min:0'],
+            'cost_price' => ['nullable', 'numeric', 'min:0'],
             'stock' => ['nullable', 'integer', 'min:0'],
+            'min_stock' => ['nullable', 'integer', 'min:0'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
             'active' => ['nullable', 'boolean'],
             'is_default' => ['nullable', 'boolean'],
@@ -102,7 +109,9 @@ class CatalogItemVariantController extends Controller
             'specification' => $this->cleanInput($data['specification'] ?? null),
             'sku' => $this->cleanInput($data['sku'] ?? null),
             'price' => $data['price'] ?? null,
+            'cost_price' => $data['cost_price'] ?? null,
             'stock' => $data['stock'] ?? null,
+            'min_stock' => (int) ($data['min_stock'] ?? 0),
             'sort_order' => (int) ($data['sort_order'] ?? 0),
             'active' => $request->boolean('active', true),
             'is_default' => $request->boolean('is_default'),
@@ -170,7 +179,9 @@ class CatalogItemVariantController extends Controller
             'specification' => ['nullable', 'string', 'max:255'],
             'sku' => ['nullable', 'string', 'max:255'],
             'price' => ['nullable', 'numeric', 'min:0'],
+            'cost_price' => ['nullable', 'numeric', 'min:0'],
             'stock' => ['nullable', 'integer', 'min:0'],
+            'min_stock' => ['nullable', 'integer', 'min:0'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
             'active' => ['nullable', 'boolean'],
             'is_default' => ['nullable', 'boolean'],
@@ -190,7 +201,9 @@ class CatalogItemVariantController extends Controller
             'specification' => $this->cleanInput($data['specification'] ?? null),
             'sku' => $this->cleanInput($data['sku'] ?? null),
             'price' => $data['price'] ?? null,
+            'cost_price' => $data['cost_price'] ?? null,
             'stock' => $data['stock'] ?? null,
+            'min_stock' => (int) ($data['min_stock'] ?? 0),
             'sort_order' => (int) ($data['sort_order'] ?? 0),
             'active' => $request->boolean('active'),
             'is_default' => $request->boolean('is_default'),
