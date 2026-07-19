@@ -22,6 +22,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('order_id')->constrained()->cascadeOnDelete();
             $table->morphs('itemable');
+            $table->foreignId('catalog_item_variant_id')->nullable()->constrained('catalog_item_variants')->nullOnDelete();
             $table->foreignId('vehicle_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('vehicle_type_id')->nullable()->constrained()->nullOnDelete();
             $table->integer('quantity')->default(1);

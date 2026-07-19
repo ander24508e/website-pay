@@ -59,7 +59,7 @@
                         @enderror
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-5">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Presentación</label>
                             <input type="text" name="presentation" value="{{ old('presentation') }}"
@@ -101,15 +101,35 @@
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Costo</label>
+                            <input type="number" name="cost_price" value="{{ old('cost_price') }}" step="0.01" min="0"
+                                   class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-400 @error('cost_price') border-red-400 bg-red-50 @enderror"
+                                   placeholder="0.00">
+                            @error('cost_price')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-8">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Stock</label>
                             <input type="number" name="stock" value="{{ old('stock') }}" min="0"
                                    class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-400 @error('stock') border-red-400 bg-red-50 @enderror"
                                    placeholder="Opcional">
                             @error('stock')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Stock mínimo</label>
+                            <input type="number" name="min_stock" value="{{ old('min_stock', 0) }}" min="0"
+                                   class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-400 @error('min_stock') border-red-400 bg-red-50 @enderror"
+                                   placeholder="0">
+                            @error('min_stock')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>

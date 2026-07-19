@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\CatalogItem;
+use App\Models\CatalogItemVariant;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Transaction;
 use App\Services\CheckoutReceiptService;
+use App\Services\Inventory\InventoryService;
 use App\Services\ServiceVehiclePriceResolver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -14,6 +16,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
 use Spatie\Browsershot\Browsershot;
 use Throwable;
@@ -32,6 +35,7 @@ class OrderController extends Controller
                 'order_id' => $order->id,
                 'itemable_type' => get_class($model),
                 'itemable_id' => $model->id,
+                'catalog_item_variant_id' => $item['variant_id'],
                 'vehicle_id' => $item['vehicle_id'],
                 'vehicle_type_id' => $item['vehicle_type_id'],
                 'quantity' => $item['quantity'],
@@ -103,7 +107,11 @@ class OrderController extends Controller
             return redirect()->route('carrito.index');
         }
 
-        $order = $this->createOrderFromCart($carrito, $priceResolver);
+        try {
+            $order = $this->createOrderFromCart($carrito, $priceResolver);
+        } catch (ValidationException $exception) {
+            return redirect()->route('carrito.index')->withErrors($exception->errors());
+        }
 
         $request->session()->put('current_order_id', $order->id);
 
@@ -144,7 +152,14 @@ class OrderController extends Controller
             ], 422);
         }
 
-        $order = $this->createOrderFromCart($carrito, $priceResolver);
+        try {
+            $order = $this->createOrderFromCart($carrito, $priceResolver);
+        } catch (ValidationException $exception) {
+            return response()->json([
+                'ok' => false,
+                'message' => collect($exception->errors())->flatten()->first() ?: 'No hay stock suficiente.',
+            ], 422);
+        }
         $totalCents = (int) round($order->total * 100);
         $amounts = $this->buildPayphoneAmounts($totalCents);
         $clientTransactionId = 'order-' . $order->id . '-' . Str::uuid()->toString();
@@ -453,9 +468,37 @@ class OrderController extends Controller
 
             $isService = ($model->type?->business_model ?? \App\Models\CatalogType::BUSINESS_MODEL_SERVICES)
                 === \App\Models\CatalogType::BUSINESS_MODEL_SERVICES;
+            $variant = null;
+
+            if (!$isService && $model->uses_inventory) {
+                $variant = CatalogItemVariant::query()
+                    ->where('catalog_item_id', $model->id)
+                    ->where('active', true)
+                    ->find((int) data_get($item, 'variant_id'));
+
+                if (!$variant) {
+                    throw ValidationException::withMessages([
+                        'cart' => 'Uno de los productos ya no tiene una presentacion inventariable disponible.',
+                    ]);
+                }
+
+                $quantity = max(1, (int) data_get($item, 'quantity', 1));
+
+                if ((int) ($variant->stock ?? 0) < $quantity) {
+                    throw ValidationException::withMessages([
+                        'cart' => "No hay stock suficiente para {$model->name}.",
+                    ]);
+                }
+            } elseif (!$isService) {
+                $variant = CatalogItemVariant::query()
+                    ->where('catalog_item_id', $model->id)
+                    ->where('active', true)
+                    ->find((int) data_get($item, 'variant_id'));
+            }
 
             $resolved[] = [
                 'model' => $model,
+                'variant_id' => $variant?->id,
                 'quantity' => max(1, (int) data_get($item, 'quantity', 1)),
                 'price' => $isService ? $vehicleContext['price'] : (float) data_get($item, 'price', $model->display_price),
                 'vehicle_id' => $vehicleContext['vehicle_id'],
@@ -466,10 +509,11 @@ class OrderController extends Controller
         return $resolved;
     }
 
-    public function marcarPagada(Order $order)
+    public function marcarPagada(Order $order, InventoryService $inventoryService)
     {
         if ($order->status === 'paid') {
-            return redirect()->back()->with('success', 'La orden ya estaba marcada como pagada.');
+            $inventoryService->discountOrder($order);
+            return redirect()->back()->with('success', 'La orden ya estaba marcada como pagada. Inventario verificado.');
         }
 
         $existingApproved = $order->transactions()->where('status', 'approved')->first();
@@ -489,8 +533,9 @@ class OrderController extends Controller
         }
 
         $order->update(['status' => 'paid']);
+        $inventoryService->discountOrder($order);
 
-        return redirect()->back()->with('success', 'Orden marcada como pagada y transaccion registrada.');
+        return redirect()->back()->with('success', 'Orden marcada como pagada, transaccion registrada e inventario descontado.');
     }
 
     public function destroy(Order $order)
