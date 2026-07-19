@@ -222,6 +222,19 @@
                                 </div>
 
                                 <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Costo de presentación</label>
+                                    <div class="relative">
+                                        <span class="absolute left-4 top-2.5 text-gray-400 text-sm font-semibold">$</span>
+                                        <input type="number" name="variant_cost_price" value="{{ old('variant_cost_price') }}" step="0.01" min="0"
+                                               class="w-full border border-gray-200 rounded-lg pl-8 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-gray-50 @error('variant_cost_price') border-red-400 bg-red-50 @enderror"
+                                               placeholder="Costo de compra">
+                                    </div>
+                                    @error('variant_cost_price')
+                                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Presentación</label>
                                     <input type="text" name="variant_presentation" value="{{ old('variant_presentation') }}"
                                            class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-gray-50 @error('variant_presentation') border-red-400 bg-red-50 @enderror"
@@ -257,6 +270,16 @@
                                            class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-gray-50 @error('variant_stock') border-red-400 bg-red-50 @enderror"
                                            placeholder="Opcional">
                                     @error('variant_stock')
+                                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Stock mínimo</label>
+                                    <input type="number" name="variant_min_stock" value="{{ old('variant_min_stock', 0) }}" min="0"
+                                           class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-gray-50 @error('variant_min_stock') border-red-400 bg-red-50 @enderror"
+                                           placeholder="0">
+                                    @error('variant_min_stock')
                                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                     @enderror
                                 </div>

@@ -89,7 +89,6 @@
             <p class="px-4 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">
                 Administracion</p>
 
-
             <a href="{{ route('admin.clientes.index') }}"
                 class="{{ request()->routeIs('admin.clientes.*') ? 'active' : '' }}">
                 <span><x-heroicon-o-users class="w-5 h-5" /></span>
@@ -113,7 +112,7 @@
                 <div class="sidebar-settings-links">
                     <a href="{{ route('admin.empresa.edit') }}"
                         class="{{ request()->routeIs('admin.empresa.*') ? 'active' : '' }}">
-                        <span><x-heroicon-o-building-office class="w-5 h-5" /></span>
+                        {{-- <span><x-heroicon-o-building-office class="w-5 h-5" /></span> --}}
                         <span>Mi Empresa</span>
                     </a>
                     <a href="{{ route('profile.edit', ['tab' => 'account']) }}"
@@ -245,10 +244,12 @@
                         class="{{ request()->routeIs('admin.empresa.*') ? 'active' : '' }}">
 
                         <span>Mi Empresa</span>
-                        <span><x-heroicon-o-building-office class="w-5 h-5" /></span>
+                        {{-- <span><x-heroicon-o-building-office class="w-5 h-5" /></span> --}}
                     </a>
+
                     <a href="{{ route('profile.edit', ['tab' => 'account']) }}"
                         class="{{ request()->routeIs('profile.edit') && request('tab', 'account') === 'account' ? 'active' : '' }}">Cuenta</a>
+                        
                     <a href="{{ route('profile.edit', ['tab' => 'security']) }}"
                         class="{{ request()->routeIs('profile.edit') && request('tab') === 'security' ? 'active' : '' }}">Seguridad</a>
                 </div>

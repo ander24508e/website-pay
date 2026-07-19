@@ -22,6 +22,16 @@
                 <input type="text" value="{{ $movement->quantity }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50" disabled>
             </div>
         </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Motivo</label>
+                <input type="text" name="reason" value="{{ old('reason', $movement->reason) }}" maxlength="255" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="Ej: compra, conteo, pérdida">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Referencia</label>
+                <input type="text" name="reference" value="{{ old('reference', $movement->reference) }}" maxlength="255" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="Ej: factura #001">
+            </div>
+        </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Notas</label>
             <textarea name="notes" rows="4" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">{{ old('notes', $movement->notes) }}</textarea>
@@ -30,4 +40,3 @@
     </form>
 </div>
 @endsection
-

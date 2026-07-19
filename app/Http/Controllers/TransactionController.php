@@ -4,13 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Transaction;
+use App\Services\Inventory\InventoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class TransactionController extends Controller
 {
-    public function success(Request $request)
+    public function success(Request $request, InventoryService $inventoryService)
     {
         $clientTransactionId = (string) ($request->input('clientTransactionId') ?: $request->input('clientTxId') ?: '');
         $orderId = session('current_order_id');
@@ -77,6 +78,21 @@ class TransactionController extends Controller
                 'status' => 'paid',
                 'payphone_transaction_id' => $request->input('id'),
             ]);
+
+            try {
+                $inventoryService->discountOrder($order);
+            } catch (\Throwable $exception) {
+                Log::error('No se pudo descontar inventario de orden web pagada.', [
+                    'order_id' => $order->id,
+                    'message' => $exception->getMessage(),
+                ]);
+
+                session()->forget(['carrito', 'current_order_id']);
+                session()->regenerateToken();
+
+                return redirect()->route('orden.confirmacion', $order)
+                    ->with('error', 'Pago aprobado, pero el inventario necesita revision manual.');
+            }
 
             session()->forget(['carrito', 'current_order_id']);
             session()->regenerateToken();

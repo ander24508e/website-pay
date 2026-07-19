@@ -11,6 +11,7 @@ class OrderItem extends Model
         'order_id',
         'itemable_type',
         'itemable_id',
+        'catalog_item_variant_id',
         'vehicle_id',
         'vehicle_type_id',
         'quantity',
@@ -25,6 +26,11 @@ class OrderItem extends Model
     public function itemable()
     {
         return $this->morphTo();
+    }
+
+    public function variant()
+    {
+        return $this->belongsTo(CatalogItemVariant::class, 'catalog_item_variant_id');
     }
 
     public function vehicle()
