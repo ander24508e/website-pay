@@ -57,8 +57,13 @@ class VentasController extends Controller
         }
 
         if ($origin === '' || $origin === 'internal') {
+            $linkedSaleIds = Order::query()
+                ->whereNotNull('sale_id')
+                ->select('sale_id');
+
             $sales = Sale::query()
                 ->with(['user', 'items', 'attendedBy'])
+                ->whereNotIn('id', $linkedSaleIds)
                 ->when($search !== '', function ($query) use ($search) {
                     $query->where(function ($sub) use ($search) {
                         $sub->where('id', 'like', "%{$search}%")
@@ -95,9 +100,14 @@ class VentasController extends Controller
 
         $stats = [
             'total_ventas' => (float) Order::query()->where('status', 'paid')->sum('total')
-                + (float) Sale::query()->where('status', 'paid')->sum('total'),
+                + (float) Sale::query()
+                    ->where('status', 'paid')
+                    ->whereNotIn('id', Order::query()->whereNotNull('sale_id')->select('sale_id'))
+                    ->sum('total'),
             'total_ordenes' => (int) Order::query()->count(),
-            'ventas_internas' => (int) Sale::query()->count(),
+            'ventas_internas' => (int) Sale::query()
+                ->whereNotIn('id', Order::query()->whereNotNull('sale_id')->select('sale_id'))
+                ->count(),
             'ticket_promedio' => (float) $this->paidAverageTicket(),
         ];
 
@@ -294,9 +304,15 @@ class VentasController extends Controller
     private function paidAverageTicket(): float
     {
         $total = (float) Order::query()->where('status', 'paid')->sum('total')
-            + (float) Sale::query()->where('status', 'paid')->sum('total');
+            + (float) Sale::query()
+                ->where('status', 'paid')
+                ->whereNotIn('id', Order::query()->whereNotNull('sale_id')->select('sale_id'))
+                ->sum('total');
         $count = (int) Order::query()->where('status', 'paid')->count()
-            + (int) Sale::query()->where('status', 'paid')->count();
+            + (int) Sale::query()
+                ->where('status', 'paid')
+                ->whereNotIn('id', Order::query()->whereNotNull('sale_id')->select('sale_id'))
+                ->count();
 
         return $count > 0 ? $total / $count : 0;
     }

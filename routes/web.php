@@ -209,6 +209,7 @@ Route::middleware(['auth', 'role:admin'])
 
         Route::resource('/orders', OrderController::class)->only(['index', 'show', 'destroy']);
         Route::patch('/orders/{order}/marcar-pagada', [OrderController::class, 'marcarPagada'])->name('orders.marcar-pagada');
+        Route::patch('/orders/{order}/estado-operativo', [OrderController::class, 'updateWorkStatus'])->name('orders.work-status');
         Route::resource('/transactions', TransactionController::class)->only(['index', 'show']);
     });
 

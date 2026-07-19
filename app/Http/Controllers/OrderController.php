@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Transaction;
 use App\Services\CheckoutReceiptService;
+use App\Services\Orders\CreateSaleFromOrderService;
 use App\Services\ServiceVehiclePriceResolver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -32,6 +33,7 @@ class OrderController extends Controller
                 'order_id' => $order->id,
                 'itemable_type' => get_class($model),
                 'itemable_id' => $model->id,
+                'catalog_item_variant_id' => $item['variant_id'] ?? null,
                 'vehicle_id' => $item['vehicle_id'],
                 'vehicle_type_id' => $item['vehicle_type_id'],
                 'quantity' => $item['quantity'],
@@ -71,6 +73,7 @@ class OrderController extends Controller
             'user_id' => $userId,
             'total' => $total,
             'status' => $isReservation ? 'reserved' : 'pending',
+            'work_status' => Order::WORK_PENDING,
         ];
 
         if (Schema::hasColumn('orders', 'order_type')) {
@@ -233,7 +236,7 @@ class OrderController extends Controller
     public function show(Order $order)
     {
         $this->authorize('view', $order);
-        $order->load('items.itemable', 'items.vehicle.specification.brand', 'items.vehicle.specification.model', 'items.vehicle.specification.type', 'items.vehicleType', 'transaction', 'user');
+        $order->load('items.itemable', 'items.vehicle.specification.brand', 'items.vehicle.specification.model', 'items.vehicle.specification.type', 'items.vehicleType', 'transaction', 'user', 'assignedTo', 'sale');
 
         if (request()->routeIs('admin.orders.show')) {
             return view('admin.orders.show', compact('order'));
@@ -355,8 +358,10 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         $search = trim((string) $request->query('q', ''));
+        $workStatus = trim((string) $request->query('work_status', ''));
 
         $orders = Order::with('user', 'items')
+            ->with('assignedTo', 'sale')
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($subQuery) use ($search) {
                     $subQuery->where('id', 'like', "%{$search}%")
@@ -372,11 +377,47 @@ class OrderController extends Controller
                     });
                 });
             })
+            ->when($workStatus !== '', fn ($query) => $query->where('work_status', $workStatus))
             ->orderBy('id')
             ->paginate(15)
             ->withQueryString();
 
-        return view('admin.orders.index', compact('orders'));
+        return view('admin.orders.index', compact('orders', 'workStatus'));
+    }
+
+    public function updateWorkStatus(Request $request, Order $order)
+    {
+        $status = (string) $request->input('work_status');
+        $allowed = $order->workTransitions();
+
+        if (!array_key_exists($status, $allowed)) {
+            return redirect()->back()->with('error', 'No se puede aplicar ese cambio de estado a esta orden.');
+        }
+
+        $timestampColumn = match ($status) {
+            Order::WORK_ARRIVED => 'arrived_at',
+            Order::WORK_IN_PROGRESS => 'started_at',
+            Order::WORK_READY => 'ready_at',
+            Order::WORK_COMPLETED => 'completed_at',
+            Order::WORK_CANCELLED => 'cancelled_at',
+            default => null,
+        };
+
+        $payload = [
+            'work_status' => $status,
+        ];
+
+        if ($timestampColumn) {
+            $payload[$timestampColumn] = now();
+        }
+
+        if ($status === Order::WORK_IN_PROGRESS && !$order->assigned_to) {
+            $payload['assigned_to'] = auth()->id();
+        }
+
+        $order->update($payload);
+
+        return redirect()->back()->with('success', 'Estado operativo actualizado.');
     }
 
     public function reservarCatalogo(Request $request, ServiceVehiclePriceResolver $priceResolver)
@@ -456,6 +497,7 @@ class OrderController extends Controller
 
             $resolved[] = [
                 'model' => $model,
+                'variant_id' => data_get($item, 'variant_id') ? (int) data_get($item, 'variant_id') : null,
                 'quantity' => max(1, (int) data_get($item, 'quantity', 1)),
                 'price' => $isService ? $vehicleContext['price'] : (float) data_get($item, 'price', $model->display_price),
                 'vehicle_id' => $vehicleContext['vehicle_id'],
@@ -466,9 +508,13 @@ class OrderController extends Controller
         return $resolved;
     }
 
-    public function marcarPagada(Order $order)
+    public function marcarPagada(Order $order, CreateSaleFromOrderService $createSaleFromOrderService)
     {
         if ($order->status === 'paid') {
+            if (!$order->sale_id) {
+                $createSaleFromOrderService->create($order);
+            }
+
             return redirect()->back()->with('success', 'La orden ya estaba marcada como pagada.');
         }
 
@@ -489,6 +535,7 @@ class OrderController extends Controller
         }
 
         $order->update(['status' => 'paid']);
+        $createSaleFromOrderService->create($order);
 
         return redirect()->back()->with('success', 'Orden marcada como pagada y transaccion registrada.');
     }

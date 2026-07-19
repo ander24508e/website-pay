@@ -20,6 +20,14 @@
             'failed' => 'Fallida',
             'cancelled' => 'Cancelada',
         ];
+
+        $workDates = [
+            'Cliente llego' => $order->arrived_at,
+            'Inicio' => $order->started_at,
+            'Listo' => $order->ready_at,
+            'Completado' => $order->completed_at,
+            'Cancelado' => $order->cancelled_at,
+        ];
     @endphp
 
     <div class="flex flex-wrap items-center gap-3 mb-6">
@@ -28,7 +36,10 @@
             <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Orden #{{ $order->id }}</h2>
             <p class="text-gray-400 text-sm">{{ $order->created_at->format('d/m/Y H:i') }}</p>
         </div>
-        <span class="ml-auto px-3 py-1.5 rounded-full text-xs font-semibold {{ $badges[$order->status] ?? 'bg-gray-100 text-gray-600' }}">{{ $labels[$order->status] ?? $order->status }}</span>
+        <div class="ml-auto flex flex-wrap gap-2">
+            <span class="px-3 py-1.5 rounded-full text-xs font-semibold {{ $badges[$order->status] ?? 'bg-gray-100 text-gray-600' }}">{{ $labels[$order->status] ?? $order->status }}</span>
+            <span class="px-3 py-1.5 rounded-full text-xs font-semibold {{ $order->work_status_badge }}">{{ $order->work_status_label }}</span>
+        </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -46,11 +57,56 @@
                         <span class="text-gray-500">Tipo</span>
                         <span class="font-semibold text-gray-700">{{ ($order->order_type ?? 'purchase') === 'reservation' ? 'Reserva' : 'Compra' }}</span>
                     </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Trabajo</span>
+                        <span class="font-semibold text-gray-700">{{ $order->work_status_label }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Responsable</span>
+                        <span class="font-semibold text-gray-700">{{ $order->assignedTo?->name ?? '-' }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Venta comercial</span>
+                        <span class="font-semibold text-gray-700">{{ $order->sale_id ? '#' . $order->sale_id : 'Pendiente' }}</span>
+                    </div>
                     <div class="flex justify-between border-t pt-3">
                         <span class="font-semibold text-gray-700">Total</span>
                         <span class="text-xl font-bold text-gray-900">${{ number_format($order->total, 2) }}</span>
                     </div>
                 </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">Seguimiento operativo</p>
+                <div class="space-y-3 text-sm">
+                    @foreach($workDates as $label => $date)
+                        @if($date)
+                            <div class="flex justify-between gap-3">
+                                <span class="text-gray-500">{{ $label }}</span>
+                                <span class="font-semibold text-gray-700">{{ $date->format('d/m/Y H:i') }}</span>
+                            </div>
+                        @endif
+                    @endforeach
+
+                    @if(!$order->arrived_at && !$order->started_at && !$order->ready_at && !$order->completed_at && !$order->cancelled_at)
+                        <p class="text-gray-400">Sin movimientos operativos registrados.</p>
+                    @endif
+                </div>
+
+                @if($order->workTransitions())
+                    <div class="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-100">
+                        @foreach($order->workTransitions() as $nextStatus => $nextLabel)
+                            <form method="POST" action="{{ route('admin.orders.work-status', $order) }}">
+                                @csrf
+                                @method('PATCH')
+                                <input type="hidden" name="work_status" value="{{ $nextStatus }}">
+                                <button type="submit" class="px-3 py-2 rounded-lg bg-gray-900 text-white hover:bg-gray-700 transition text-xs font-semibold">
+                                    {{ $nextLabel }}
+                                </button>
+                            </form>
+                        @endforeach
+                    </div>
+                @endif
             </div>
 
             @if(($order->order_type ?? 'purchase') === 'reservation' && $order->status !== 'paid')

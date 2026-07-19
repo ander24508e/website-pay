@@ -4,13 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Transaction;
+use App\Services\Orders\CreateSaleFromOrderService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class TransactionController extends Controller
 {
-    public function success(Request $request)
+    public function success(Request $request, CreateSaleFromOrderService $createSaleFromOrderService)
     {
         $clientTransactionId = (string) ($request->input('clientTransactionId') ?: $request->input('clientTxId') ?: '');
         $orderId = session('current_order_id');
@@ -77,6 +78,7 @@ class TransactionController extends Controller
                 'status' => 'paid',
                 'payphone_transaction_id' => $request->input('id'),
             ]);
+            $createSaleFromOrderService->create($order);
 
             session()->forget(['carrito', 'current_order_id']);
             session()->regenerateToken();
