@@ -185,6 +185,10 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/inventario/importar', [InventarioController::class, 'import'])->name('inventario.import');
         Route::post('/inventario/importar/preview', [InventarioController::class, 'previewImport'])->name('inventario.import.preview');
         Route::post('/inventario/importar', [InventarioController::class, 'storeImport'])->name('inventario.import.store');
+        Route::get('/inventario/reportes', [InventoryOperationsController::class, 'reports'])->name('inventario.reports');
+        Route::get('/inventario/reportes/exportar/{section}', [InventoryOperationsController::class, 'exportReport'])->name('inventario.reports.export');
+        Route::get('/inventario/cierres', [InventoryOperationsController::class, 'periods'])->name('inventario.periods');
+        Route::post('/inventario/cierres', [InventoryOperationsController::class, 'storePeriod'])->name('inventario.periods.store');
         Route::get('/inventario/ubicaciones', [InventoryOperationsController::class, 'locations'])->name('inventario.locations');
         Route::post('/inventario/ubicaciones', [InventoryOperationsController::class, 'storeLocation'])->name('inventario.locations.store');
         Route::get('/inventario/proveedores', [InventoryOperationsController::class, 'suppliers'])->name('inventario.suppliers');
@@ -197,6 +201,7 @@ Route::middleware(['auth', 'role:admin'])
         Route::post('/inventario/devoluciones', [InventoryOperationsController::class, 'storeReturn'])->name('inventario.returns.store');
         Route::get('/inventario/conteos', [InventoryOperationsController::class, 'counts'])->name('inventario.counts');
         Route::post('/inventario/conteos', [InventoryOperationsController::class, 'storeCount'])->name('inventario.counts.store');
+        Route::get('/inventario/kardex/{variant}/exportar', [InventoryOperationsController::class, 'exportKardex'])->name('inventario.kardex.export');
         Route::get('/inventario/kardex/{variant}', [InventoryOperationsController::class, 'kardex'])->name('inventario.kardex');
         Route::get('/inventario/create', [InventarioController::class, 'create'])->name('inventario.create');
         Route::post('/inventario/movimientos', [InventarioController::class, 'storeMovement'])->name('inventario.movements.store');

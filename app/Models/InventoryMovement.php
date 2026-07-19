@@ -27,6 +27,8 @@ class InventoryMovement extends Model
         'type',
         'reason',
         'reference',
+        'batch_number',
+        'expires_at',
         'quantity',
         'unit_cost',
         'total_cost',
@@ -50,6 +52,7 @@ class InventoryMovement extends Model
         'balance_quantity' => 'integer',
         'balance_unit_cost' => 'decimal:2',
         'balance_total_cost' => 'decimal:2',
+        'expires_at' => 'date',
         'voided_at' => 'datetime',
     ];
 

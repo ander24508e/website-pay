@@ -52,6 +52,8 @@
                         <th class="px-3 py-3 text-center">Producto</th>
                         <th class="px-3 py-3 text-center w-32">Cantidad</th>
                         <th class="px-3 py-3 text-center w-40">Costo</th>
+                        <th class="px-3 py-3 text-center w-40">Lote</th>
+                        <th class="px-3 py-3 text-center w-40">Vence</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y">
@@ -67,6 +69,8 @@
                             </td>
                             <td class="px-3 py-3"><input type="number" name="items[{{ $i }}][quantity]" min="1" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" {{ $i === 0 ? 'required' : '' }}></td>
                             <td class="px-3 py-3"><input type="number" name="items[{{ $i }}][unit_cost]" min="0" step="0.01" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" placeholder="Costo actual"></td>
+                            <td class="px-3 py-3"><input type="text" name="items[{{ $i }}][batch_number]" maxlength="255" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"></td>
+                            <td class="px-3 py-3"><input type="date" name="items[{{ $i }}][expires_at]" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"></td>
                         </tr>
                     @endfor
                 </tbody>
@@ -86,6 +90,7 @@
                     <th class="px-4 py-3 text-center">Ubicación</th>
                     <th class="px-4 py-3 text-center">Proveedor</th>
                     <th class="px-4 py-3 text-center">Items</th>
+                    <th class="px-4 py-3 text-center">Estado</th>
                     <th class="px-4 py-3 text-center">Fecha</th>
                 </tr>
             </thead>
@@ -97,10 +102,11 @@
                         <td class="px-4 py-3 text-center text-gray-700">{{ $return->location?->name ?? '-' }}</td>
                         <td class="px-4 py-3 text-center text-gray-700">{{ $return->supplier?->name ?? '-' }}</td>
                         <td class="px-4 py-3 text-center text-gray-700">{{ $return->items->count() }}</td>
+                        <td class="px-4 py-3 text-center"><span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-semibold">{{ $return->status }}</span></td>
                         <td class="px-4 py-3 text-center text-gray-500">{{ $return->created_at?->format('d/m/Y H:i') }}</td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" class="px-4 py-8 text-center text-gray-400">No hay devoluciones.</td></tr>
+                    <tr><td colspan="7" class="px-4 py-8 text-center text-gray-400">No hay devoluciones.</td></tr>
                 @endforelse
             </tbody>
         </table>

@@ -71,6 +71,16 @@
                         title="Conteo físico" aria-label="Conteo físico">
                         <x-heroicon-o-clipboard-document-check class="w-5 h-5" />
                     </a>
+                    <a href="{{ route('admin.inventario.reports') }}"
+                        class="inline-flex items-center justify-center bg-white text-gray-800 border border-gray-200 w-11 h-11 rounded-lg hover:bg-gray-50 transition"
+                        title="Reportes" aria-label="Reportes">
+                        <x-heroicon-o-chart-bar class="w-5 h-5" />
+                    </a>
+                    <a href="{{ route('admin.inventario.periods') }}"
+                        class="inline-flex items-center justify-center bg-white text-gray-800 border border-gray-200 w-11 h-11 rounded-lg hover:bg-gray-50 transition"
+                        title="Cierres" aria-label="Cierres">
+                        <x-heroicon-o-lock-closed class="w-5 h-5" />
+                    </a>
                     <a href="{{ route('admin.inventario.import') }}"
                         class="inline-flex items-center justify-center bg-white text-gray-800 border border-gray-200 w-11 h-11 rounded-lg hover:bg-gray-50 transition"
                         title="Importar CSV" aria-label="Importar CSV">
@@ -141,7 +151,7 @@
                 </div>
             </div> --}}
 
-            <div class="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+            <div class="grid grid-cols-2 xl:grid-cols-6 gap-4 mb-6">
                 <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
                     <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Presentaciones</p>
                     <p class="text-2xl font-bold text-gray-800 mt-2">{{ $inventoryStats['variants'] }}</p>
@@ -151,12 +161,20 @@
                     <p class="text-2xl font-bold text-gray-800 mt-2">{{ $inventoryStats['units'] }}</p>
                 </div>
                 <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+                    <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Valor</p>
+                    <p class="text-2xl font-bold text-gray-800 mt-2">{{ $canViewCosts ? '$' . number_format($inventoryStats['value'], 2) : 'Restringido' }}</p>
+                </div>
+                <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
                     <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Agotados</p>
                     <p class="text-2xl font-bold text-red-700 mt-2">{{ $inventoryStats['out'] }}</p>
                 </div>
                 <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
                     <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Bajo stock</p>
                     <p class="text-2xl font-bold text-amber-700 mt-2">{{ $inventoryStats['low'] }}</p>
+                </div>
+                <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+                    <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Sin costo</p>
+                    <p class="text-2xl font-bold text-gray-800 mt-2">{{ $inventoryStats['no_cost'] }}</p>
                 </div>
             </div>
 
@@ -470,7 +488,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">Costo unitario</label>
                             <input type="number" name="unit_cost" min="0" step="0.01"
                                 class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
-                                placeholder="Usa costo promedio actual">
+                                placeholder="Usa costo promedio actual" {{ $canViewCosts ? '' : 'disabled' }}>
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -485,6 +503,20 @@
                                 <input type="text" name="reference" maxlength="255"
                                     class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
                                     placeholder="Ej: factura #001">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Lote</label>
+                                <input type="text" name="batch_number" maxlength="255"
+                                    class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
+                                    placeholder="Opcional">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Vencimiento</label>
+                                <input type="date" name="expires_at"
+                                    class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300">
                             </div>
                         </div>
 

@@ -15,6 +15,8 @@ class Purchase extends Model
         'purchase_date',
         'status',
         'subtotal',
+        'discount_total',
+        'tax_total',
         'total',
         'notes',
     ];
@@ -22,6 +24,8 @@ class Purchase extends Model
     protected $casts = [
         'purchase_date' => 'date',
         'subtotal' => 'decimal:2',
+        'discount_total' => 'decimal:2',
+        'tax_total' => 'decimal:2',
         'total' => 'decimal:2',
     ];
 

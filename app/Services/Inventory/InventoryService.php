@@ -110,6 +110,8 @@ class InventoryService
                 'type' => $type,
                 'reason' => $context['reason'] ?? null,
                 'reference' => $context['reference'] ?? null,
+                'batch_number' => $context['batch_number'] ?? null,
+                'expires_at' => $context['expires_at'] ?? null,
                 'quantity' => $quantity,
                 'unit_cost' => $movementUnitCost,
                 'total_cost' => $movementTotalCost,
@@ -223,6 +225,8 @@ class InventoryService
                     'user_id' => $userId ?? auth()->id(),
                     'reason' => 'anulacion',
                     'reference' => 'movement:' . $movement->id,
+                    'batch_number' => $movement->batch_number,
+                    'expires_at' => $movement->expires_at,
                     'unit_cost' => $movement->unit_cost,
                 ]
             );

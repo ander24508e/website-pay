@@ -26,6 +26,7 @@ class InventarioController extends Controller
         $movementType = trim((string) $request->query('movement_type', ''));
         $movementDateFrom = trim((string) $request->query('movement_date_from', ''));
         $movementDateTo = trim((string) $request->query('movement_date_to', ''));
+        $canViewCosts = $this->canInventory('inventory.view_costs');
 
         $productTypes = CatalogType::query()
             ->where('empresa_id', $empresa->id)
@@ -80,6 +81,7 @@ class InventarioController extends Controller
         $inventoryStats = [
             'variants' => (clone $inventoryStatsQuery)->count(),
             'units' => (int) (clone $inventoryStatsQuery)->sum('stock'),
+            'value' => round((clone $inventoryStatsQuery)->get()->sum(fn ($variant) => (int) ($variant->stock ?? 0) * (float) ($variant->cost_price ?? 0)), 2),
             'out' => (clone $inventoryStatsQuery)->where(function ($query) {
                 $query->whereNull('stock')->orWhere('stock', '<=', 0);
             })->count(),
@@ -87,6 +89,11 @@ class InventarioController extends Controller
                 ->whereNotNull('stock')
                 ->whereColumn('stock', '<=', 'min_stock')
                 ->where('min_stock', '>', 0)
+                ->count(),
+            'no_cost' => (clone $inventoryStatsQuery)
+                ->where(function ($query) {
+                    $query->whereNull('cost_price')->orWhere('cost_price', '<=', 0);
+                })
                 ->count(),
         ];
 
@@ -121,12 +128,15 @@ class InventarioController extends Controller
             'movementType',
             'movementDateFrom',
             'movementDateTo',
-            'locations'
+            'locations',
+            'canViewCosts'
         ));
     }
 
     public function export(Request $request)
     {
+        abort_unless($this->canInventory('inventory.export'), 403);
+
         $empresa = $this->getOrCreateEmpresa();
         $selectedTypeId = (int) $request->query('catalog_type_id', 0);
 
@@ -165,7 +175,7 @@ class InventarioController extends Controller
                 $variant->specification ?? '',
                 $variant->sku ?? '',
                 $variant->price ?? '',
-                $variant->cost_price ?? '',
+                $this->canInventory('inventory.view_costs') ? ($variant->cost_price ?? '') : '',
                 $variant->stock ?? 0,
                 $variant->min_stock ?? 0,
                 $variant->active ? 'activo' : 'oculto',
@@ -183,6 +193,8 @@ class InventarioController extends Controller
 
     public function import()
     {
+        abort_unless($this->canInventory('inventory.move'), 403);
+
         return view('admin.inventario.import', [
             'previewRows' => collect(),
             'hasErrors' => false,
@@ -192,6 +204,8 @@ class InventarioController extends Controller
 
     public function previewImport(Request $request)
     {
+        abort_unless($this->canInventory('inventory.move'), 403);
+
         $request->validate([
             'inventory_file' => ['required', 'file', 'mimes:csv,txt', 'max:4096'],
         ]);
@@ -208,6 +222,8 @@ class InventarioController extends Controller
 
     public function storeImport(Request $request, InventoryService $inventoryService)
     {
+        abort_unless($this->canInventory('inventory.move'), 403);
+
         $data = $request->validate([
             'rows' => ['required', 'string'],
         ]);
@@ -264,6 +280,8 @@ class InventarioController extends Controller
 
     public function create()
     {
+        abort_unless($this->canInventory('inventory.move'), 403);
+
         $empresa = $this->getOrCreateEmpresa();
 
         $variants = CatalogItemVariant::query()
@@ -283,6 +301,8 @@ class InventarioController extends Controller
 
     public function storeMovement(Request $request, InventoryService $inventoryService)
     {
+        abort_unless($this->canInventory('inventory.move'), 403);
+
         $data = $request->validate([
             'catalog_item_id' => ['nullable', 'required_without:catalog_item_variant_id', 'integer', 'exists:catalog_items,id'],
             'catalog_item_variant_id' => ['nullable', 'required_without:catalog_item_id', 'integer', 'exists:catalog_item_variants,id'],
@@ -292,6 +312,8 @@ class InventarioController extends Controller
             'inventory_location_id' => ['nullable', 'integer', 'exists:inventory_locations,id'],
             'reason' => ['nullable', 'string', 'max:255'],
             'reference' => ['nullable', 'string', 'max:255'],
+            'batch_number' => ['nullable', 'string', 'max:255'],
+            'expires_at' => ['nullable', 'date'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ]);
 
@@ -318,6 +340,8 @@ class InventarioController extends Controller
                 'inventory_location_id' => $data['inventory_location_id'] ?? null,
                 'reason' => $this->cleanInput($data['reason'] ?? null),
                 'reference' => $this->cleanInput($data['reference'] ?? null),
+                'batch_number' => $this->cleanInput($data['batch_number'] ?? null),
+                'expires_at' => $data['expires_at'] ?? null,
                 'unit_cost' => $data['unit_cost'] ?? null,
             ]
         );
@@ -329,6 +353,8 @@ class InventarioController extends Controller
 
     public function edit(InventoryMovement $movement)
     {
+        abort_unless($this->canInventory('inventory.move'), 403);
+
         $empresa = $this->getOrCreateEmpresa();
 
         $variants = CatalogItemVariant::query()
@@ -347,6 +373,8 @@ class InventarioController extends Controller
 
     public function update(Request $request, InventoryMovement $movement)
     {
+        abort_unless($this->canInventory('inventory.move'), 403);
+
         $data = $request->validate([
             'reason' => ['nullable', 'string', 'max:255'],
             'reference' => ['nullable', 'string', 'max:255'],
@@ -365,6 +393,8 @@ class InventarioController extends Controller
 
     public function destroy(InventoryMovement $movement, InventoryService $inventoryService)
     {
+        abort_unless($this->canInventory('inventory.void'), 403);
+
         $inventoryService->reverseMovement($movement);
         NotificationHelper::success('Movimiento anulado y reversa registrada.');
         return redirect()->route('admin.inventario.index');
@@ -556,5 +586,12 @@ class InventarioController extends Controller
         $value = trim((string) $value);
 
         return $value === '' ? null : $value;
+    }
+
+    private function canInventory(string $permission): bool
+    {
+        $user = auth()->user();
+
+        return (bool) ($user && ($user->hasRole('admin') || $user->can($permission)));
     }
 }

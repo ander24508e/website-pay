@@ -69,6 +69,16 @@
                 <input type="text" name="reference" value="{{ old('reference') }}" maxlength="255" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="Ej: factura #001">
             </div>
         </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Lote</label>
+                <input type="text" name="batch_number" value="{{ old('batch_number') }}" maxlength="255" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="Opcional">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Vencimiento</label>
+                <input type="date" name="expires_at" value="{{ old('expires_at') }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+            </div>
+        </div>
         <button class="bg-gray-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold">Guardar Movimiento</button>
     </form>
     @endif

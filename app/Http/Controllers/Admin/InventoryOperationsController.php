@@ -10,14 +10,17 @@ use App\Models\Empresa;
 use App\Models\InventoryLocation;
 use App\Models\InventoryMovement;
 use App\Models\InventoryCount;
+use App\Models\InventoryPeriod;
 use App\Models\InventoryReturn;
 use App\Models\InventoryStock;
 use App\Models\InventoryTransfer;
 use App\Models\Purchase;
 use App\Models\Supplier;
 use App\Services\Inventory\InventoryService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Response;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -37,6 +40,8 @@ class InventoryOperationsController extends Controller
 
     public function storeLocation(Request $request)
     {
+        abort_unless($this->canInventory('inventory.move'), 403);
+
         $empresa = $this->getOrCreateEmpresa();
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -79,6 +84,8 @@ class InventoryOperationsController extends Controller
 
     public function storeSupplier(Request $request)
     {
+        abort_unless($this->canInventory('inventory.move'), 403);
+
         $empresa = $this->getOrCreateEmpresa();
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -122,17 +129,23 @@ class InventoryOperationsController extends Controller
 
     public function storePurchase(Request $request, InventoryService $inventoryService)
     {
+        abort_unless($this->canInventory('inventory.move'), 403);
+
         $empresa = $this->getOrCreateEmpresa();
         $data = $request->validate([
             'supplier_id' => ['nullable', 'integer', 'exists:suppliers,id'],
             'inventory_location_id' => ['required', 'integer', 'exists:inventory_locations,id'],
             'document_number' => ['nullable', 'string', 'max:255'],
             'purchase_date' => ['nullable', 'date'],
+            'discount_total' => ['nullable', 'numeric', 'min:0'],
+            'tax_total' => ['nullable', 'numeric', 'min:0'],
             'notes' => ['nullable', 'string', 'max:1000'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.catalog_item_variant_id' => ['nullable', 'integer', 'exists:catalog_item_variants,id'],
             'items.*.quantity' => ['nullable', 'integer', 'min:1'],
             'items.*.unit_cost' => ['nullable', 'numeric', 'min:0'],
+            'items.*.batch_number' => ['nullable', 'string', 'max:255'],
+            'items.*.expires_at' => ['nullable', 'date'],
         ]);
 
         $location = InventoryLocation::query()
@@ -147,7 +160,10 @@ class InventoryOperationsController extends Controller
                 throw ValidationException::withMessages(['items' => 'Agrega al menos un producto a la compra.']);
             }
 
-            $total = $items->sum(fn ($item) => round((float) $item['unit_cost'] * (int) $item['quantity'], 2));
+            $subtotal = $items->sum(fn ($item) => round((float) $item['unit_cost'] * (int) $item['quantity'], 2));
+            $discountTotal = round((float) ($data['discount_total'] ?? 0), 2);
+            $taxTotal = round((float) ($data['tax_total'] ?? 0), 2);
+            $total = max(0, round($subtotal - $discountTotal + $taxTotal, 2));
 
             $purchase = Purchase::create([
                 'empresa_id' => $empresa->id,
@@ -157,7 +173,9 @@ class InventoryOperationsController extends Controller
                 'document_number' => $this->cleanInput($data['document_number'] ?? null),
                 'purchase_date' => $data['purchase_date'] ?? now()->toDateString(),
                 'status' => 'received',
-                'subtotal' => $total,
+                'subtotal' => $subtotal,
+                'discount_total' => $discountTotal,
+                'tax_total' => $taxTotal,
                 'total' => $total,
                 'notes' => $this->cleanInput($data['notes'] ?? null),
             ]);
@@ -185,6 +203,8 @@ class InventoryOperationsController extends Controller
                         'purchase_item_id' => $purchaseItem->id,
                         'reason' => 'compra',
                         'reference' => $purchase->document_number ?: 'purchase:' . $purchase->id,
+                        'batch_number' => $this->cleanInput($row['batch_number'] ?? null),
+                        'expires_at' => $row['expires_at'] ?? null,
                         'unit_cost' => $unitCost,
                     ]
                 );
@@ -211,6 +231,8 @@ class InventoryOperationsController extends Controller
 
     public function storeTransfer(Request $request, InventoryService $inventoryService)
     {
+        abort_unless($this->canInventory('inventory.move'), 403);
+
         $empresa = $this->getOrCreateEmpresa();
         $data = $request->validate([
             'from_location_id' => ['required', 'integer', 'exists:inventory_locations,id'],
@@ -259,11 +281,18 @@ class InventoryOperationsController extends Controller
 
     public function kardex(Request $request, CatalogItemVariant $variant)
     {
+        $empresa = $this->getOrCreateEmpresa();
         $variant->load('item.type', 'item.category');
+        $locations = $this->activeLocations($empresa);
+        $canViewCosts = $this->canInventory('inventory.view_costs');
 
         $movements = InventoryMovement::query()
-            ->with(['location', 'fromLocation', 'toLocation', 'user'])
+            ->with(['location', 'fromLocation', 'toLocation', 'user', 'purchase', 'inventoryReturn', 'inventoryCount', 'transfer'])
             ->where('catalog_item_variant_id', $variant->id)
+            ->when($request->filled('inventory_location_id'), fn ($query) => $query->where('inventory_location_id', $request->query('inventory_location_id')))
+            ->when(in_array($request->query('type'), ['in', 'out', 'adjust'], true), fn ($query) => $query->where('type', $request->query('type')))
+            ->when($request->filled('reason'), fn ($query) => $query->where('reason', $request->query('reason')))
+            ->when($request->filled('reference'), fn ($query) => $query->where('reference', 'like', '%' . trim((string) $request->query('reference')) . '%'))
             ->when($request->filled('date_from'), fn ($query) => $query->whereDate('created_at', '>=', $request->query('date_from')))
             ->when($request->filled('date_to'), fn ($query) => $query->whereDate('created_at', '<=', $request->query('date_to')))
             ->oldest()
@@ -275,7 +304,82 @@ class InventoryOperationsController extends Controller
             ->where('catalog_item_variant_id', $variant->id)
             ->get();
 
-        return view('admin.inventario.kardex', compact('variant', 'movements', 'stocks'));
+        $reasons = InventoryMovement::query()
+            ->where('catalog_item_variant_id', $variant->id)
+            ->whereNotNull('reason')
+            ->distinct()
+            ->orderBy('reason')
+            ->pluck('reason');
+
+        return view('admin.inventario.kardex', compact('variant', 'movements', 'stocks', 'locations', 'reasons', 'canViewCosts'));
+    }
+
+    public function exportKardex(Request $request, CatalogItemVariant $variant)
+    {
+        abort_unless($this->canInventory('inventory.export'), 403);
+
+        $variant->load('item.type', 'item.category');
+        $canViewCosts = $this->canInventory('inventory.view_costs');
+
+        $movements = InventoryMovement::query()
+            ->with(['location', 'fromLocation', 'toLocation', 'user'])
+            ->where('catalog_item_variant_id', $variant->id)
+            ->when($request->filled('inventory_location_id'), fn ($query) => $query->where('inventory_location_id', $request->query('inventory_location_id')))
+            ->when(in_array($request->query('type'), ['in', 'out', 'adjust'], true), fn ($query) => $query->where('type', $request->query('type')))
+            ->when($request->filled('reason'), fn ($query) => $query->where('reason', $request->query('reason')))
+            ->when($request->filled('reference'), fn ($query) => $query->where('reference', 'like', '%' . trim((string) $request->query('reference')) . '%'))
+            ->when($request->filled('date_from'), fn ($query) => $query->whereDate('created_at', '>=', $request->query('date_from')))
+            ->when($request->filled('date_to'), fn ($query) => $query->whereDate('created_at', '<=', $request->query('date_to')))
+            ->oldest()
+            ->get();
+
+        $rows = [[
+            'fecha',
+            'producto',
+            'presentacion',
+            'sku',
+            'tipo',
+            'ubicacion',
+            'motivo',
+            'referencia',
+            'lote',
+            'vencimiento',
+            'entrada',
+            'salida',
+            'costo_unitario',
+            'total_movimiento',
+            'saldo_cantidad',
+            'saldo_costo',
+            'saldo_total',
+            'usuario',
+            'estado',
+        ]];
+
+        foreach ($movements as $movement) {
+            $rows[] = [
+                $movement->created_at?->format('Y-m-d H:i:s'),
+                $variant->item?->name ?? '',
+                $variant->name ?? '',
+                $variant->sku ?? '',
+                $movement->type,
+                $movement->location?->name ?? ($movement->fromLocation?->name && $movement->toLocation?->name ? $movement->fromLocation->name . ' -> ' . $movement->toLocation->name : ''),
+                $movement->reason ?? '',
+                $movement->reference ?? '',
+                $movement->batch_number ?? '',
+                $movement->expires_at?->format('Y-m-d') ?? '',
+                $movement->type === 'in' ? $movement->quantity : '',
+                $movement->type === 'out' ? $movement->quantity : '',
+                $canViewCosts ? ($movement->unit_cost ?? 0) : '',
+                $canViewCosts ? ($movement->total_cost ?? 0) : '',
+                $movement->balance_quantity ?? $movement->stock_after ?? 0,
+                $canViewCosts ? ($movement->balance_unit_cost ?? 0) : '',
+                $canViewCosts ? ($movement->balance_total_cost ?? 0) : '',
+                $movement->user?->name ?? 'Sistema',
+                $movement->voided_at ? 'anulado' : 'activo',
+            ];
+        }
+
+        return $this->csvResponse($rows, 'kardex-' . ($variant->sku ?: $variant->id) . '-' . now()->format('Ymd-His') . '.csv');
     }
 
     public function returns()
@@ -295,6 +399,8 @@ class InventoryOperationsController extends Controller
 
     public function storeReturn(Request $request, InventoryService $inventoryService)
     {
+        abort_unless($this->canInventory('inventory.move'), 403);
+
         $empresa = $this->getOrCreateEmpresa();
         $data = $request->validate([
             'type' => ['required', Rule::in(['customer', 'supplier'])],
@@ -306,6 +412,8 @@ class InventoryOperationsController extends Controller
             'items.*.catalog_item_variant_id' => ['nullable', 'integer', 'exists:catalog_item_variants,id'],
             'items.*.quantity' => ['nullable', 'integer', 'min:1'],
             'items.*.unit_cost' => ['nullable', 'numeric', 'min:0'],
+            'items.*.batch_number' => ['nullable', 'string', 'max:255'],
+            'items.*.expires_at' => ['nullable', 'date'],
         ]);
 
         $location = InventoryLocation::query()->where('empresa_id', $empresa->id)->findOrFail($data['inventory_location_id']);
@@ -353,6 +461,8 @@ class InventoryOperationsController extends Controller
                         'inventory_return_item_id' => $returnItem->id,
                         'reason' => $data['type'] === 'customer' ? 'devolucion_cliente' : 'devolucion_proveedor',
                         'reference' => $return->reference ?: 'return:' . $return->id,
+                        'batch_number' => $this->cleanInput($row['batch_number'] ?? null),
+                        'expires_at' => $row['expires_at'] ?? null,
                         'unit_cost' => $unitCost,
                     ]
                 );
@@ -379,6 +489,8 @@ class InventoryOperationsController extends Controller
 
     public function storeCount(Request $request, InventoryService $inventoryService)
     {
+        abort_unless($this->canInventory('inventory.move'), 403);
+
         $empresa = $this->getOrCreateEmpresa();
         $data = $request->validate([
             'inventory_location_id' => ['nullable', 'integer', 'exists:inventory_locations,id'],
@@ -453,6 +565,88 @@ class InventoryOperationsController extends Controller
         return redirect()->route('admin.inventario.counts');
     }
 
+    public function reports(Request $request)
+    {
+        $empresa = $this->getOrCreateEmpresa();
+        $locations = $this->activeLocations($empresa);
+        $canViewCosts = $this->canInventory('inventory.view_costs');
+        $report = $this->inventoryReportData($empresa, $request);
+
+        return view('admin.inventario.reports', [
+            ...$report,
+            'locations' => $locations,
+            'canViewCosts' => $canViewCosts,
+        ]);
+    }
+
+    public function exportReport(Request $request, string $section)
+    {
+        abort_unless($this->canInventory('inventory.export'), 403);
+
+        $empresa = $this->getOrCreateEmpresa();
+        $report = $this->inventoryReportData($empresa, $request);
+        $canViewCosts = $this->canInventory('inventory.view_costs');
+
+        $rows = match ($section) {
+            'stock' => $this->stockReportRows($report['variants'], $canViewCosts),
+            'locations' => $this->locationReportRows($report['locationStocks'], $canViewCosts),
+            'movements' => $this->movementReportRows($report['movements'], $canViewCosts),
+            'alerts' => $this->alertReportRows($report['alerts'], $canViewCosts),
+            'profit' => $this->profitReportRows($report['profitRows'], $canViewCosts),
+            default => throw ValidationException::withMessages(['section' => 'Reporte no valido.']),
+        };
+
+        return $this->csvResponse($rows, 'inventario-' . $section . '-' . now()->format('Ymd-His') . '.csv');
+    }
+
+    public function periods()
+    {
+        $empresa = $this->getOrCreateEmpresa();
+        $periods = InventoryPeriod::query()
+            ->where('empresa_id', $empresa->id)
+            ->with('user')
+            ->latest('date_to')
+            ->paginate(15);
+
+        return view('admin.inventario.periods', compact('periods'));
+    }
+
+    public function storePeriod(Request $request)
+    {
+        abort_unless($this->canInventory('inventory.close_periods'), 403);
+
+        $empresa = $this->getOrCreateEmpresa();
+        $data = $request->validate([
+            'date_from' => ['required', 'date'],
+            'date_to' => ['required', 'date', 'after_or_equal:date_from'],
+            'notes' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $from = Carbon::parse($data['date_from'])->toDateString();
+        $to = Carbon::parse($data['date_to'])->toDateString();
+        $variants = $this->inventoryVariants($empresa);
+
+        InventoryPeriod::updateOrCreate(
+            [
+                'empresa_id' => $empresa->id,
+                'date_from' => $from,
+                'date_to' => $to,
+            ],
+            [
+                'user_id' => auth()->id(),
+                'status' => 'closed',
+                'variants_count' => $variants->count(),
+                'total_units' => (int) $variants->sum(fn ($variant) => (int) ($variant->stock ?? 0)),
+                'total_value' => round($variants->sum(fn ($variant) => (int) ($variant->stock ?? 0) * (float) ($variant->cost_price ?? 0)), 2),
+                'notes' => $this->cleanInput($data['notes'] ?? null),
+                'closed_at' => now(),
+            ]
+        );
+
+        NotificationHelper::success('Periodo de inventario cerrado correctamente.');
+        return redirect()->route('admin.inventario.periods');
+    }
+
     private function getOrCreateEmpresa(): Empresa
     {
         return Empresa::query()->first() ?? Empresa::create(['nombre' => 'Mi negocio']);
@@ -492,5 +686,221 @@ class InventoryOperationsController extends Controller
         $value = trim((string) $value);
 
         return $value === '' ? null : $value;
+    }
+
+    private function inventoryReportData(Empresa $empresa, Request $request): array
+    {
+        $variants = $this->inventoryVariants($empresa)->load(['item.type', 'item.category', 'locationStocks.location']);
+        $locationId = (int) $request->query('inventory_location_id', 0);
+        $dateFrom = trim((string) $request->query('date_from', ''));
+        $dateTo = trim((string) $request->query('date_to', ''));
+        $movementType = trim((string) $request->query('type', ''));
+        $reason = trim((string) $request->query('reason', ''));
+
+        $locationStocks = InventoryStock::query()
+            ->with(['location', 'variant.item.type', 'variant.item.category'])
+            ->whereHas('variant.item', fn ($query) => $query->where('empresa_id', $empresa->id))
+            ->when($locationId > 0, fn ($query) => $query->where('inventory_location_id', $locationId))
+            ->get();
+
+        $movements = InventoryMovement::query()
+            ->with(['variant.item.type', 'location', 'fromLocation', 'toLocation', 'user'])
+            ->whereHas('variant.item', fn ($query) => $query->where('empresa_id', $empresa->id))
+            ->when($locationId > 0, fn ($query) => $query->where('inventory_location_id', $locationId))
+            ->when(in_array($movementType, ['in', 'out', 'adjust'], true), fn ($query) => $query->where('type', $movementType))
+            ->when($reason !== '', fn ($query) => $query->where('reason', $reason))
+            ->when($dateFrom !== '', fn ($query) => $query->whereDate('created_at', '>=', $dateFrom))
+            ->when($dateTo !== '', fn ($query) => $query->whereDate('created_at', '<=', $dateTo))
+            ->latest()
+            ->limit(500)
+            ->get();
+
+        $alerts = $variants->filter(function ($variant) {
+            $stock = (int) ($variant->stock ?? 0);
+            $minStock = (int) ($variant->min_stock ?? 0);
+
+            return $stock <= 0 || ($minStock > 0 && $stock <= $minStock) || (float) ($variant->cost_price ?? 0) <= 0;
+        })->values();
+
+        $profitRows = InventoryMovement::query()
+            ->with(['variant.item', 'saleItem', 'orderItem'])
+            ->whereHas('variant.item', fn ($query) => $query->where('empresa_id', $empresa->id))
+            ->where('type', 'out')
+            ->whereIn('reason', ['venta', 'orden_web'])
+            ->when($dateFrom !== '', fn ($query) => $query->whereDate('created_at', '>=', $dateFrom))
+            ->when($dateTo !== '', fn ($query) => $query->whereDate('created_at', '<=', $dateTo))
+            ->latest()
+            ->limit(500)
+            ->get()
+            ->map(function ($movement) {
+                $salePrice = (float) ($movement->saleItem?->unit_price ?? $movement->orderItem?->unit_price ?? 0);
+                $quantity = (int) ($movement->quantity ?? 0);
+                $revenue = round($salePrice * $quantity, 2);
+                $cost = round((float) ($movement->total_cost ?? 0), 2);
+
+                $movement->profit_revenue = $revenue;
+                $movement->profit_cost = $cost;
+                $movement->profit_amount = round($revenue - $cost, 2);
+
+                return $movement;
+            });
+
+        $reasons = InventoryMovement::query()
+            ->whereHas('variant.item', fn ($query) => $query->where('empresa_id', $empresa->id))
+            ->whereNotNull('reason')
+            ->distinct()
+            ->orderBy('reason')
+            ->pluck('reason');
+
+        return [
+            'variants' => $variants,
+            'locationStocks' => $locationStocks,
+            'movements' => $movements,
+            'alerts' => $alerts,
+            'profitRows' => $profitRows,
+            'reasons' => $reasons,
+            'stats' => [
+                'units' => (int) $variants->sum(fn ($variant) => (int) ($variant->stock ?? 0)),
+                'value' => round($variants->sum(fn ($variant) => (int) ($variant->stock ?? 0) * (float) ($variant->cost_price ?? 0)), 2),
+                'low' => $alerts->filter(fn ($variant) => (int) ($variant->stock ?? 0) > 0 && (int) ($variant->min_stock ?? 0) > 0 && (int) ($variant->stock ?? 0) <= (int) ($variant->min_stock ?? 0))->count(),
+                'out' => $alerts->filter(fn ($variant) => (int) ($variant->stock ?? 0) <= 0)->count(),
+                'no_cost' => $alerts->filter(fn ($variant) => (float) ($variant->cost_price ?? 0) <= 0)->count(),
+                'profit' => round($profitRows->sum('profit_amount'), 2),
+            ],
+        ];
+    }
+
+    private function stockReportRows($variants, bool $canViewCosts): array
+    {
+        $rows = [['producto', 'negocio', 'categoria', 'presentacion', 'sku', 'stock', 'stock_minimo', 'costo_promedio', 'valor_total', 'precio_venta']];
+
+        foreach ($variants as $variant) {
+            $rows[] = [
+                $variant->item?->name ?? '',
+                $variant->item?->type?->name ?? '',
+                $variant->item?->category?->name ?? '',
+                $variant->name ?? '',
+                $variant->sku ?? '',
+                $variant->stock ?? 0,
+                $variant->min_stock ?? 0,
+                $canViewCosts ? ($variant->cost_price ?? 0) : '',
+                $canViewCosts ? round((int) ($variant->stock ?? 0) * (float) ($variant->cost_price ?? 0), 2) : '',
+                $variant->price ?? 0,
+            ];
+        }
+
+        return $rows;
+    }
+
+    private function locationReportRows($stocks, bool $canViewCosts): array
+    {
+        $rows = [['ubicacion', 'producto', 'presentacion', 'sku', 'cantidad', 'minimo', 'costo_promedio', 'valor']];
+
+        foreach ($stocks as $stock) {
+            $rows[] = [
+                $stock->location?->name ?? '',
+                $stock->variant?->item?->name ?? '',
+                $stock->variant?->name ?? '',
+                $stock->variant?->sku ?? '',
+                $stock->quantity ?? 0,
+                $stock->min_stock ?? 0,
+                $canViewCosts ? ($stock->variant?->cost_price ?? 0) : '',
+                $canViewCosts ? round((int) ($stock->quantity ?? 0) * (float) ($stock->variant?->cost_price ?? 0), 2) : '',
+            ];
+        }
+
+        return $rows;
+    }
+
+    private function movementReportRows($movements, bool $canViewCosts): array
+    {
+        $rows = [['fecha', 'producto', 'presentacion', 'tipo', 'cantidad', 'ubicacion', 'motivo', 'referencia', 'costo_unitario', 'total', 'usuario']];
+
+        foreach ($movements as $movement) {
+            $rows[] = [
+                $movement->created_at?->format('Y-m-d H:i:s'),
+                $movement->variant?->item?->name ?? '',
+                $movement->variant?->name ?? '',
+                $movement->type,
+                $movement->quantity,
+                $movement->location?->name ?? '',
+                $movement->reason ?? '',
+                $movement->reference ?? '',
+                $canViewCosts ? ($movement->unit_cost ?? 0) : '',
+                $canViewCosts ? ($movement->total_cost ?? 0) : '',
+                $movement->user?->name ?? 'Sistema',
+            ];
+        }
+
+        return $rows;
+    }
+
+    private function alertReportRows($alerts, bool $canViewCosts): array
+    {
+        $rows = [['producto', 'presentacion', 'sku', 'stock', 'minimo', 'costo_promedio', 'alerta']];
+
+        foreach ($alerts as $variant) {
+            $stock = (int) ($variant->stock ?? 0);
+            $minStock = (int) ($variant->min_stock ?? 0);
+            $alert = $stock <= 0 ? 'agotado' : (($minStock > 0 && $stock <= $minStock) ? 'bajo_stock' : 'sin_costo');
+
+            $rows[] = [
+                $variant->item?->name ?? '',
+                $variant->name ?? '',
+                $variant->sku ?? '',
+                $stock,
+                $minStock,
+                $canViewCosts ? ($variant->cost_price ?? 0) : '',
+                $alert,
+            ];
+        }
+
+        return $rows;
+    }
+
+    private function profitReportRows($profitRows, bool $canViewCosts): array
+    {
+        $rows = [['fecha', 'producto', 'presentacion', 'cantidad', 'ingreso', 'costo', 'utilidad', 'referencia']];
+
+        foreach ($profitRows as $movement) {
+            $rows[] = [
+                $movement->created_at?->format('Y-m-d H:i:s'),
+                $movement->variant?->item?->name ?? '',
+                $movement->variant?->name ?? '',
+                $movement->quantity,
+                $canViewCosts ? $movement->profit_revenue : '',
+                $canViewCosts ? $movement->profit_cost : '',
+                $canViewCosts ? $movement->profit_amount : '',
+                $movement->reference ?? '',
+            ];
+        }
+
+        return $rows;
+    }
+
+    private function csvResponse(array $rows, string $fileName)
+    {
+        $handle = fopen('php://temp', 'r+');
+        fwrite($handle, "\xEF\xBB\xBF");
+
+        foreach ($rows as $row) {
+            fputcsv($handle, $row);
+        }
+
+        rewind($handle);
+        $csv = stream_get_contents($handle);
+        fclose($handle);
+
+        return Response::make((string) $csv, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+        ]);
+    }
+
+    private function canInventory(string $permission): bool
+    {
+        $user = auth()->user();
+
+        return (bool) ($user && ($user->hasRole('admin') || $user->can($permission)));
     }
 }
