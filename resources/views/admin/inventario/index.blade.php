@@ -5,104 +5,202 @@
 @section('content')
     @php
         $hasProductTypes = $productTypes->isNotEmpty();
+        $primaryProductUrl = $hasProductTypes
+            ? route(
+                'admin.catalog-items.create',
+                array_filter(['inventory' => 1, 'catalog_type_id' => $selectedTypeId ?: null]),
+            )
+            : null;
+        $newMovementUrl = $hasProductTypes ? route('admin.inventario.create') : null;
+        $moreActions = $hasProductTypes
+            ? [
+                [
+                    'route' => route('admin.inventario.locations'),
+                    'label' => 'Ubicaciones',
+                    'title' => 'Ubicaciones',
+                    'icon' => 'building-storefront',
+                    'primary' => false,
+                ],
+                [
+                    'route' => route('admin.inventario.suppliers'),
+                    'label' => 'Proveedores',
+                    'title' => 'Proveedores',
+                    'icon' => 'users',
+                    'primary' => false,
+                ],
+                [
+                    'route' => route('admin.inventario.purchases'),
+                    'label' => 'Compras',
+                    'title' => 'Compras',
+                    'icon' => 'shopping-bag',
+                    'primary' => false,
+                ],
+                [
+                    'route' => route('admin.inventario.transfers'),
+                    'label' => 'Transferir',
+                    'title' => 'Transferencias',
+                    'icon' => 'arrows-right-left',
+                    'primary' => false,
+                ],
+                [
+                    'route' => route('admin.inventario.returns'),
+                    'label' => 'Devolver',
+                    'title' => 'Devoluciones',
+                    'icon' => 'arrow-path-rounded-square',
+                    'primary' => false,
+                ],
+                [
+                    'route' => route('admin.inventario.counts'),
+                    'label' => 'Conteo',
+                    'title' => 'Conteo físico',
+                    'icon' => 'clipboard-document-check',
+                    'primary' => false,
+                ],
+                [
+                    'route' => route('admin.inventario.reports'),
+                    'label' => 'Reportes',
+                    'title' => 'Reportes',
+                    'icon' => 'chart-bar',
+                    'primary' => false,
+                ],
+                [
+                    'route' => route('admin.inventario.periods'),
+                    'label' => 'Cierres',
+                    'title' => 'Cierres',
+                    'icon' => 'lock-closed',
+                    'primary' => false,
+                ],
+                [
+                    'route' => route('admin.inventario.import'),
+                    'label' => 'Importar',
+                    'title' => 'Importar CSV',
+                    'icon' => 'arrow-up-tray',
+                    'primary' => false,
+                ],
+                [
+                    'route' => route(
+                        'admin.inventario.export',
+                        array_filter(['catalog_type_id' => $selectedTypeId ?: null]),
+                    ),
+                    'label' => 'Exportar',
+                    'title' => 'Exportar CSV',
+                    'icon' => 'arrow-down-tray',
+                ],
+            ]
+            : [];
+        $panelClass = 'bg-white rounded-lg border border-gray-200/70 shadow-sm overflow-hidden min-w-0';
     @endphp
 
-    <div class="container mx-auto px-4 sm:px-6">
-        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
-            <div class="min-w-0">
-                <div class="flex items-center gap-2">
-                    <x-heroicon-o-archive-box class="w-8 h-8 text-gray-800" />
-                    <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Inventario</h2>
+    <div class="w-full max-w-[1600px] mx-auto px-3 sm:px-5 xl:px-8 pb-8">
+        <div class="mb-6 space-y-5">
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div class="flex min-w-0 items-start gap-3">
+                    <span
+                        class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-900 shadow-sm">
+                        <x-heroicon-o-archive-box class="h-6 w-6" />
+                    </span>
+                    <div class="min-w-0">
+                        <h3 class="text-2xl sm:text-3xl font-medium leading-tight text-gray-900">Inventario</h3>
+                        <p class="mt-1.5 max-w-3xl text-sm text-gray-500">Gestiona el stock de tus productos.</p>
+                    </div>
                 </div>
+
+                @if ($hasProductTypes)
+                    <div class="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+                        <a href="{{ $newMovementUrl }}"
+                            class="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50">
+                            <x-heroicon-o-archive-box class="h-5 w-5" />
+                            Movimiento
+                        </a>
+
+                        <details class="relative">
+                            <summary
+                                class="inline-flex h-11 cursor-pointer list-none items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 [&::-webkit-details-marker]:hidden"
+                                aria-label="Más acciones">
+                                <x-heroicon-o-ellipsis-horizontal class="h-5 w-5" />
+                                <span>Más acciones</span>
+                            </summary>
+                            <div
+                                class="absolute right-0 z-20 mt-2 w-64 overflow-hidden rounded-lg border border-gray-200 bg-white py-2 shadow-lg">
+                                @foreach ($moreActions as $tool)
+                                    <a href="{{ $tool['route'] }}"
+                                        class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                                        title="{{ $tool['title'] }}">
+                                        @switch($tool['icon'])
+                                            @case('building-storefront')
+                                                <x-heroicon-o-building-storefront class="h-4 w-4 text-gray-400" />
+                                            @break
+
+                                            @case('users')
+                                                <x-heroicon-o-users class="h-4 w-4 text-gray-400" />
+                                            @break
+
+                                            @case('shopping-bag')
+                                                <x-heroicon-o-shopping-bag class="h-4 w-4 text-gray-400" />
+                                            @break
+
+                                            @case('arrows-right-left')
+                                                <x-heroicon-o-arrows-right-left class="h-4 w-4 text-gray-400" />
+                                            @break
+
+                                            @case('arrow-path-rounded-square')
+                                                <x-heroicon-o-arrow-path-rounded-square class="h-4 w-4 text-gray-400" />
+                                            @break
+
+                                            @case('clipboard-document-check')
+                                                <x-heroicon-o-clipboard-document-check class="h-4 w-4 text-gray-400" />
+                                            @break
+
+                                            @case('chart-bar')
+                                                <x-heroicon-o-chart-bar class="h-4 w-4 text-gray-400" />
+                                            @break
+
+                                            @case('lock-closed')
+                                                <x-heroicon-o-lock-closed class="h-4 w-4 text-gray-400" />
+                                            @break
+
+                                            @case('arrow-up-tray')
+                                                <x-heroicon-o-arrow-up-tray class="h-4 w-4 text-gray-400" />
+                                            @break
+
+                                            @case('arrow-down-tray')
+                                                <x-heroicon-o-arrow-down-tray class="h-4 w-4 text-gray-400" />
+                                            @break
+                                        @endswitch
+                                        <span>{{ $tool['title'] }}</span>
+                                    </a>
+                                @endforeach
+                            </div>
+                        </details>
+
+                        <a href="{{ $primaryProductUrl }}"
+                            class="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-gray-900 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-gray-700">
+                            <x-heroicon-o-plus class="h-5 w-5" />
+                            Agregar producto
+                        </a>
+                    </div>
+                @endif
             </div>
+
             @if ($hasProductTypes)
-                <div class="w-full lg:w-auto flex flex-col sm:flex-row gap-2">
-                    <form method="GET" action="{{ route('admin.inventario.index') }}"
-                        class="w-full lg:w-auto flex flex-col sm:flex-row gap-2">
-                        <div class="relative w-full sm:w-72">
-                            <x-heroicon-o-magnifying-glass
-                                class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                            <input type="search" name="q" value="{{ request('q') }}"
-                                class="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm text-gray-700"
-                                placeholder="Buscar producto, negocio, categoría, presentación o SKU...">
-                        </div>
-                        <select name="catalog_type_id"
-                            class="w-full sm:w-56 rounded-lg border border-gray-200 bg-white py-2.5 px-3 text-sm text-gray-700"
-                            onchange="this.form.submit()">
-                            <option value="">Todos los negocios</option>
-                            @foreach ($productTypes as $type)
-                                <option value="{{ $type->id }}" {{ $selectedTypeId === $type->id ? 'selected' : '' }}>
-                                    {{ $type->name }}</option>
-                            @endforeach
-                        </select>
-                    </form>
-                    <a href="{{ route('admin.catalog-items.create', array_filter(['inventory' => 1, 'catalog_type_id' => $selectedTypeId ?: null])) }}"
-                        class="inline-flex items-center justify-center bg-white text-gray-800 border border-gray-200 w-11 h-11 rounded-lg hover:bg-gray-50 transition"
-                        title="Nuevo producto" aria-label="Nuevo producto">
-                        <x-heroicon-o-cube class="w-5 h-5" />
-                    </a>
-                    <a href="{{ route('admin.inventario.locations') }}"
-                        class="inline-flex items-center justify-center bg-white text-gray-800 border border-gray-200 w-11 h-11 rounded-lg hover:bg-gray-50 transition"
-                        title="Ubicaciones" aria-label="Ubicaciones">
-                        <x-heroicon-o-building-storefront class="w-5 h-5" />
-                    </a>
-                    <a href="{{ route('admin.inventario.suppliers') }}"
-                        class="inline-flex items-center justify-center bg-white text-gray-800 border border-gray-200 w-11 h-11 rounded-lg hover:bg-gray-50 transition"
-                        title="Proveedores" aria-label="Proveedores">
-                        <x-heroicon-o-users class="w-5 h-5" />
-                    </a>
-                    <a href="{{ route('admin.inventario.purchases') }}"
-                        class="inline-flex items-center justify-center bg-white text-gray-800 border border-gray-200 w-11 h-11 rounded-lg hover:bg-gray-50 transition"
-                        title="Compras" aria-label="Compras">
-                        <x-heroicon-o-shopping-bag class="w-5 h-5" />
-                    </a>
-                    <a href="{{ route('admin.inventario.transfers') }}"
-                        class="inline-flex items-center justify-center bg-white text-gray-800 border border-gray-200 w-11 h-11 rounded-lg hover:bg-gray-50 transition"
-                        title="Transferencias" aria-label="Transferencias">
-                        <x-heroicon-o-arrows-right-left class="w-5 h-5" />
-                    </a>
-                    <a href="{{ route('admin.inventario.returns') }}"
-                        class="inline-flex items-center justify-center bg-white text-gray-800 border border-gray-200 w-11 h-11 rounded-lg hover:bg-gray-50 transition"
-                        title="Devoluciones" aria-label="Devoluciones">
-                        <x-heroicon-o-arrow-path-rounded-square class="w-5 h-5" />
-                    </a>
-                    <a href="{{ route('admin.inventario.counts') }}"
-                        class="inline-flex items-center justify-center bg-white text-gray-800 border border-gray-200 w-11 h-11 rounded-lg hover:bg-gray-50 transition"
-                        title="Conteo físico" aria-label="Conteo físico">
-                        <x-heroicon-o-clipboard-document-check class="w-5 h-5" />
-                    </a>
-                    <a href="{{ route('admin.inventario.reports') }}"
-                        class="inline-flex items-center justify-center bg-white text-gray-800 border border-gray-200 w-11 h-11 rounded-lg hover:bg-gray-50 transition"
-                        title="Reportes" aria-label="Reportes">
-                        <x-heroicon-o-chart-bar class="w-5 h-5" />
-                    </a>
-                    <a href="{{ route('admin.inventario.periods') }}"
-                        class="inline-flex items-center justify-center bg-white text-gray-800 border border-gray-200 w-11 h-11 rounded-lg hover:bg-gray-50 transition"
-                        title="Cierres" aria-label="Cierres">
-                        <x-heroicon-o-lock-closed class="w-5 h-5" />
-                    </a>
-                    <a href="{{ route('admin.inventario.import') }}"
-                        class="inline-flex items-center justify-center bg-white text-gray-800 border border-gray-200 w-11 h-11 rounded-lg hover:bg-gray-50 transition"
-                        title="Importar CSV" aria-label="Importar CSV">
-                        <x-heroicon-o-arrow-up-tray class="w-5 h-5" />
-                    </a>
-                    <a href="{{ route('admin.inventario.export', array_filter(['catalog_type_id' => $selectedTypeId ?: null])) }}"
-                        class="inline-flex items-center justify-center bg-white text-gray-800 border border-gray-200 w-11 h-11 rounded-lg hover:bg-gray-50 transition"
-                        title="Exportar CSV" aria-label="Exportar CSV">
-                        <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
-                    </a>
-                    <a href="{{ route('admin.inventario.create') }}"
-                        class="inline-flex items-center justify-center bg-gray-900 text-white w-11 h-11 rounded-lg hover:bg-gray-700 transition"
-                        title="Nuevo movimiento" aria-label="Nuevo movimiento">
-                        <x-heroicon-o-plus class="w-5 h-5" />
-                    </a>
-                </div>
+                <form method="GET" action="{{ route('admin.inventario.index') }}" class="relative">
+                    <input type="hidden" name="catalog_type_id" value="{{ $selectedTypeId ?: '' }}">
+                    <x-heroicon-o-magnifying-glass
+                        class="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                    <input type="search" name="q" value="{{ request('q') }}"
+                        class="h-12 w-full rounded-lg border border-gray-200 bg-white py-3 pl-11 pr-24 text-sm text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
+                        placeholder="Buscar producto, negocio, categoría, presentación o SKU">
+                    <button
+                        class="absolute right-1.5 top-1/2 inline-flex h-9 -translate-y-1/2 items-center justify-center rounded-md bg-gray-100 px-4 text-xs font-semibold text-gray-700 transition hover:bg-gray-200">
+                        Buscar
+                    </button>
+                </form>
             @endif
         </div>
 
         @unless ($hasProductTypes)
-            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 sm:p-10 text-center max-w-3xl mx-auto">
-                <div class="w-14 h-14 rounded-2xl bg-gray-100 text-gray-700 flex items-center justify-center mx-auto mb-4">
+            <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-8 sm:p-10 text-center max-w-3xl mx-auto">
+                <div class="w-14 h-14 rounded-lg bg-gray-100 text-gray-700 flex items-center justify-center mx-auto mb-4">
                     <x-heroicon-o-building-storefront class="w-7 h-7" />
                 </div>
                 <h3 class="text-xl font-bold text-gray-800">Inventario necesita un negocio de productos</h3>
@@ -124,8 +222,8 @@
                 </div>
             </div>
         @else
-            <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-2 mb-6 overflow-x-auto">
-                <div class="flex items-center gap-2 min-w-max">
+            <div class="mb-6 overflow-x-auto rounded-lg border border-gray-200/70 bg-white p-2 shadow-sm">
+                <div class="flex min-w-max items-center gap-2">
                     <a href="{{ route('admin.inventario.index', array_filter(['q' => request('q')])) }}"
                         class="inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-semibold transition {{ $selectedTypeId === 0 ? 'bg-gray-900 text-white' : 'text-gray-600 hover:bg-gray-100' }}">
                         Todos
@@ -139,52 +237,46 @@
                 </div>
             </div>
 
-            {{-- <div
-                class="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 mb-6 flex flex-col sm:flex-row sm:items-center gap-3 text-sm text-blue-800">
-                <div class="shrink-0">
-                    <x-heroicon-o-information-circle class="w-5 h-5" />
+            <div class="grid grid-cols-2 md:grid-cols-3 2xl:grid-cols-6 gap-3 sm:gap-4 mb-6">
+                <div class="bg-white rounded-lg border border-gray-200/70 shadow-sm p-4 min-h-24">
+                    <p class="text-[11px] uppercase tracking-wide text-gray-400 font-semibold">Presentaciones</p>
+                    <p class="text-2xl font-bold text-gray-900 mt-2">{{ $inventoryStats['variants'] }}</p>
                 </div>
-                <div>
-                    <p class="font-semibold">Inventario trabaja solo con productos.</p>
-                    <p class="text-blue-700 mt-0.5">Por ahora registra entradas, salidas y ajustes manuales. Proveedores y
-                        compras se agregarán después sobre esta misma base.</p>
+                <div class="bg-white rounded-lg border border-gray-200/70 shadow-sm p-4 min-h-24">
+                    <p class="text-[11px] uppercase tracking-wide text-gray-400 font-semibold">Unidades</p>
+                    <p class="text-2xl font-bold text-gray-900 mt-2">{{ $inventoryStats['units'] }}</p>
                 </div>
-            </div> --}}
-
-            <div class="grid grid-cols-2 xl:grid-cols-6 gap-4 mb-6">
-                <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
-                    <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Presentaciones</p>
-                    <p class="text-2xl font-bold text-gray-800 mt-2">{{ $inventoryStats['variants'] }}</p>
+                <div class="bg-white rounded-lg border border-gray-200/70 shadow-sm p-4 min-h-24">
+                    <p class="text-[11px] uppercase tracking-wide text-gray-400 font-semibold">Valor</p>
+                    <p class="text-2xl font-bold text-gray-900 mt-2 break-words">
+                        {{ $canViewCosts ? '$' . number_format($inventoryStats['value'], 2) : 'Restringido' }}</p>
                 </div>
-                <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
-                    <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Unidades</p>
-                    <p class="text-2xl font-bold text-gray-800 mt-2">{{ $inventoryStats['units'] }}</p>
-                </div>
-                <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
-                    <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Valor</p>
-                    <p class="text-2xl font-bold text-gray-800 mt-2">{{ $canViewCosts ? '$' . number_format($inventoryStats['value'], 2) : 'Restringido' }}</p>
-                </div>
-                <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
-                    <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Agotados</p>
+                <div class="bg-white rounded-lg border border-gray-200/70 shadow-sm p-4 min-h-24">
+                    <p class="text-[11px] uppercase tracking-wide text-gray-400 font-semibold">Agotados</p>
                     <p class="text-2xl font-bold text-red-700 mt-2">{{ $inventoryStats['out'] }}</p>
                 </div>
-                <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
-                    <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Bajo stock</p>
+                <div class="bg-white rounded-lg border border-gray-200/70 shadow-sm p-4 min-h-24">
+                    <p class="text-[11px] uppercase tracking-wide text-gray-400 font-semibold">Bajo stock</p>
                     <p class="text-2xl font-bold text-amber-700 mt-2">{{ $inventoryStats['low'] }}</p>
                 </div>
-                <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
-                    <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Sin costo</p>
-                    <p class="text-2xl font-bold text-gray-800 mt-2">{{ $inventoryStats['no_cost'] }}</p>
+                <div class="bg-white rounded-lg border border-gray-200/70 shadow-sm p-4 min-h-24">
+                    <p class="text-[11px] uppercase tracking-wide text-gray-400 font-semibold">Sin costo</p>
+                    <p class="text-2xl font-bold text-gray-900 mt-2">{{ $inventoryStats['no_cost'] }}</p>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                <div class="xl:col-span-2 bg-white rounded-xl shadow-sm overflow-hidden">
-                    <div class="px-4 py-3 border-b border-gray-100">
-                        <h3 class="font-semibold text-gray-800">Stock actual de productos</h3>
+            <div class="grid grid-cols-1 2xl:grid-cols-[minmax(0,1fr)_380px] gap-5 xl:gap-6">
+                <section class="{{ $panelClass }}">
+                    <div
+                        class="px-4 sm:px-5 py-4 border-b border-gray-200/70 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <div>
+                            <h3 class="font-semibold text-gray-900">Stock actual de productos</h3>
+                            <p class="text-xs text-gray-400 mt-1">Productos físicos registrados para el carwash.</p>
+                        </div>
+                        <span class="text-xs font-semibold text-gray-400">{{ $products->total() }} registros</span>
                     </div>
 
-                    <div class="md:hidden space-y-3 p-4">
+                    <div class="lg:hidden space-y-3 p-4">
                         @forelse($products as $product)
                             @php
                                 $variant = $product->variants->first();
@@ -193,18 +285,19 @@
                                 $variantStock = $variant ? (int) ($variant->stock ?? 0) : 0;
                                 $variantMinStock = $variant ? (int) ($variant->min_stock ?? 0) : 0;
                                 $isOutOfStock = $variantStock <= 0;
-                                $isLowStock = !$isOutOfStock && $variantMinStock > 0 && $variantStock <= $variantMinStock;
+                                $isLowStock =
+                                    !$isOutOfStock && $variantMinStock > 0 && $variantStock <= $variantMinStock;
                             @endphp
-                            <div class="rounded-xl border border-gray-100 p-4 space-y-4">
+                            <article class="rounded-lg border border-gray-200/70 p-4 space-y-4">
                                 <div class="flex items-start justify-between gap-3">
                                     <div class="min-w-0">
-                                        <p class="font-semibold text-gray-800 break-words">{{ $product->name }}</p>
+                                        <p class="font-semibold text-gray-900 break-words">{{ $product->name }}</p>
                                         <p class="text-xs text-gray-400 break-words">{{ $product->type->name ?? '-' }} ·
                                             {{ $product->category->name ?? 'Sin categoría' }}</p>
                                     </div>
                                     <span
-                                        class="shrink-0 {{ $isOutOfStock ? 'bg-red-100 text-red-700' : ($isLowStock ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-700') }} px-2.5 py-1 rounded-full text-xs font-semibold">
-                                        Stock: {{ $variantStock }}
+                                        class="shrink-0 {{ $isOutOfStock ? 'bg-red-100 text-red-700' : ($isLowStock ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700') }} px-2.5 py-1 rounded-full text-xs font-semibold">
+                                        {{ $isOutOfStock ? 'Agotado' : ($isLowStock ? 'Bajo' : 'Activo') }}
                                     </span>
                                 </div>
 
@@ -214,65 +307,61 @@
                                         <p class="text-gray-700 break-words">{{ $variantName }}</p>
                                     </div>
                                     <div>
+                                        <p class="text-xs uppercase text-gray-400 font-semibold">SKU</p>
                                         <p class="font-mono text-xs text-gray-700 break-words">{{ $variantSku ?: '-' }}</p>
                                     </div>
                                     <div>
-                                        <p class="text-xs uppercase text-gray-400 font-semibold">Mínimo</p>
-                                        <p class="font-semibold text-gray-800">{{ $variantMinStock }}</p>
+                                        <p class="text-xs uppercase text-gray-400 font-semibold">Stock</p>
+                                        <p class="font-semibold text-gray-900">{{ $variantStock }}</p>
                                     </div>
                                     <div>
-                                        <p class="text-xs uppercase text-gray-400 font-semibold">Estado</p>
-                                        @if ($isOutOfStock)
-                                            <span
-                                                class="inline-flex bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs font-medium">Agotado</span>
-                                        @elseif ($isLowStock)
-                                            <span
-                                                class="inline-flex bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-xs font-medium">Bajo stock</span>
-                                        @elseif ($product->active)
-                                            <span
-                                                class="inline-flex bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-medium">Activo</span>
-                                        @else
-                                            <span
-                                                class="inline-flex bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs font-medium">Oculto</span>
-                                        @endif
+                                        <p class="text-xs uppercase text-gray-400 font-semibold">Mínimo</p>
+                                        <p class="font-semibold text-gray-900">{{ $variantMinStock }}</p>
                                     </div>
                                     <div>
                                         <p class="text-xs uppercase text-gray-400 font-semibold">Precio</p>
-                                        <p class="font-semibold text-gray-800">
-                                            ${{ number_format($product->base_price ?? 0, 2) }}</p>
+                                        <p class="font-semibold text-gray-900">
+                                            ${{ number_format($variant?->price ?? ($product->base_price ?? 0), 2) }}</p>
                                     </div>
                                 </div>
 
-                                <div class="flex justify-end">
+                                <div class="flex flex-wrap justify-end gap-2">
+                                    @if ($variant)
+                                        <a href="{{ route('admin.inventario.kardex', $variant) }}"
+                                            class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">
+                                            <x-heroicon-o-clipboard-document-list class="w-4 h-4" />
+                                            Kardex
+                                        </a>
+                                    @endif
                                     <button type="button"
-                                        class="open-stock-modal inline-flex items-center justify-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition text-sm font-semibold"
+                                        class="open-stock-modal inline-flex items-center justify-center gap-2 bg-gray-900 text-white px-3 py-2 rounded-lg hover:bg-gray-700 transition text-sm font-semibold"
                                         data-product-id="{{ $product->id }}" data-variant-id="{{ $variant?->id }}"
                                         data-product-name="{{ $product->name }}" data-variant-name="{{ $variantName }}"
                                         data-current-stock="{{ $variantStock }}" title="Gestionar stock"
                                         aria-label="Gestionar stock de {{ $product->name }}">
                                         <x-heroicon-o-archive-box class="w-4 h-4" />
-                                        Gestionar stock
+                                        Stock
                                     </button>
                                 </div>
-                            </div>
+                            </article>
                         @empty
-                            <div class="px-4 py-8 text-center text-gray-400">No hay productos para este negocio o búsqueda. Crea
-                                un producto o cambia el filtro.</div>
+                            <div class="px-4 py-8 text-center text-gray-400">No hay productos para este negocio o búsqueda.
+                            </div>
                         @endforelse
                     </div>
 
-                    <div class="hidden md:block overflow-x-hidden">
-                        <table class="w-full table-fixed text-sm text-left">
+                    <div class="hidden lg:block overflow-x-auto">
+                        <table class="min-w-[960px] w-full text-sm">
                             <thead class="bg-gray-50 border-b text-xs uppercase text-gray-500">
                                 <tr>
-                                    <th class="px-3 py-3 text-center w-[20%]">Producto</th>
-                                    <th class="px-3 py-3 text-center w-[14%]">Negocio</th>
-                                    <th class="px-3 py-3 text-center w-[14%]">Categoría</th>
-                                    <th class="px-3 py-3 text-center w-[16%]">Presentación</th>
-                                    <th class="px-3 py-3 text-center w-[8%]">Stock</th>
-                                    <th class="px-3 py-3 text-center w-[8%]">Mín.</th>
-                                    <th class="px-3 py-3 text-center w-[10%]">Estado</th>
-                                    <th class="px-3 py-3 text-center w-[10%]">Acción</th>
+                                    <th class="px-4 py-3 text-left">Producto</th>
+                                    <th class="px-4 py-3 text-left">Negocio</th>
+                                    <th class="px-4 py-3 text-left">Categoría</th>
+                                    <th class="px-4 py-3 text-left">Presentación</th>
+                                    <th class="px-4 py-3 text-center">Stock</th>
+                                    <th class="px-4 py-3 text-center">Mín.</th>
+                                    <th class="px-4 py-3 text-center">Estado</th>
+                                    <th class="px-4 py-3 text-center">Acción</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y">
@@ -284,43 +373,52 @@
                                         $variantStock = $variant ? (int) ($variant->stock ?? 0) : 0;
                                         $variantMinStock = $variant ? (int) ($variant->min_stock ?? 0) : 0;
                                         $isOutOfStock = $variantStock <= 0;
-                                        $isLowStock = !$isOutOfStock && $variantMinStock > 0 && $variantStock <= $variantMinStock;
+                                        $isLowStock =
+                                            !$isOutOfStock && $variantMinStock > 0 && $variantStock <= $variantMinStock;
                                     @endphp
-                                    <tr>
-                                        <td class="px-3 py-3 text-center">
-                                            <p class="font-medium text-gray-800 truncate">{{ $product->name }}</p>
-                                            <p class="text-xs text-gray-400 truncate">
+                                    <tr class="hover:bg-gray-50/70">
+                                        <td class="px-4 py-3">
+                                            <p class="font-semibold text-gray-900 max-w-[240px] truncate">{{ $product->name }}
+                                            </p>
+                                            <p class="text-xs text-gray-400 max-w-[240px] truncate">
                                                 {{ $product->description ?: 'Sin descripción' }}</p>
                                         </td>
-                                        <td class="px-3 py-3 text-center text-gray-700 truncate">
-                                            {{ $product->type->name ?? '-' }}</td>
-                                        <td class="px-3 py-3 text-center text-gray-700 truncate">
-                                            {{ $product->category->name ?? 'Sin categoría' }}</td>
-                                        <td class="px-3 py-3 text-center">
-                                            <p class="text-gray-700 truncate">{{ $variantName }}</p>
-                                            <p class="text-gray-500 font-mono text-xs truncate">{{ $variantSku ?: 'Sin SKU' }}
-                                            </p>
+                                        <td class="px-4 py-3 text-gray-700">
+                                            <p class="max-w-[170px] truncate">{{ $product->type->name ?? '-' }}</p>
                                         </td>
-                                        <td class="px-3 py-3 text-center font-semibold {{ $isOutOfStock ? 'text-red-700' : ($isLowStock ? 'text-amber-700' : 'text-gray-800') }}">{{ $variantStock }}</td>
-                                        <td class="px-3 py-3 text-center text-gray-700">{{ $variantMinStock }}</td>
-                                        <td class="px-3 py-3 text-center">
+                                        <td class="px-4 py-3 text-gray-700">
+                                            <p class="max-w-[170px] truncate">
+                                                {{ $product->category->name ?? 'Sin categoría' }}</p>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <p class="text-gray-700 max-w-[190px] truncate">{{ $variantName }}</p>
+                                            <p class="text-gray-500 font-mono text-xs max-w-[190px] truncate">
+                                                {{ $variantSku ?: 'Sin SKU' }}</p>
+                                        </td>
+                                        <td
+                                            class="px-4 py-3 text-center font-semibold {{ $isOutOfStock ? 'text-red-700' : ($isLowStock ? 'text-amber-700' : 'text-gray-900') }}">
+                                            {{ $variantStock }}
+                                        </td>
+                                        <td class="px-4 py-3 text-center text-gray-700">{{ $variantMinStock }}</td>
+                                        <td class="px-4 py-3 text-center">
                                             @if ($isOutOfStock)
                                                 <span
-                                                    class="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-medium">Agotado</span>
+                                                    class="inline-flex bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-medium">Agotado</span>
                                             @elseif ($isLowStock)
                                                 <span
-                                                    class="bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-xs font-medium">Bajo stock</span>
+                                                    class="inline-flex bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-xs font-medium">Bajo
+                                                    stock</span>
                                             @elseif ($product->active)
                                                 <span
-                                                    class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">Activo</span>
+                                                    class="inline-flex bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">Activo</span>
                                             @else
                                                 <span
-                                                    class="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs font-medium">Oculto</span>
+                                                    class="inline-flex bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs font-medium">Oculto</span>
                                             @endif
                                         </td>
-                                        <td class="px-3 py-3 text-center">
-                                            <div class="flex items-center justify-center gap-1">
-                                                @if($variant)
+                                        <td class="px-4 py-3">
+                                            <div class="flex items-center justify-center gap-1.5">
+                                                @if ($variant)
                                                     <a href="{{ route('admin.inventario.kardex', $variant) }}"
                                                         class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition"
                                                         title="Kardex" aria-label="Kardex de {{ $product->name }}">
@@ -329,7 +427,8 @@
                                                 @endif
                                                 <button type="button"
                                                     class="open-stock-modal inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gray-900 text-white hover:bg-gray-700 transition"
-                                                    data-product-id="{{ $product->id }}" data-variant-id="{{ $variant?->id }}"
+                                                    data-product-id="{{ $product->id }}"
+                                                    data-variant-id="{{ $variant?->id }}"
                                                     data-product-name="{{ $product->name }}"
                                                     data-variant-name="{{ $variantName }}"
                                                     data-current-stock="{{ $variantStock }}" title="Gestionar stock"
@@ -341,8 +440,9 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="8" class="px-4 py-8 text-center text-gray-400">No hay productos para
-                                            este negocio o búsqueda. Crea un producto o cambia el filtro.</td>
+                                        <td colspan="8" class="px-4 py-10 text-center text-gray-400">
+                                            No hay productos para este negocio o búsqueda. Crea un producto o cambia el filtro.
+                                        </td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -352,31 +452,40 @@
                     @if ($products->hasPages())
                         <div class="p-4 border-t">{{ $products->links() }}</div>
                     @endif
-                </div>
+                </section>
 
-                <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-                    <div class="px-4 py-3 border-b border-gray-100 space-y-3">
-                        <h3 class="font-semibold text-gray-800">Movimientos</h3>
-                        <form method="GET" action="{{ route('admin.inventario.index') }}" class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <aside class="{{ $panelClass }}">
+                    <div class="px-4 sm:px-5 py-4 border-b border-gray-200/70 space-y-3">
+                        <div>
+                            <h3 class="font-semibold text-gray-900">Movimientos</h3>
+                            <p class="text-xs text-gray-400 mt-1">Entradas, salidas y ajustes recientes.</p>
+                        </div>
+                        <form method="GET" action="{{ route('admin.inventario.index') }}"
+                            class="grid grid-cols-1 sm:grid-cols-3 2xl:grid-cols-1 gap-2">
                             <input type="hidden" name="catalog_type_id" value="{{ $selectedTypeId ?: '' }}">
                             <input type="hidden" name="q" value="{{ request('q') }}">
-                            <select name="movement_type" class="rounded-lg border border-gray-200 bg-white py-2 px-3 text-xs text-gray-700">
+                            <select name="movement_type"
+                                class="rounded-lg border border-gray-200 bg-white py-2.5 px-3 text-xs text-gray-700">
                                 <option value="">Todos</option>
                                 <option value="in" {{ $movementType === 'in' ? 'selected' : '' }}>Entradas</option>
                                 <option value="out" {{ $movementType === 'out' ? 'selected' : '' }}>Salidas</option>
                                 <option value="adjust" {{ $movementType === 'adjust' ? 'selected' : '' }}>Ajustes</option>
                             </select>
-                            <input type="date" name="movement_date_from" value="{{ $movementDateFrom }}" class="rounded-lg border border-gray-200 bg-white py-2 px-3 text-xs text-gray-700">
-                            <input type="date" name="movement_date_to" value="{{ $movementDateTo }}" class="rounded-lg border border-gray-200 bg-white py-2 px-3 text-xs text-gray-700">
-                            <button class="sm:col-span-3 bg-gray-100 text-gray-700 rounded-lg py-2 text-xs font-semibold hover:bg-gray-200 transition">Filtrar movimientos</button>
+                            <input type="date" name="movement_date_from" value="{{ $movementDateFrom }}"
+                                class="rounded-lg border border-gray-200 bg-white py-2.5 px-3 text-xs text-gray-700">
+                            <input type="date" name="movement_date_to" value="{{ $movementDateTo }}"
+                                class="rounded-lg border border-gray-200 bg-white py-2.5 px-3 text-xs text-gray-700">
+                            <button
+                                class="sm:col-span-3 2xl:col-span-1 bg-gray-100 text-gray-700 rounded-lg py-2.5 text-xs font-semibold hover:bg-gray-200 transition">Filtrar
+                                movimientos</button>
                         </form>
                     </div>
-                    <div class="max-h-[560px] overflow-y-auto">
+                    <div class="max-h-[620px] overflow-y-auto">
                         @forelse($recentMovements as $movement)
                             <div class="px-4 py-3 border-b border-gray-100">
                                 <div class="flex items-start justify-between gap-3">
                                     <div class="min-w-0">
-                                        <p class="text-sm font-semibold text-gray-800 break-words">
+                                        <p class="text-sm font-semibold text-gray-900 break-words">
                                             {{ $movement->variant->item->name ?? '-' }}</p>
                                         <p class="text-xs text-gray-500 break-words">{{ $movement->variant->name ?? '-' }}</p>
                                     </div>
@@ -399,45 +508,45 @@
                                         </form>
                                     </div>
                                 </div>
-                                <p class="text-xs mt-2 text-center {{ $movement->voided_at ? 'line-through text-gray-400' : '' }}">
-                                    <span class="font-medium">{{ strtoupper($movement->type) }}</span>
+                                <p
+                                    class="text-xs mt-2 text-gray-500 {{ $movement->voided_at ? 'line-through text-gray-400' : '' }}">
+                                    <span class="font-semibold text-gray-700">{{ strtoupper($movement->type) }}</span>
                                     · Cant: {{ $movement->quantity }}
-                                    · {{ $movement->stock_before ?? 0 }} → {{ $movement->stock_after ?? 0 }}
-                                    @if($movement->voided_at)
+                                    · {{ $movement->stock_before ?? 0 }} -> {{ $movement->stock_after ?? 0 }}
+                                    @if ($movement->voided_at)
                                         · ANULADO
                                     @endif
                                 </p>
-                                <p class="text-xs text-gray-400 mt-1 text-center">
-                                    {{ $movement->created_at?->format('d/m/Y H:i') }} ·
+                                <p class="text-xs text-gray-400 mt-1">{{ $movement->created_at?->format('d/m/Y H:i') }} ·
                                     {{ $movement->user->name ?? 'Sistema' }}</p>
-                                @if($movement->reason || $movement->reference)
-                                    <p class="text-xs text-gray-400 mt-1 text-center">
-                                        {{ $movement->reason ?: '-' }} · {{ $movement->reference ?: '-' }}
-                                    </p>
+                                @if ($movement->reason || $movement->reference)
+                                    <p class="text-xs text-gray-400 mt-1">{{ $movement->reason ?: '-' }} ·
+                                        {{ $movement->reference ?: '-' }}</p>
                                 @endif
-                                @if($movement->location || $movement->fromLocation || $movement->toLocation)
-                                    <p class="text-xs text-gray-400 mt-1 text-center">
-                                        {{ $movement->location?->name ?? (($movement->fromLocation?->name ?? '-') . ' -> ' . ($movement->toLocation?->name ?? '-')) }}
+                                @if ($movement->location || $movement->fromLocation || $movement->toLocation)
+                                    <p class="text-xs text-gray-400 mt-1">
+                                        {{ $movement->location?->name ?? ($movement->fromLocation?->name ?? '-') . '->' . ($movement->toLocation?->name ?? '-') }}
                                     </p>
                                 @endif
                             </div>
                         @empty
-                            <div class="px-4 py-8 text-center text-gray-400 text-sm">Sin movimientos.</div>
+                            <div class="px-4 py-10 text-center text-gray-400 text-sm">Sin movimientos.</div>
                         @endforelse
                     </div>
-                    @if($recentMovements->hasPages())
+                    @if ($recentMovements->hasPages())
                         <div class="p-3 border-t border-gray-100">{{ $recentMovements->links() }}</div>
                     @endif
-                </div>
+                </aside>
             </div>
 
             <div id="stockModal" class="fixed inset-0 z-50 hidden items-center justify-center px-4 py-6">
                 <div class="absolute inset-0 bg-gray-900/50" data-stock-close></div>
-                <div class="relative w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden">
+                <div
+                    class="relative w-full max-w-md bg-white rounded-lg shadow-xl overflow-hidden max-h-[92vh] overflow-y-auto">
                     <div class="px-5 py-4 border-b border-gray-100 flex items-start justify-between gap-4">
                         <div class="min-w-0">
                             <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Gestionar stock</p>
-                            <h3 id="stockModalProduct" class="text-lg font-bold text-gray-800 truncate">Producto</h3>
+                            <h3 id="stockModalProduct" class="text-lg font-bold text-gray-900 truncate">Producto</h3>
                             <p id="stockModalVariant" class="text-sm text-gray-500 truncate">Presentación</p>
                         </div>
                         <button type="button"
@@ -452,9 +561,9 @@
                         <input type="hidden" name="catalog_item_id" id="stockCatalogItemId">
                         <input type="hidden" name="catalog_item_variant_id" id="stockCatalogVariantId">
 
-                        <div class="rounded-xl bg-gray-50 border border-gray-100 px-4 py-3 flex items-center justify-between">
+                        <div class="rounded-lg bg-gray-50 border border-gray-100 px-4 py-3 flex items-center justify-between">
                             <span class="text-sm text-gray-500">Stock actual</span>
-                            <span id="stockModalCurrent" class="text-lg font-bold text-gray-800">0</span>
+                            <span id="stockModalCurrent" class="text-lg font-bold text-gray-900">0</span>
                         </div>
 
                         <div>
@@ -472,23 +581,25 @@
                             <select name="inventory_location_id"
                                 class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300">
                                 <option value="">Solo stock global</option>
-                                @foreach($locations as $location)
+                                @foreach ($locations as $location)
                                     <option value="{{ $location->id }}">{{ $location->name }}</option>
                                 @endforeach
                             </select>
                         </div>
 
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Cantidad</label>
-                            <input type="number" name="quantity" id="stockQuantity" min="1" value="1" required
-                                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300">
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Costo unitario</label>
-                            <input type="number" name="unit_cost" min="0" step="0.01"
-                                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
-                                placeholder="Usa costo promedio actual" {{ $canViewCosts ? '' : 'disabled' }}>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Cantidad</label>
+                                <input type="number" name="quantity" id="stockQuantity" min="1" value="1"
+                                    required
+                                    class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Costo unitario</label>
+                                <input type="number" name="unit_cost" min="0" step="0.01"
+                                    class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
+                                    placeholder="Costo promedio" {{ $canViewCosts ? '' : 'disabled' }}>
+                            </div>
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -496,7 +607,7 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Motivo</label>
                                 <input type="text" name="reason" maxlength="255"
                                     class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
-                                    placeholder="Ej: compra, conteo, pérdida">
+                                    placeholder="Ej: compra, conteo">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Referencia</label>
@@ -524,10 +635,10 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">Nota opcional</label>
                             <input type="text" name="notes" maxlength="1000"
                                 class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
-                                placeholder="Ej: compra, pérdida, corrección de conteo">
+                                placeholder="Detalle del movimiento">
                         </div>
 
-                        <div class="flex justify-end gap-2 pt-2">
+                        <div class="flex flex-col sm:flex-row justify-end gap-2 pt-2">
                             <button type="button"
                                 class="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition text-sm font-semibold"
                                 data-stock-close>
