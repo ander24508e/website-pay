@@ -8,6 +8,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
+/**
+ * @property int|null $assigned_to
+ * @property int|null $sale_id
+ * @property string|null $work_status
+ */
 class Order extends Model
 {
     use HasFactory;

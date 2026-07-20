@@ -11,7 +11,9 @@ use App\Models\User;
 use App\Services\CheckoutReceiptService;
 use App\Services\Orders\CreateSaleFromOrderService;
 use App\Services\ServiceVehiclePriceResolver;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
@@ -28,7 +30,7 @@ class OrderController extends Controller
     {
         $resolvedItems = $this->resolveCartItems($carrito, $priceResolver);
         $total = collect($resolvedItems)->sum(fn ($item) => $item['price'] * $item['quantity']);
-        $order = Order::create($this->buildOrderData((float) $total, auth()->id(), false));
+        $order = Order::create($this->buildOrderData((float) $total, Auth::id(), false));
 
         foreach ($resolvedItems as $item) {
             $model = $item['model'];
@@ -251,7 +253,7 @@ class OrderController extends Controller
     {
         $this->authorize('view', $order);
         $order->load('items.itemable', 'items.vehicle.specification.brand', 'items.vehicle.specification.model', 'items.vehicle.specification.type', 'items.vehicleType', 'transaction', 'user', 'assignedTo', 'sale');
-        $workers = User::role('admin')->orderBy('name')->get(['id', 'name']);
+        $workers = $this->adminWorkers();
 
         if (request()->routeIs('admin.orders.show')) {
             return view('admin.orders.show', compact('order', 'workers'));
@@ -355,15 +357,15 @@ class OrderController extends Controller
                 'disable-gpu',
             ]);
 
-        if ($nodeBinary = env('BROWSERSHOT_NODE_BINARY')) {
+        if ($nodeBinary = config('services.browsershot.node_binary')) {
             $browser->setNodeBinary($nodeBinary);
         }
 
-        if ($npmBinary = env('BROWSERSHOT_NPM_BINARY')) {
+        if ($npmBinary = config('services.browsershot.npm_binary')) {
             $browser->setNpmBinary($npmBinary);
         }
 
-        if ($chromePath = env('BROWSERSHOT_CHROME_PATH')) {
+        if ($chromePath = config('services.browsershot.chrome_path')) {
             $browser->setChromePath($chromePath);
         }
 
@@ -378,18 +380,18 @@ class OrderController extends Controller
         $dateFilter = trim((string) $request->query('date_filter', ''));
         $dateFrom = trim((string) $request->query('date_from', ''));
         $dateTo = trim((string) $request->query('date_to', ''));
-        $workers = User::role('admin')->orderBy('name')->get(['id', 'name']);
+        $workers = $this->adminWorkers();
         $stats = [
-            'total' => Order::query()->count(),
-            'pending' => Order::query()->where('status', 'pending')->count(),
-            'in_process' => Order::query()->where('work_status', Order::WORK_IN_PROGRESS)->count(),
-            'paid' => Order::query()->where('status', 'paid')->count(),
+            'total' => Order::query()->count('*'),
+            'pending' => Order::query()->where('status', '=', 'pending')->count('*'),
+            'in_process' => Order::query()->where('work_status', '=', Order::WORK_IN_PROGRESS)->count('*'),
+            'paid' => Order::query()->where('status', '=', 'paid')->count('*'),
         ];
 
         $orders = Order::with('user', 'items')
             ->with('assignedTo', 'sale')
-            ->when($search !== '', function ($query) use ($search) {
-                $query->where(function ($subQuery) use ($search) {
+            ->when($search !== '', function (Builder $query) use ($search) {
+                $query->where(function (Builder $subQuery) use ($search) {
                     $subQuery->where('id', 'like', "%{$search}%")
                         ->orWhere('status', 'like', "%{$search}%");
 
@@ -397,16 +399,16 @@ class OrderController extends Controller
                         $subQuery->orWhere('order_type', 'like', "%{$search}%");
                     }
 
-                    $subQuery->orWhereHas('user', function ($userQuery) use ($search) {
+                    $subQuery->orWhereHas('user', function (Builder $userQuery) use ($search) {
                         $userQuery->where('name', 'like', "%{$search}%")
                             ->orWhere('email', 'like', "%{$search}%");
                     });
                 });
             })
-            ->when($workStatus !== '', fn ($query) => $query->where('work_status', $workStatus))
-            ->when($assignedTo !== '', fn ($query) => $query->where('assigned_to', $assignedTo))
-            ->when($dateFilter !== '', function ($query) use ($dateFilter, $dateFrom, $dateTo) {
-                $query->where(function ($dateQuery) use ($dateFilter, $dateFrom, $dateTo) {
+            ->when($workStatus !== '', fn (Builder $query) => $query->where('work_status', '=', $workStatus))
+            ->when($assignedTo !== '', fn (Builder $query) => $query->where('assigned_to', '=', $assignedTo))
+            ->when($dateFilter !== '', function (Builder $query) use ($dateFilter, $dateFrom, $dateTo) {
+                $query->where(function (Builder $dateQuery) use ($dateFilter, $dateFrom, $dateTo) {
                     match ($dateFilter) {
                         'today' => $this->applyAgendaDate($dateQuery, now()->toDateString()),
                         'tomorrow' => $this->applyAgendaDate($dateQuery, now()->addDay()->toDateString()),
@@ -416,7 +418,7 @@ class OrderController extends Controller
                     };
                 });
             })
-            ->orderBy('id')
+            ->orderBy('id', 'asc')
             ->paginate(15)
             ->withQueryString();
 
@@ -450,7 +452,7 @@ class OrderController extends Controller
         }
 
         if ($status === Order::WORK_IN_PROGRESS && !$order->assigned_to) {
-            $payload['assigned_to'] = auth()->id();
+            $payload['assigned_to'] = Auth::id();
         }
 
         $order->update($payload);
@@ -475,25 +477,25 @@ class OrderController extends Controller
         return redirect()->back()->with('success', 'Datos operativos actualizados.');
     }
 
-    private function applyAgendaDate($query, string $date): void
+    private function applyAgendaDate(Builder $query, string $date): void
     {
         $query->whereDate('scheduled_at', $date)
-            ->orWhere(function ($fallbackQuery) use ($date) {
+            ->orWhere(function (Builder $fallbackQuery) use ($date) {
                 $fallbackQuery->whereNull('scheduled_at')
                     ->whereDate('created_at', $date);
             });
     }
 
-    private function applyAgendaRange($query, ?string $dateFrom, ?string $dateTo): void
+    private function applyAgendaRange(Builder $query, ?string $dateFrom, ?string $dateTo): void
     {
         if (!$dateFrom && !$dateTo) {
             return;
         }
 
         if ($dateFrom) {
-            $query->where(function ($rangeQuery) use ($dateFrom) {
+            $query->where(function (Builder $rangeQuery) use ($dateFrom) {
                 $rangeQuery->whereDate('scheduled_at', '>=', $dateFrom)
-                    ->orWhere(function ($fallbackQuery) use ($dateFrom) {
+                    ->orWhere(function (Builder $fallbackQuery) use ($dateFrom) {
                         $fallbackQuery->whereNull('scheduled_at')
                             ->whereDate('created_at', '>=', $dateFrom);
                     });
@@ -501,9 +503,9 @@ class OrderController extends Controller
         }
 
         if ($dateTo) {
-            $query->where(function ($rangeQuery) use ($dateTo) {
+            $query->where(function (Builder $rangeQuery) use ($dateTo) {
                 $rangeQuery->whereDate('scheduled_at', '<=', $dateTo)
-                    ->orWhere(function ($fallbackQuery) use ($dateTo) {
+                    ->orWhere(function (Builder $fallbackQuery) use ($dateTo) {
                         $fallbackQuery->whereNull('scheduled_at')
                             ->whereDate('created_at', '<=', $dateTo);
                     });
@@ -523,8 +525,8 @@ class OrderController extends Controller
         /** @var CatalogItem|null $model */
         $model = CatalogItem::query()
             ->with(['type', 'category', 'activeVariants'])
-            ->where('active', true)
-            ->where('reservable', true)
+            ->where('active', '=', true)
+            ->where('reservable', '=', true)
             ->find($data['item_id']);
 
         if (!$model) {
@@ -535,10 +537,10 @@ class OrderController extends Controller
             $model,
             $request->integer('vehicle_id') ?: null,
             $request->integer('vehicle_type_id') ?: null,
-            auth()->id()
+            Auth::id()
         );
         $reservationPrice = $vehicleContext['price'];
-        $order = Order::create($this->buildOrderData($reservationPrice, auth()->id(), true));
+        $order = Order::create($this->buildOrderData($reservationPrice, Auth::id(), true));
 
         OrderItem::create([
             'order_id' => $order->id,
@@ -568,8 +570,8 @@ class OrderController extends Controller
 
             $model = CatalogItem::query()
                 ->with(['type', 'vehicleTypePrices.vehicleType'])
-                ->where('active', true)
-                ->where('purchasable', true)
+                ->where('active', '=', true)
+                ->where('purchasable', '=', true)
                 ->find((int) data_get($item, 'id'));
 
             if (!$model) {
@@ -580,7 +582,7 @@ class OrderController extends Controller
                 $model,
                 data_get($item, 'vehicle_id') ? (int) data_get($item, 'vehicle_id') : null,
                 data_get($item, 'vehicle_type_id') ? (int) data_get($item, 'vehicle_type_id') : null,
-                auth()->id()
+                Auth::id()
             );
 
             $isService = ($model->type?->business_model ?? \App\Models\CatalogType::BUSINESS_MODEL_SERVICES)
@@ -589,8 +591,8 @@ class OrderController extends Controller
 
             if (!$isService && $model->uses_inventory) {
                 $variant = CatalogItemVariant::query()
-                    ->where('catalog_item_id', $model->id)
-                    ->where('active', true)
+                    ->where('catalog_item_id', '=', $model->id)
+                    ->where('active', '=', true)
                     ->find((int) data_get($item, 'variant_id'));
 
                 if (!$variant) {
@@ -608,8 +610,8 @@ class OrderController extends Controller
                 }
             } elseif (!$isService) {
                 $variant = CatalogItemVariant::query()
-                    ->where('catalog_item_id', $model->id)
-                    ->where('active', true)
+                    ->where('catalog_item_id', '=', $model->id)
+                    ->where('active', '=', true)
                     ->find((int) data_get($item, 'variant_id'));
             }
 
@@ -662,7 +664,7 @@ class OrderController extends Controller
     public function destroy(Order $order)
     {
         Transaction::query()
-            ->where('order_id', $order->id)
+            ->where('order_id', '=', $order->id)
             ->delete();
 
         Order::query()
@@ -670,5 +672,13 @@ class OrderController extends Controller
             ->delete();
 
         return redirect()->route('admin.orders.index')->with('success', 'Orden eliminada correctamente.');
+    }
+
+    private function adminWorkers(): \Illuminate\Support\Collection
+    {
+        return User::query()
+            ->whereHas('roles', fn (Builder $query) => $query->where('name', '=', 'admin'))
+            ->orderBy('name', 'asc')
+            ->get(['id', 'name']);
     }
 }
