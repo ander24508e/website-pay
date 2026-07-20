@@ -31,7 +31,9 @@
     @endphp
 
     <div class="flex flex-wrap items-center gap-3 mb-6">
-        <a href="{{ route('admin.orders.index') }}" class="flex items-center justify-center w-9 h-9 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition text-gray-500 hover:text-gray-800">?</a>
+        <a href="{{ route('admin.orders.index') }}" class="flex items-center justify-center w-9 h-9 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition text-gray-500 hover:text-gray-800" title="Volver" aria-label="Volver">
+            <x-heroicon-o-arrow-left class="w-5 h-5" />
+        </a>
         <div>
             <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Orden #{{ $order->id }}</h2>
             <p class="text-gray-400 text-sm">{{ $order->created_at->format('d/m/Y H:i') }}</p>
@@ -66,6 +68,10 @@
                         <span class="font-semibold text-gray-700">{{ $order->assignedTo?->name ?? '-' }}</span>
                     </div>
                     <div class="flex justify-between">
+                        <span class="text-gray-500">Agenda</span>
+                        <span class="font-semibold text-gray-700">{{ $order->scheduled_at?->format('d/m/Y H:i') ?? '-' }}</span>
+                    </div>
+                    <div class="flex justify-between">
                         <span class="text-gray-500">Venta comercial</span>
                         <span class="font-semibold text-gray-700">{{ $order->sale_id ? '#' . $order->sale_id : 'Pendiente' }}</span>
                     </div>
@@ -78,6 +84,35 @@
 
             <div class="bg-white rounded-xl shadow-sm p-6">
                 <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">Seguimiento operativo</p>
+                <form method="POST" action="{{ route('admin.orders.operational-details', $order) }}" class="space-y-3 mb-5 pb-5 border-b border-gray-100">
+                    @csrf
+                    @method('PATCH')
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">Responsable</label>
+                        <select name="assigned_to" class="w-full rounded-lg border border-gray-200 bg-white py-2 px-3 text-sm text-gray-700 focus:border-gray-400 focus:outline-none focus:ring-0">
+                            <option value="">Sin responsable</option>
+                            @foreach($workers as $worker)
+                                <option value="{{ $worker->id }}" @selected((int) $order->assigned_to === (int) $worker->id)>{{ $worker->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">Fecha programada</label>
+                        <input type="datetime-local" name="scheduled_at" value="{{ $order->scheduled_at?->format('Y-m-d\\TH:i') }}" class="w-full rounded-lg border border-gray-200 bg-white py-2 px-3 text-sm text-gray-700 focus:border-gray-400 focus:outline-none focus:ring-0">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">Notas operativas</label>
+                        <textarea name="work_notes" rows="3" class="w-full rounded-lg border border-gray-200 bg-white py-2 px-3 text-sm text-gray-700 focus:border-gray-400 focus:outline-none focus:ring-0" placeholder="Observaciones internas del trabajo">{{ old('work_notes', $order->work_notes) }}</textarea>
+                    </div>
+
+                    <button type="submit" class="w-full bg-gray-900 text-white py-2 rounded-lg hover:bg-gray-700 transition text-sm font-semibold">
+                        Guardar datos operativos
+                    </button>
+                </form>
+
                 <div class="space-y-3 text-sm">
                     @foreach($workDates as $label => $date)
                         @if($date)
@@ -90,6 +125,13 @@
 
                     @if(!$order->arrived_at && !$order->started_at && !$order->ready_at && !$order->completed_at && !$order->cancelled_at)
                         <p class="text-gray-400">Sin movimientos operativos registrados.</p>
+                    @endif
+
+                    @if($order->work_notes)
+                        <div class="rounded-lg bg-gray-50 border border-gray-100 p-3">
+                            <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold mb-1">Notas</p>
+                            <p class="text-gray-700 whitespace-pre-line">{{ $order->work_notes }}</p>
+                        </div>
                     @endif
                 </div>
 

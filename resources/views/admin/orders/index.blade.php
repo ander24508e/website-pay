@@ -3,48 +3,87 @@
 @section('title', 'Ordenes')
 
 @section('content')
-<div class="container mx-auto px-4 sm:px-6">
-    <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 mb-6">
+<div class="space-y-6">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div class="min-w-0">
             <div class="flex items-center gap-2">
                 <x-heroicon-o-shopping-bag class="w-8 h-8 text-gray-800" />
-                <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Ordenes</h2>
+                <h2 class="text-2xl font-bold text-gray-800">Ordenes</h2>
             </div>
+            <p class="text-gray-500 text-sm mt-1">Agenda operativa: pagos, reservas y trabajos del negocio.</p>
         </div>
 
-        <form method="GET" action="{{ route('admin.orders.index') }}" class="flex-1 max-w-2xl flex flex-col sm:flex-row gap-2">
-            <div class="relative flex-1">
+        <a href="{{ route('admin.orders.index') }}"
+            class="inline-flex items-center justify-center bg-white border border-gray-200 text-gray-700 w-11 h-11 rounded-lg hover:bg-gray-50 transition"
+            title="Limpiar filtros" aria-label="Limpiar filtros">
+            <x-heroicon-o-adjustments-horizontal class="w-5 h-5" />
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+            <p class="text-xs text-gray-400 uppercase font-semibold">Ordenes</p>
+            <p class="text-2xl font-bold text-gray-800 mt-1">{{ $stats['total'] }}</p>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+            <p class="text-xs text-gray-400 uppercase font-semibold">Pendientes</p>
+            <p class="text-2xl font-bold text-yellow-700 mt-1">{{ $stats['pending'] }}</p>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+            <p class="text-xs text-gray-400 uppercase font-semibold">En proceso</p>
+            <p class="text-2xl font-bold text-indigo-700 mt-1">{{ $stats['in_process'] }}</p>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+            <p class="text-xs text-gray-400 uppercase font-semibold">Pagadas</p>
+            <p class="text-2xl font-bold text-emerald-700 mt-1">{{ $stats['paid'] }}</p>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+        <form method="GET" action="{{ route('admin.orders.index') }}" class="grid grid-cols-1 md:grid-cols-6 gap-3">
+            <div class="relative md:col-span-2">
                 <x-heroicon-o-magnifying-glass class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input type="search" name="q" value="{{ request('q') }}" placeholder="Buscar por orden, cliente, correo, tipo o estado..." class="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm text-gray-700 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none focus:ring-0">
+                <input type="search" name="q" value="{{ request('q') }}"
+                    placeholder="Buscar por orden, cliente, correo, tipo o estado"
+                    class="w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-10 pr-4 text-sm">
             </div>
-            <select name="work_status" onchange="this.form.submit()" class="rounded-lg border border-gray-200 bg-white py-2.5 px-3 text-sm text-gray-700 focus:border-gray-400 focus:outline-none focus:ring-0">
+            <select name="work_status" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm">
                 <option value="">Todos los trabajos</option>
                 @foreach(\App\Models\Order::workStatusLabels() as $statusKey => $statusLabel)
                     <option value="{{ $statusKey }}" @selected(($workStatus ?? '') === $statusKey)>{{ $statusLabel }}</option>
                 @endforeach
             </select>
+            <select name="assigned_to" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm">
+                <option value="">Todos los responsables</option>
+                @foreach($workers as $worker)
+                    <option value="{{ $worker->id }}" @selected(($assignedTo ?? '') == $worker->id)>{{ $worker->name }}</option>
+                @endforeach
+            </select>
+            <select name="date_filter" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm">
+                <option value="">Todas las fechas</option>
+                <option value="today" @selected(($dateFilter ?? '') === 'today')>Hoy</option>
+                <option value="tomorrow" @selected(($dateFilter ?? '') === 'tomorrow')>Mañana</option>
+                <option value="week" @selected(($dateFilter ?? '') === 'week')>Esta semana</option>
+                <option value="range" @selected(($dateFilter ?? '') === 'range')>Rango</option>
+            </select>
+            <div class="flex gap-2">
+                <button class="inline-flex items-center justify-center w-11 h-11 rounded-lg bg-gray-900 text-white hover:bg-gray-700 transition"
+                    title="Buscar" aria-label="Buscar">
+                    <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                </button>
+                <a href="{{ route('admin.orders.index') }}"
+                    class="inline-flex items-center justify-center w-11 h-11 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
+                    title="Limpiar" aria-label="Limpiar">
+                    <x-heroicon-o-x-mark class="w-5 h-5" />
+                </a>
+            </div>
+
+            <div class="md:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <input type="date" name="date_from" value="{{ $dateFrom ?? '' }}" class="rounded-lg border border-gray-300 bg-white py-2.5 px-3 text-sm">
+                <input type="date" name="date_to" value="{{ $dateTo ?? '' }}" class="rounded-lg border border-gray-300 bg-white py-2.5 px-3 text-sm">
+            </div>
         </form>
-
-        <div class="flex gap-3 flex-wrap">
-            <span class="bg-yellow-100 text-yellow-700 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1">
-                <x-heroicon-o-clock class="w-3 h-3" />
-                Pendientes: {{ $orders->where('status', 'pending')->count() }}
-            </span>
-            <span class="bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1">
-                <x-heroicon-o-wrench-screwdriver class="w-3 h-3" />
-                En proceso: {{ $orders->where('work_status', \App\Models\Order::WORK_IN_PROGRESS)->count() }}
-            </span>
-            <span class="bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1">
-                <x-heroicon-o-calendar-days class="w-3 h-3" />
-                Reservas: {{ $orders->where('order_type', 'reservation')->count() }}
-            </span>
-            <span class="bg-green-100 text-green-700 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1">
-                <x-heroicon-o-check-circle class="w-3 h-3" />
-                Pagadas: {{ $orders->where('status', 'paid')->count() }}
-            </span>
-        </div>
     </div>
-
     @php
         $statusBadges = [
             'pending' => 'bg-yellow-100 text-yellow-700',
@@ -86,8 +125,11 @@
                         <p class="text-gray-700">{{ ($order->order_type ?? 'purchase') === 'reservation' ? 'Reserva' : 'Compra' }}</p>
                     </div>
                     <div class="col-span-2">
-                        <p class="text-xs uppercase text-gray-400 font-semibold">Fecha</p>
-                        <p class="text-gray-700">{{ $order->created_at?->format('d/m/Y H:i') ?? '-' }}</p>
+                        <p class="text-xs uppercase text-gray-400 font-semibold">Agenda</p>
+                        <p class="text-gray-700">{{ $order->scheduled_at?->format('d/m/Y H:i') ?? $order->created_at?->format('d/m/Y H:i') ?? '-' }}</p>
+                        @if($order->scheduled_at)
+                            <p class="text-xs text-gray-400">Creada: {{ $order->created_at?->format('d/m/Y H:i') ?? '-' }}</p>
+                        @endif
                     </div>
                     <div>
                         <p class="text-xs uppercase text-gray-400 font-semibold">Trabajo</p>
@@ -158,7 +200,7 @@
                         <th class="px-3 py-3 text-center w-[10%]">Tipo</th>
                         <th class="px-3 py-3 text-center w-[11%]">Pago</th>
                         <th class="px-3 py-3 text-center w-[13%]">Trabajo</th>
-                        <th class="px-3 py-3 text-center w-[14%]">Fecha</th>
+                        <th class="px-3 py-3 text-center w-[14%]">Agenda</th>
                         <th class="px-3 py-3 text-center w-[15%]">Acc.</th>
                     </tr>
                 </thead>
@@ -192,7 +234,12 @@
                                     <p class="text-[11px] text-emerald-600 truncate mt-0.5">Venta #{{ $order->sale_id }}</p>
                                 @endif
                             </td>
-                            <td class="px-3 py-3 text-center text-gray-500 text-xs truncate">{{ $order->created_at?->format('d/m/Y H:i') ?? '-' }}</td>
+                            <td class="px-3 py-3 text-center text-gray-500 text-xs">
+                                <p class="truncate">{{ $order->scheduled_at?->format('d/m/Y H:i') ?? $order->created_at?->format('d/m/Y H:i') ?? '-' }}</p>
+                                @if($order->scheduled_at)
+                                    <p class="text-[11px] text-gray-400 truncate">Creada: {{ $order->created_at?->format('d/m/Y H:i') ?? '-' }}</p>
+                                @endif
+                            </td>
                             <td class="px-3 py-3 text-center">
                                 <div class="flex items-center justify-center gap-1 flex-wrap">
                                     <a href="{{ route('admin.orders.show', $order) }}" class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-blue-600 hover:bg-blue-50 transition" title="Ver orden" aria-label="Ver orden">

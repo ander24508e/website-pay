@@ -7,6 +7,7 @@ use App\Models\CatalogItemVariant;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Transaction;
+use App\Models\User;
 use App\Services\CheckoutReceiptService;
 use App\Services\Orders\CreateSaleFromOrderService;
 use App\Services\ServiceVehiclePriceResolver;
@@ -250,9 +251,10 @@ class OrderController extends Controller
     {
         $this->authorize('view', $order);
         $order->load('items.itemable', 'items.vehicle.specification.brand', 'items.vehicle.specification.model', 'items.vehicle.specification.type', 'items.vehicleType', 'transaction', 'user', 'assignedTo', 'sale');
+        $workers = User::role('admin')->orderBy('name')->get(['id', 'name']);
 
         if (request()->routeIs('admin.orders.show')) {
-            return view('admin.orders.show', compact('order'));
+            return view('admin.orders.show', compact('order', 'workers'));
         }
 
         return redirect()->route('orden.confirmacion', $order);
@@ -372,6 +374,17 @@ class OrderController extends Controller
     {
         $search = trim((string) $request->query('q', ''));
         $workStatus = trim((string) $request->query('work_status', ''));
+        $assignedTo = trim((string) $request->query('assigned_to', ''));
+        $dateFilter = trim((string) $request->query('date_filter', ''));
+        $dateFrom = trim((string) $request->query('date_from', ''));
+        $dateTo = trim((string) $request->query('date_to', ''));
+        $workers = User::role('admin')->orderBy('name')->get(['id', 'name']);
+        $stats = [
+            'total' => Order::query()->count(),
+            'pending' => Order::query()->where('status', 'pending')->count(),
+            'in_process' => Order::query()->where('work_status', Order::WORK_IN_PROGRESS)->count(),
+            'paid' => Order::query()->where('status', 'paid')->count(),
+        ];
 
         $orders = Order::with('user', 'items')
             ->with('assignedTo', 'sale')
@@ -391,11 +404,23 @@ class OrderController extends Controller
                 });
             })
             ->when($workStatus !== '', fn ($query) => $query->where('work_status', $workStatus))
+            ->when($assignedTo !== '', fn ($query) => $query->where('assigned_to', $assignedTo))
+            ->when($dateFilter !== '', function ($query) use ($dateFilter, $dateFrom, $dateTo) {
+                $query->where(function ($dateQuery) use ($dateFilter, $dateFrom, $dateTo) {
+                    match ($dateFilter) {
+                        'today' => $this->applyAgendaDate($dateQuery, now()->toDateString()),
+                        'tomorrow' => $this->applyAgendaDate($dateQuery, now()->addDay()->toDateString()),
+                        'week' => $this->applyAgendaRange($dateQuery, now()->startOfWeek()->toDateString(), now()->endOfWeek()->toDateString()),
+                        'range' => $this->applyAgendaRange($dateQuery, $dateFrom, $dateTo),
+                        default => null,
+                    };
+                });
+            })
             ->orderBy('id')
             ->paginate(15)
             ->withQueryString();
 
-        return view('admin.orders.index', compact('orders', 'workStatus'));
+        return view('admin.orders.index', compact('orders', 'workStatus', 'assignedTo', 'dateFilter', 'dateFrom', 'dateTo', 'workers', 'stats'));
     }
 
     public function updateWorkStatus(Request $request, Order $order)
@@ -431,6 +456,59 @@ class OrderController extends Controller
         $order->update($payload);
 
         return redirect()->back()->with('success', 'Estado operativo actualizado.');
+    }
+
+    public function updateOperationalDetails(Request $request, Order $order)
+    {
+        $data = $request->validate([
+            'assigned_to' => ['nullable', 'integer', 'exists:users,id'],
+            'scheduled_at' => ['nullable', 'date'],
+            'work_notes' => ['nullable', 'string', 'max:1500'],
+        ]);
+
+        $order->update([
+            'assigned_to' => $data['assigned_to'] ?? null,
+            'scheduled_at' => $data['scheduled_at'] ?? null,
+            'work_notes' => $data['work_notes'] ?? null,
+        ]);
+
+        return redirect()->back()->with('success', 'Datos operativos actualizados.');
+    }
+
+    private function applyAgendaDate($query, string $date): void
+    {
+        $query->whereDate('scheduled_at', $date)
+            ->orWhere(function ($fallbackQuery) use ($date) {
+                $fallbackQuery->whereNull('scheduled_at')
+                    ->whereDate('created_at', $date);
+            });
+    }
+
+    private function applyAgendaRange($query, ?string $dateFrom, ?string $dateTo): void
+    {
+        if (!$dateFrom && !$dateTo) {
+            return;
+        }
+
+        if ($dateFrom) {
+            $query->where(function ($rangeQuery) use ($dateFrom) {
+                $rangeQuery->whereDate('scheduled_at', '>=', $dateFrom)
+                    ->orWhere(function ($fallbackQuery) use ($dateFrom) {
+                        $fallbackQuery->whereNull('scheduled_at')
+                            ->whereDate('created_at', '>=', $dateFrom);
+                    });
+            });
+        }
+
+        if ($dateTo) {
+            $query->where(function ($rangeQuery) use ($dateTo) {
+                $rangeQuery->whereDate('scheduled_at', '<=', $dateTo)
+                    ->orWhere(function ($fallbackQuery) use ($dateTo) {
+                        $fallbackQuery->whereNull('scheduled_at')
+                            ->whereDate('created_at', '<=', $dateTo);
+                    });
+            });
+        }
     }
 
     public function reservarCatalogo(Request $request, ServiceVehiclePriceResolver $priceResolver)
