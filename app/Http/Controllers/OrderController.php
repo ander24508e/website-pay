@@ -78,8 +78,11 @@ class OrderController extends Controller
             'user_id' => $userId,
             'total' => $total,
             'status' => $isReservation ? 'reserved' : 'pending',
-            'work_status' => Order::WORK_PENDING,
         ];
+
+        if (Schema::hasColumn('orders', 'work_status')) {
+            $data['work_status'] = Order::WORK_PENDING;
+        }
 
         if (Schema::hasColumn('orders', 'order_type')) {
             $data['order_type'] = $isReservation ? 'reservation' : 'purchase';
@@ -156,6 +159,18 @@ class OrderController extends Controller
             ], 422);
         }
 
+        if (!config('services.payphone.box_token') || !config('services.payphone.store_id')) {
+            Log::error('PayPhone Box no configurado.', [
+                'has_box_token' => (bool) config('services.payphone.box_token'),
+                'has_store_id' => (bool) config('services.payphone.store_id'),
+            ]);
+
+            return response()->json([
+                'ok' => false,
+                'message' => 'PayPhone no esta configurado correctamente.',
+            ], 500);
+        }
+
         try {
             $order = $this->createOrderFromCart($carrito, $priceResolver);
         } catch (ValidationException $exception) {
@@ -163,6 +178,15 @@ class OrderController extends Controller
                 'ok' => false,
                 'message' => collect($exception->errors())->flatten()->first() ?: 'No hay stock suficiente.',
             ], 422);
+        } catch (Throwable $exception) {
+            Log::error('No se pudo preparar PayPhone Box.', [
+                'message' => $exception->getMessage(),
+            ]);
+
+            return response()->json([
+                'ok' => false,
+                'message' => 'No se pudo preparar el pago. Revisa el carrito e intenta nuevamente.',
+            ], 500);
         }
         $totalCents = (int) round($order->total * 100);
         $amounts = $this->buildPayphoneAmounts($totalCents);
@@ -380,11 +404,16 @@ class OrderController extends Controller
         $dateFilter = trim((string) $request->query('date_filter', ''));
         $dateFrom = trim((string) $request->query('date_from', ''));
         $dateTo = trim((string) $request->query('date_to', ''));
+        $hasWorkStatus = Schema::hasColumn('orders', 'work_status');
         $workers = $this->adminWorkers();
         $stats = [
             'total' => Order::query()->count('*'),
-            'pending' => Order::query()->where('status', '=', 'pending')->count('*'),
-            'in_process' => Order::query()->where('work_status', '=', Order::WORK_IN_PROGRESS)->count('*'),
+            'pending' => $hasWorkStatus
+                ? Order::query()->where('work_status', '=', Order::WORK_PENDING)->count('*')
+                : Order::query()->where('status', '=', 'pending')->count('*'),
+            'in_process' => $hasWorkStatus
+                ? Order::query()->where('work_status', '=', Order::WORK_IN_PROGRESS)->count('*')
+                : 0,
             'paid' => Order::query()->where('status', '=', 'paid')->count('*'),
         ];
 
@@ -405,7 +434,7 @@ class OrderController extends Controller
                     });
                 });
             })
-            ->when($workStatus !== '', fn (Builder $query) => $query->where('work_status', '=', $workStatus))
+            ->when($hasWorkStatus && $workStatus !== '', fn (Builder $query) => $query->where('work_status', '=', $workStatus))
             ->when($assignedTo !== '', fn (Builder $query) => $query->where('assigned_to', '=', $assignedTo))
             ->when($dateFilter !== '', function (Builder $query) use ($dateFilter, $dateFrom, $dateTo) {
                 $query->where(function (Builder $dateQuery) use ($dateFilter, $dateFrom, $dateTo) {
@@ -427,6 +456,10 @@ class OrderController extends Controller
 
     public function updateWorkStatus(Request $request, Order $order)
     {
+        if (!Schema::hasColumn('orders', 'work_status')) {
+            return redirect()->back()->with('error', 'Ejecuta las migraciones pendientes para activar estados operativos.');
+        }
+
         $status = (string) $request->input('work_status');
         $allowed = $order->workTransitions();
 
@@ -619,7 +652,7 @@ class OrderController extends Controller
                 'model' => $model,
                 'variant_id' => $variant?->id,
                 'quantity' => max(1, (int) data_get($item, 'quantity', 1)),
-                'price' => $isService ? $vehicleContext['price'] : (float) data_get($item, 'price', $model->display_price),
+                'price' => $isService ? $vehicleContext['price'] : (float) ($variant?->price ?? $model->display_price),
                 'vehicle_id' => $vehicleContext['vehicle_id'],
                 'vehicle_type_id' => $vehicleContext['vehicle_type_id'],
             ];

@@ -38,11 +38,6 @@ class OrderItem extends Model
         return $this->belongsTo(Vehicle::class);
     }
 
-    public function variant()
-    {
-        return $this->belongsTo(CatalogItemVariant::class, 'catalog_item_variant_id');
-    }
-
     public function vehicleType()
     {
         return $this->belongsTo(VehicleType::class);

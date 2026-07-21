@@ -56,7 +56,7 @@ class Order extends Model
     {
         return [
             self::WORK_PENDING => 'Pendiente',
-            self::WORK_ARRIVED => 'Cliente llego',
+            self::WORK_ARRIVED => 'Cliente llegó',
             self::WORK_IN_PROGRESS => 'En proceso',
             self::WORK_READY => 'Listo',
             self::WORK_COMPLETED => 'Completado',
@@ -80,7 +80,7 @@ class Order extends Model
     {
         return match ($this->work_status ?? self::WORK_PENDING) {
             self::WORK_PENDING => [
-                self::WORK_ARRIVED => 'Cliente llego',
+                self::WORK_ARRIVED => 'Cliente llegó',
                 self::WORK_CANCELLED => 'Cancelar',
             ],
             self::WORK_ARRIVED => [

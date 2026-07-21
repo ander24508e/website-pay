@@ -16,6 +16,7 @@ use App\Models\VehicleType;
 use App\Services\Sales\CreateSaleService;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Schema;
 
 class VentasController extends Controller
 {
@@ -27,6 +28,7 @@ class VentasController extends Controller
         $sort = 'oldest';
         $dateFrom = $request->query('date_from');
         $dateTo = $request->query('date_to');
+        $ordersHaveSaleId = Schema::hasColumn('orders', 'sale_id');
 
         if ($origin === 'sistema') {
             $origin = 'internal';
@@ -53,17 +55,18 @@ class VentasController extends Controller
                 ->when($dateTo, fn ($query) => $query->whereDate('created_at', '<=', $dateTo))
                 ->latest()
                 ->get()
-                ->map(fn (Order $order) => $this->mapOrderRow($order));
+                ->map(fn (Order $order) => $this->mapOrderRow($order))
+                ->toBase();
         }
 
         if ($origin === '' || $origin === 'internal') {
-            $linkedSaleIds = Order::query()
-                ->whereNotNull('sale_id')
-                ->select('sale_id');
+            $linkedSaleIds = $ordersHaveSaleId
+                ? Order::query()->whereNotNull('sale_id')->select('sale_id')
+                : collect();
 
             $sales = Sale::query()
                 ->with(['user', 'items', 'attendedBy'])
-                ->whereNotIn('id', $linkedSaleIds)
+                ->when($ordersHaveSaleId, fn ($query) => $query->whereNotIn('id', $linkedSaleIds))
                 ->when($search !== '', function ($query) use ($search) {
                     $query->where(function ($sub) use ($search) {
                         $sub->where('id', 'like', "%{$search}%")
@@ -80,7 +83,8 @@ class VentasController extends Controller
                 ->when($dateTo, fn ($query) => $query->whereDate('created_at', '<=', $dateTo))
                 ->latest()
                 ->get()
-                ->map(fn (Sale $sale) => $this->mapSaleRow($sale));
+                ->map(fn (Sale $sale) => $this->mapSaleRow($sale))
+                ->toBase();
         }
 
         $rows = $orders
@@ -102,11 +106,11 @@ class VentasController extends Controller
             'total_ventas' => (float) Order::query()->where('status', 'paid')->sum('total')
                 + (float) Sale::query()
                     ->where('status', 'paid')
-                    ->whereNotIn('id', Order::query()->whereNotNull('sale_id')->select('sale_id'))
+                    ->when($ordersHaveSaleId, fn ($query) => $query->whereNotIn('id', Order::query()->whereNotNull('sale_id')->select('sale_id')))
                     ->sum('total'),
             'total_ordenes' => (int) Order::query()->count(),
             'ventas_internas' => (int) Sale::query()
-                ->whereNotIn('id', Order::query()->whereNotNull('sale_id')->select('sale_id'))
+                ->when($ordersHaveSaleId, fn ($query) => $query->whereNotIn('id', Order::query()->whereNotNull('sale_id')->select('sale_id')))
                 ->count(),
             'ticket_promedio' => (float) $this->paidAverageTicket(),
         ];
@@ -303,15 +307,16 @@ class VentasController extends Controller
 
     private function paidAverageTicket(): float
     {
+        $ordersHaveSaleId = Schema::hasColumn('orders', 'sale_id');
         $total = (float) Order::query()->where('status', 'paid')->sum('total')
             + (float) Sale::query()
                 ->where('status', 'paid')
-                ->whereNotIn('id', Order::query()->whereNotNull('sale_id')->select('sale_id'))
+                ->when($ordersHaveSaleId, fn ($query) => $query->whereNotIn('id', Order::query()->whereNotNull('sale_id')->select('sale_id')))
                 ->sum('total');
         $count = (int) Order::query()->where('status', 'paid')->count()
             + (int) Sale::query()
                 ->where('status', 'paid')
-                ->whereNotIn('id', Order::query()->whereNotNull('sale_id')->select('sale_id'))
+                ->when($ordersHaveSaleId, fn ($query) => $query->whereNotIn('id', Order::query()->whereNotNull('sale_id')->select('sale_id')))
                 ->count();
 
         return $count > 0 ? $total / $count : 0;
