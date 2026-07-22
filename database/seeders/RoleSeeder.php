@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 class RoleSeeder extends Seeder
@@ -12,8 +13,23 @@ class RoleSeeder extends Seeder
     {
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
+        $adminRole = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
         Role::firstOrCreate(['name' => 'cliente', 'guard_name' => 'web']);
+
+        $inventoryPermissions = [
+            'inventory.view',
+            'inventory.move',
+            'inventory.void',
+            'inventory.view_costs',
+            'inventory.export',
+            'inventory.close_periods',
+        ];
+
+        foreach ($inventoryPermissions as $permission) {
+            Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
+        }
+
+        $adminRole->givePermissionTo($inventoryPermissions);
 
         $admin = User::firstOrCreate(
             ['email' => 'admin@endara.com'],
