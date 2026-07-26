@@ -114,18 +114,33 @@
                                 </div>
                             </div>
 
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Precio</label>
-                                <div class="relative">
-                                    <span class="absolute left-4 top-2.5 text-gray-400 text-sm font-semibold">$</span>
-                                    <input type="number" name="base_price" value="{{ old('base_price') }}"
-                                           step="0.01" min="0"
-                                           class="w-full border border-gray-200 rounded-lg pl-8 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-gray-50 @error('base_price') border-red-400 bg-red-50 @enderror"
-                                           placeholder="0.00">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Precio base</label>
+                                    <div class="relative">
+                                        <span class="absolute left-4 top-2.5 text-gray-400 text-sm font-semibold">$</span>
+                                        <input type="number" name="base_price" value="{{ old('base_price') }}"
+                                               step="0.01" min="0"
+                                               class="w-full border border-gray-200 rounded-lg pl-8 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-gray-50 @error('base_price') border-red-400 bg-red-50 @enderror"
+                                               placeholder="0.00">
+                                    </div>
+                                    <p class="text-xs text-gray-400 mt-1">Se usa si no defines un precio por tipo de vehículo.</p>
+                                    @error('base_price')
+                                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
                                 </div>
-                                @error('base_price')
-                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                                @enderror
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Duración base</label>
+                                    <input type="number" name="duration_minutes" value="{{ old('duration_minutes') }}"
+                                           min="1" step="1"
+                                           class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-gray-50 @error('duration_minutes') border-red-400 bg-red-50 @enderror"
+                                           placeholder="Ej: 45">
+                                    <p class="text-xs text-gray-400 mt-1">Tiempo estimado del servicio en minutos.</p>
+                                    @error('duration_minutes')
+                                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
                             </div>
 
                             <div>
@@ -176,14 +191,18 @@
                                     </span>
                                 </label>
 
-                                <div class="rounded-lg border border-gray-100 bg-gray-50 p-3">
-                                    <span class="block text-sm font-semibold text-gray-700">Servicio sin inventario</span>
-                                    <span class="block text-xs text-gray-400 mt-1">Los servicios no controlan stock ni aparecen como productos inventariables.</span>
-                                </div>
+                            </div>
+
+                            <div class="rounded-lg border border-blue-100 bg-blue-50 p-3 text-sm text-blue-700">
+                                Este negocio está configurado como servicio; no maneja stock propio ni presentaciones.
                             </div>
                         </section>
 
-                        @include('admin.catalog.items._vehicle-type-prices', ['quickVehicleModalAvailable' => true])
+                        @include('admin.catalog.items._vehicle-type-prices', [
+                            'quickVehicleModalAvailable' => true,
+                            'vehicleModalId' => 'serviceVehicleTypesModal',
+                        ])
+                        @include('admin.catalog.items._supplies')
 
                         <details class="mt-8 rounded-xl border border-gray-100 bg-gray-50 p-4">
                             <summary class="cursor-pointer text-sm font-semibold text-gray-700">Opciones avanzadas</summary>
@@ -221,108 +240,7 @@
                         </div>
                     </form>
 
-                    <div id="quickVehicleModal"
-                        class="fixed inset-0 z-[3000] hidden items-center justify-center overflow-y-auto bg-gray-900/60 p-2 sm:p-4 lg:p-6">
-                        <div class="relative flex max-h-[calc(100dvh-1rem)] w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-gray-50 shadow-2xl sm:max-h-[calc(100dvh-2rem)]">
-                            <div class="shrink-0 flex items-start justify-between gap-4 border-b border-gray-100 bg-white px-4 py-4 sm:px-5">
-                                <div>
-                                    <h3 class="text-lg font-bold text-gray-800">Especificaciones de Vehículos</h3>
-                                    <p class="text-sm text-gray-400">Crea marcas, modelos o tipos sin salir del servicio.</p>
-                                </div>
-                                <button type="button" data-close-vehicle-modal
-                                    class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700"
-                                    title="Cerrar" aria-label="Cerrar">
-                                    <x-heroicon-o-x-mark class="h-5 w-5" />
-                                </button>
-                            </div>
-
-                            <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 sm:p-5">
-                                <div class="grid grid-cols-1 gap-5 lg:grid-cols-3">
-                                    <section class="rounded-xl border border-gray-100 bg-white shadow-sm">
-                                        <div class="border-b border-gray-100 p-4">
-                                            <h4 class="font-bold text-gray-800">Marcas</h4>
-                                            <p class="mt-1 text-xs text-gray-400">Registra marcas reutilizables.</p>
-                                        </div>
-                                        <form method="POST" action="{{ route('admin.vehiculos.specifications.brands.store') }}"
-                                            class="space-y-4 p-4">
-                                            @csrf
-                                            <input type="text" name="name"
-                                                class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm"
-                                                placeholder="Ej: Toyota" required>
-                                            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                                <label class="inline-flex items-center gap-2 text-sm text-gray-600">
-                                                    <input type="hidden" name="active" value="0">
-                                                    <input type="checkbox" name="active" value="1" class="rounded border-gray-300" checked>
-                                                    Activo
-                                                </label>
-                                                <button class="rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-gray-700">
-                                                    Crear marca
-                                                </button>
-                                            </div>
-                                        </form>
-                                    </section>
-
-                                    <section class="rounded-xl border border-gray-100 bg-white shadow-sm">
-                                        <div class="border-b border-gray-100 p-4">
-                                            <h4 class="font-bold text-gray-800">Modelos</h4>
-                                            <p class="mt-1 text-xs text-gray-400">Relaciona cada modelo con una marca.</p>
-                                        </div>
-                                        <form method="POST" action="{{ route('admin.vehiculos.specifications.models.store') }}"
-                                            class="space-y-4 p-4">
-                                            @csrf
-                                            <select name="vehicle_brand_id"
-                                                class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm" required>
-                                                <option value="">Selecciona una marca</option>
-                                                @foreach ($brands as $brand)
-                                                    <option value="{{ $brand->id }}">{{ $brand->name }}</option>
-                                                @endforeach
-                                            </select>
-                                            <input type="text" name="name"
-                                                class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm"
-                                                placeholder="Ej: Grand Vitara, F-150" required>
-                                            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                                <label class="inline-flex items-center gap-2 text-sm text-gray-600">
-                                                    <input type="hidden" name="active" value="0">
-                                                    <input type="checkbox" name="active" value="1" class="rounded border-gray-300" checked>
-                                                    Activo
-                                                </label>
-                                                <button class="rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-gray-700">
-                                                    Crear modelo
-                                                </button>
-                                            </div>
-                                        </form>
-                                    </section>
-
-                                    <section class="rounded-xl border border-gray-100 bg-white shadow-sm">
-                                        <div class="border-b border-gray-100 p-4">
-                                            <h4 class="font-bold text-gray-800">Tipos de vehículo</h4>
-                                            <p class="mt-1 text-xs text-gray-400">Define clases como sedán, SUV o camioneta.</p>
-                                        </div>
-                                        <form method="POST" action="{{ route('admin.vehiculos.specifications.types.store') }}"
-                                            class="space-y-4 p-4">
-                                            @csrf
-                                            <input type="text" name="name"
-                                                class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm"
-                                                placeholder="Ej: SUV, camioneta grande" required>
-                                            <div class="grid grid-cols-[1fr_auto] gap-3 items-center">
-                                                <input type="number" name="sort_order" value="0" min="0" max="9999"
-                                                    class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm"
-                                                    placeholder="Orden">
-                                                <label class="inline-flex items-center gap-2 text-sm text-gray-600">
-                                                    <input type="hidden" name="active" value="0">
-                                                    <input type="checkbox" name="active" value="1" class="rounded border-gray-300" checked>
-                                                    Activo
-                                                </label>
-                                            </div>
-                                            <button class="w-full rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-gray-700">
-                                                Crear tipo
-                                            </button>
-                                        </form>
-                                    </section>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    @include('admin.vehiculos.partials.specifications-modal-types-only', ['modalId' => 'serviceVehicleTypesModal'])
                 @endif
             </div>
         </div>
@@ -377,37 +295,6 @@ function previewImage(input) {
     renderOptions();
 })();
 
-(function quickVehicleModal() {
-    const modal = document.getElementById('quickVehicleModal');
-    if (!modal) return;
 
-    const openButtons = document.querySelectorAll('[data-open-vehicle-modal]');
-    const closeButtons = modal.querySelectorAll('[data-close-vehicle-modal]');
-
-    function openModal() {
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        document.body.classList.add('overflow-hidden');
-    }
-
-    function closeModal() {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-        document.body.classList.remove('overflow-hidden');
-    }
-
-    openButtons.forEach((button) => button.addEventListener('click', openModal));
-    closeButtons.forEach((button) => button.addEventListener('click', closeModal));
-
-    modal.addEventListener('click', (event) => {
-        if (event.target === modal) closeModal();
-    });
-
-    document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape' && !modal.classList.contains('hidden')) {
-            closeModal();
-        }
-    });
-})();
 </script>
 @endpush

@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+﻿@extends('layouts.admin')
 
 @section('title', 'Nueva Categoría')
 
@@ -111,3 +111,4 @@
     </div>
 </div>
 @endsection
+

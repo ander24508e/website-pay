@@ -47,7 +47,7 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-5">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">PresentaciÃ³n</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Presentación</label>
                         <input type="text" name="presentation" value="{{ old('presentation', $catalogVariant->presentation) }}"
                                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-400 @error('presentation') border-red-400 bg-red-50 @enderror">
                         @error('presentation')
@@ -153,3 +153,4 @@
     </div>
 </div>
 @endsection
+

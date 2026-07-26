@@ -1,18 +1,8 @@
-@extends('layouts.admin')
+﻿@extends('layouts.admin')
 
 @section('title', 'Detalle de Sección')
 
 @section('content')
-    @php
-        $isProductBusiness = ($catalogType->business_model ?? 'services') === \App\Models\CatalogType::BUSINESS_MODEL_PRODUCTS;
-        $businessModelLabel = $isProductBusiness ? 'Productos' : 'Servicios';
-        $itemSingular = $isProductBusiness ? 'Producto' : 'Servicio';
-        $itemPlural = $isProductBusiness ? 'Productos' : 'Servicios';
-        $categoryDescription = $isProductBusiness
-            ? 'Te ayudan a organizar productos dentro de este negocio.'
-            : 'Te ayudan a organizar servicios dentro de este negocio.';
-    @endphp
-
     <div class="container mx-auto px-4 sm:px-6 min-h-0 xl:h-[calc(100vh-3rem)] xl:overflow-hidden xl:flex xl:flex-col">
         <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4 shrink-0">
             <a href="{{ route('admin.catalog.index') }}"
@@ -21,7 +11,7 @@
             </a>
             <div class="min-w-0">
                 <h2 class="text-xl sm:text-2xl font-bold text-gray-800">{{ $catalogType->name }}</h2>
-                <p class="text-gray-400 text-sm">Administra esta sección y lo que se mostrará en tu página web.</p>
+                <p class="text-gray-400 text-sm">Configura esta sección y su contenido en la web.</p>
             </div>
         </div>
 
@@ -29,7 +19,7 @@
             <aside class="xl:col-span-4 xl:min-h-0">
                 <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6 xl:h-full xl:max-h-full xl:overflow-y-auto">
                     <div class="flex flex-wrap gap-3 mb-5">
-                        <h3 class="text-lg font-bold text-gray-800">Informacion del Negocio</h3>
+                        <h3 class="text-lg font-bold text-gray-800">Información del Negocio</h3>
                     </div>
 
                     <div class="space-y-4 mb-6 min-w-0">
@@ -43,11 +33,11 @@
                         </div>
                         <div>
                             <p class="text-xs text-gray-400 uppercase tracking-wide">Descripción</p>
-                            <p class="text-gray-700 break-words">{{ $catalogType->description ?: 'Sin descripción adicional.' }}</p>
+                            <p class="text-gray-700 break-words">{{ $catalogType->description ?: 'Sin descripción.' }}</p>
                         </div>
                         <div>
                             <p class="text-xs text-gray-400 uppercase tracking-wide">Modelo del negocio</p>
-                            <span class="inline-flex rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">{{ $businessModelLabel }}</span>
+                            <span class="inline-flex rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">Servicios</span>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div>
@@ -59,7 +49,7 @@
                                 <p class="text-gray-700 font-semibold">{{ $catalogType->categories_count }}</p>
                             </div>
                             <div>
-                                <p class="text-xs text-gray-400 uppercase tracking-wide">{{ $itemPlural }}</p>
+                                <p class="text-xs text-gray-400 uppercase tracking-wide">Servicios</p>
                                 <p class="text-gray-700 font-semibold">{{ $catalogType->items_count }}</p>
                             </div>
                         </div>
@@ -96,7 +86,7 @@
                     <div class="p-4 sm:p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shrink-0">
                         <div class="min-w-0">
                             <h3 class="text-lg font-bold text-gray-800">Categorías de esta sección</h3>
-                            <p class="text-sm text-gray-400">{{ $categoryDescription }}</p>
+                            <p class="text-sm text-gray-400">Organiza tus servicios por categoría.</p>
                         </div>
                         <a href="{{ route('admin.catalog-categories.create', ['catalog_type_id' => $catalogType->id, 'return_to_type' => 1]) }}"
                             class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition text-sm font-medium text-center shrink-0">
@@ -106,7 +96,7 @@
 
                     @if ($catalogType->categories->isEmpty())
                         <div class="m-4 sm:m-5 rounded-lg border border-dashed border-gray-200 bg-gray-50 p-5 text-sm text-gray-500">
-                            Esta sección aún no tiene categorías. Puedes crear {{ strtolower($itemPlural) }} sin categoría, o agregar una para ordenar mejor.
+                            Crea una categoría para organizar tus servicios.
                         </div>
                     @else
                         <div class="md:hidden divide-y divide-gray-100">
@@ -123,10 +113,10 @@
                                             <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-[11px] font-medium shrink-0">Oculto</span>
                                         @endif
                                     </div>
-                                    <p class="text-sm text-gray-500 mt-3 break-words">{{ $category->description ?: 'Sin descripción adicional' }}</p>
+                                    <p class="text-sm text-gray-500 mt-3 break-words">{{ $category->description ?: 'Sin descripción' }}</p>
                                     <div class="grid grid-cols-2 gap-3 text-sm mt-3">
                                         <div>
-                                            <p class="text-xs text-gray-400 uppercase">{{ $itemPlural }}</p>
+                                            <p class="text-xs text-gray-400 uppercase">Servicios</p>
                                             <p class="font-semibold text-gray-700">{{ $category->items_count }}</p>
                                         </div>
                                         <div>
@@ -154,34 +144,34 @@
                             <table class="w-full table-fixed text-sm text-left">
                                 <thead class="bg-gray-50 border-b sticky top-0 z-10">
                                     <tr>
-                                    <th class="w-[28%] px-3 py-2.5 text-gray-600 font-semibold text-center">Categoría</th>
-                                    <th class="w-[18%] px-3 py-2.5 text-gray-600 font-semibold text-center hidden sm:table-cell">Slug</th>
-                                        <th class="w-[12%] px-3 py-2.5 text-gray-600 font-semibold text-center">{{ $isProductBusiness ? 'Prod.' : 'Serv.' }}</th>
+                                        <th class="w-[28%] px-3 py-2.5 text-gray-600 font-semibold text-center">Categoría</th>
+                                        <th class="w-[18%] px-3 py-2.5 text-gray-600 font-semibold text-center hidden sm:table-cell">Slug</th>
+                                        <th class="w-[12%] px-3 py-2.5 text-gray-600 font-semibold text-center">Serv.</th>
                                         <th class="w-[10%] px-3 py-2.5 text-gray-600 font-semibold text-center hidden md:table-cell">Orden</th>
-                                    <th class="w-[14%] px-3 py-2.5 text-gray-600 font-semibold text-center">Estado</th>
-                                        <th class="w-[18%] px-3 py-2.5 text-gray-600 font-semibold text-center">Acci?nes</th>
+                                        <th class="w-[14%] px-3 py-2.5 text-gray-600 font-semibold text-center">Estado</th>
+                                        <th class="w-[18%] px-3 py-2.5 text-gray-600 font-semibold text-center">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y">
                                     @foreach ($catalogType->categories as $category)
                                         <tr class="hover:bg-gray-50">
-                                    <td class="px-3 py-2.5 align-top text-center">
+                                            <td class="px-3 py-2.5 align-top text-center">
                                                 <p class="font-semibold text-gray-800 truncate">{{ $category->name }}</p>
                                                 <p class="text-[11px] text-gray-400 mt-0.5 leading-tight line-clamp-2">
-                                                    {{ \Illuminate\Support\Str::limit($category->description, 55) ?: 'Sin descripción adicional' }}
+                                                    {{ \Illuminate\Support\Str::limit($category->description, 55) ?: 'Sin descripción' }}
                                                 </p>
                                             </td>
-                                    <td class="px-3 py-2.5 text-gray-600 text-center truncate hidden sm:table-cell">{{ $category->slug ?: '-' }}</td>
+                                            <td class="px-3 py-2.5 text-gray-600 text-center truncate hidden sm:table-cell">{{ $category->slug ?: '-' }}</td>
                                             <td class="px-3 py-2.5 text-gray-700 text-center">{{ $category->items_count }}</td>
                                             <td class="px-3 py-2.5 text-gray-700 text-center hidden md:table-cell">{{ $category->sort_order }}</td>
-                                    <td class="px-3 py-2.5 text-center">
+                                            <td class="px-3 py-2.5 text-center">
                                                 @if ($category->active)
                                                     <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-[11px] font-medium">Activo</span>
                                                 @else
                                                     <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-[11px] font-medium">Oculto</span>
                                                 @endif
                                             </td>
-                                    <td class="px-3 py-2.5 text-center">
+                                            <td class="px-3 py-2.5 text-center">
                                                 <div class="flex items-center justify-center gap-1">
                                                     <a href="{{ route('admin.catalog-categories.show', $category) }}"
                                                         class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition"
@@ -206,8 +196,8 @@
                 <div class="bg-white rounded-xl shadow-sm overflow-hidden xl:min-h-0 flex flex-col">
                     <div class="p-4 sm:p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shrink-0">
                         <div class="min-w-0">
-                            <h3 class="text-lg font-bold text-gray-800">{{ $itemPlural }} dentro de {{ $catalogType->name }}</h3>
-                            <p class="text-sm text-gray-400">Estos son los {{ strtolower($itemPlural) }} que podrán mostrarse en la web o usarse en ventas.</p>
+                            <h3 class="text-lg font-bold text-gray-800">Servicios dentro de {{ $catalogType->name }}</h3>
+                            <p class="text-sm text-gray-400">Se muestran en la web y se usan en ventas.</p>
                         </div>
                         <div class="flex flex-wrap items-center gap-2 shrink-0">
                             <a href="{{ route('admin.catalog-items.create', ['catalog_type_id' => $catalogType->id, 'return_to_type' => 1]) }}"
@@ -223,11 +213,11 @@
 
                     @if ($catalogType->items->isEmpty())
                         <div class="p-6 sm:p-8 text-center text-gray-500">
-                            <p class="font-medium text-gray-700 mb-2">Todavía no hay {{ strtolower($itemPlural) }} en esta sección.</p>
-                            <p class="text-sm mb-5">Empieza creando el primero para que luego se vea en la web o pueda venderse.</p>
+                            <p class="font-medium text-gray-700 mb-2">Aún no tienes servicios aquí.</p>
+                            <p class="text-sm mb-5">Crea el primero para venderlo o mostrarlo en la web.</p>
                             <a href="{{ route('admin.catalog-items.create', ['catalog_type_id' => $catalogType->id, 'return_to_type' => 1]) }}"
                                 class="bg-gray-900 text-white px-5 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-sm inline-block">
-                                Crear Primer {{ $itemSingular }}
+                                Crear Servicio
                             </a>
                         </div>
                     @else
@@ -245,7 +235,7 @@
                                             <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-[11px] font-medium shrink-0">Oculto</span>
                                         @endif
                                     </div>
-                                    <p class="text-sm text-gray-500 mt-3 break-words">{{ $item->description ?: 'Sin descripción adicional' }}</p>
+                                    <p class="text-sm text-gray-500 mt-3 break-words">{{ $item->description ?: 'Sin descripción' }}</p>
                                     <div class="grid grid-cols-2 gap-3 text-sm mt-3">
                                         <div>
                                             <p class="text-xs text-gray-400 uppercase">Precio</p>
@@ -259,12 +249,12 @@
                                     <div class="flex items-center gap-2 mt-3">
                                         <a href="{{ route('admin.catalog-items.show', $item) }}"
                                             class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition"
-                                            title="Ver {{ strtolower($itemSingular) }}" aria-label="Ver {{ strtolower($itemSingular) }}">
+                                            title="Ver servicio" aria-label="Ver servicio">
                                             <x-heroicon-o-eye class="w-4 h-4" />
                                         </a>
                                         <a href="{{ route('admin.catalog-items.edit', $item) }}"
                                             class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-yellow-600 hover:text-yellow-800 hover:bg-yellow-50 transition"
-                                            title="Editar {{ strtolower($itemSingular) }}" aria-label="Editar {{ strtolower($itemSingular) }}">
+                                            title="Editar servicio" aria-label="Editar servicio">
                                             <x-heroicon-o-pencil-square class="w-4 h-4" />
                                         </a>
                                         <a href="{{ route('admin.catalog-variants.create', ['catalog_item_id' => $item->id, 'catalog_type_id' => $catalogType->id, 'return_to_type' => 1]) }}"
@@ -281,45 +271,45 @@
                             <table class="w-full table-fixed text-sm text-left">
                                 <thead class="bg-gray-50 border-b sticky top-0 z-10">
                                     <tr>
-                                    <th class="w-[30%] px-3 py-2.5 text-gray-600 font-semibold text-center">{{ $itemSingular }}</th>
-                                    <th class="w-[20%] px-3 py-2.5 text-gray-600 font-semibold text-center hidden sm:table-cell">Categoría</th>
-                                    <th class="w-[13%] px-3 py-2.5 text-gray-600 font-semibold text-center">Precio</th>
+                                        <th class="w-[30%] px-3 py-2.5 text-gray-600 font-semibold text-center">Servicio</th>
+                                        <th class="w-[20%] px-3 py-2.5 text-gray-600 font-semibold text-center hidden sm:table-cell">Categoría</th>
+                                        <th class="w-[13%] px-3 py-2.5 text-gray-600 font-semibold text-center">Precio</th>
                                         <th class="w-[10%] px-3 py-2.5 text-gray-600 font-semibold text-center hidden md:table-cell">Pres.</th>
-                                    <th class="w-[12%] px-3 py-2.5 text-gray-600 font-semibold text-center">Estado</th>
-                                        <th class="w-[15%] px-3 py-2.5 text-gray-600 font-semibold text-center">Acci?nes</th>
+                                        <th class="w-[12%] px-3 py-2.5 text-gray-600 font-semibold text-center">Estado</th>
+                                        <th class="w-[15%] px-3 py-2.5 text-gray-600 font-semibold text-center">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y">
                                     @foreach ($catalogType->items as $item)
                                         <tr class="hover:bg-gray-50">
-                                    <td class="px-3 py-2.5 align-top text-center">
+                                            <td class="px-3 py-2.5 align-top text-center">
                                                 <p class="font-semibold text-gray-800 truncate">{{ $item->name }}</p>
                                                 <p class="text-[11px] text-gray-400 mt-0.5 leading-tight line-clamp-2">
-                                                    {{ \Illuminate\Support\Str::limit($item->description, 55) ?: 'Sin descripción adicional' }}
+                                                    {{ \Illuminate\Support\Str::limit($item->description, 55) ?: 'Sin descripción' }}
                                                 </p>
                                             </td>
-                                    <td class="px-3 py-2.5 text-gray-600 text-center truncate hidden sm:table-cell">{{ $item->category?->name ?: 'Sin categoría' }}</td>
-                                    <td class="px-3 py-2.5 font-semibold text-gray-800 text-center whitespace-nowrap">
+                                            <td class="px-3 py-2.5 text-gray-600 text-center truncate hidden sm:table-cell">{{ $item->category?->name ?: 'Sin categoría' }}</td>
+                                            <td class="px-3 py-2.5 font-semibold text-gray-800 text-center whitespace-nowrap">
                                                 {{ $item->base_price !== null ? '$' . number_format((float) $item->base_price, 2) : '-' }}
                                             </td>
                                             <td class="px-3 py-2.5 text-gray-700 text-center hidden md:table-cell">{{ $item->variants_count }}</td>
-                                    <td class="px-3 py-2.5 text-center">
+                                            <td class="px-3 py-2.5 text-center">
                                                 @if ($item->active)
                                                     <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-[11px] font-medium">Activo</span>
                                                 @else
                                                     <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-[11px] font-medium">Oculto</span>
                                                 @endif
                                             </td>
-                                    <td class="px-3 py-2.5 text-center">
+                                            <td class="px-3 py-2.5 text-center">
                                                 <div class="flex items-center justify-center gap-1">
                                                     <a href="{{ route('admin.catalog-items.show', $item) }}"
                                                         class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition"
-                                                        title="Ver {{ strtolower($itemSingular) }}" aria-label="Ver {{ strtolower($itemSingular) }}">
+                                                        title="Ver servicio" aria-label="Ver servicio">
                                                         <x-heroicon-o-eye class="w-4 h-4" />
                                                     </a>
                                                     <a href="{{ route('admin.catalog-items.edit', $item) }}"
                                                         class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-yellow-600 hover:text-yellow-800 hover:bg-yellow-50 transition"
-                                                        title="Editar {{ strtolower($itemSingular) }}" aria-label="Editar {{ strtolower($itemSingular) }}">
+                                                        title="Editar servicio" aria-label="Editar servicio">
                                                         <x-heroicon-o-pencil-square class="w-4 h-4" />
                                                     </a>
                                                     <a href="{{ route('admin.catalog-variants.create', ['catalog_item_id' => $item->id, 'catalog_type_id' => $catalogType->id, 'return_to_type' => 1]) }}"
@@ -340,5 +330,3 @@
         </div>
     </div>
 @endsection
-
-

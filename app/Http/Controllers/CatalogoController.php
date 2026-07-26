@@ -76,12 +76,14 @@ class CatalogoController extends Controller
                     ->map(fn ($vehiclePrice) => [
                         'vehicle_type_id' => (int) $vehiclePrice->vehicle_type_id,
                         'vehicle_type_name' => $vehiclePrice->vehicleType?->name,
-                        'price' => (float) $vehiclePrice->price,
+                        'price' => $vehiclePrice->price === null ? null : (float) $vehiclePrice->price,
+                        'duration_minutes' => $vehiclePrice->duration_minutes,
                     ])
                     ->values();
                 $basePrice = (float) ($item->base_price ?? $item->display_price);
-                $publicPrice = $vehiclePrices->isNotEmpty()
-                    ? (float) $vehiclePrices->min('price')
+                $configuredPrices = $vehiclePrices->pluck('price')->filter(fn ($price) => $price !== null);
+                $publicPrice = $configuredPrices->isNotEmpty()
+                    ? (float) $configuredPrices->min()
                     : $item->display_price;
 
                 return [
@@ -90,6 +92,7 @@ class CatalogoController extends Controller
                     'descripcion' => $item->description,
                     'precio' => $publicPrice,
                     'precio_base' => $basePrice,
+                    'duration_minutes' => $item->duration_minutes,
                     'imagen' => $item->image,
                     'categoria' => $item->category->name ?? ($item->type->name ?? 'Catalogo'),
                     'tipo' => 'catalog',

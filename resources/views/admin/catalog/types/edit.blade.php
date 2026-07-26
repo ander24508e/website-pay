@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+﻿@extends('layouts.admin')
 
 @section('title', 'Editar Sección')
 
@@ -112,3 +112,5 @@
     </div>
 </div>
 @endsection
+
+

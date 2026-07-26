@@ -2,24 +2,20 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class ServiceVehicleTypePrice extends Model
+class CatalogItemSupply extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'catalog_item_id',
-        'vehicle_type_id',
-        'price',
-        'duration_minutes',
+        'catalog_item_variant_id',
+        'quantity',
+        'unit',
     ];
 
     protected $casts = [
-        'price' => 'decimal:2',
-        'duration_minutes' => 'integer',
+        'quantity' => 'decimal:3',
     ];
 
     public function service(): BelongsTo
@@ -27,8 +23,8 @@ class ServiceVehicleTypePrice extends Model
         return $this->belongsTo(CatalogItem::class, 'catalog_item_id');
     }
 
-    public function vehicleType(): BelongsTo
+    public function variant(): BelongsTo
     {
-        return $this->belongsTo(VehicleType::class);
+        return $this->belongsTo(CatalogItemVariant::class, 'catalog_item_variant_id');
     }
 }

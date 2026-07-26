@@ -126,7 +126,7 @@
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Precio</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Precio base</label>
                                     <div class="relative">
                                         <span class="absolute left-4 top-2.5 text-gray-400 text-sm font-semibold">$</span>
                                         <input type="number" name="base_price" value="{{ old('base_price') }}"
@@ -137,6 +137,7 @@
                                     @error('base_price')
                                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                     @enderror
+                                    <p class="text-xs text-gray-400 mt-1">Se usa como precio principal si la presentación no tiene precio propio.</p>
                                 </div>
                             </div>
 

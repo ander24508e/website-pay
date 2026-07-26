@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+﻿@extends('layouts.admin')
 
 @section('title', 'Catálogo de Items')
 
@@ -139,9 +139,11 @@
                                         class="w-14 h-14 rounded-lg object-cover bg-gray-50 border border-gray-200 shrink-0">
                                     <div class="min-w-0 flex-1">
                                         <p class="font-semibold text-gray-800 break-words">{{ $item->name }}</p>
-                                        <p class="text-xs text-gray-400 mt-0.5 break-words">
-                                            {{ \Illuminate\Support\Str::limit($item->description, 90) ?: 'Sin descripción adicional' }}
-                                        </p>
+                                        @if ($item->description)
+                                            <p class="text-xs text-gray-400 mt-0.5 break-words">
+                                                {{ \Illuminate\Support\Str::limit($item->description, 90) }}
+                                            </p>
+                                        @endif
                                     </div>
                                     @if ($item->active)
                                         <span
@@ -246,9 +248,11 @@
                                         </td>
                                         <td class="px-3 py-3 text-center">
                                             <p class="font-medium text-gray-800 truncate">{{ $item->name }}</p>
-                                            <p class="text-xs text-gray-400 mt-0.5 truncate">
-                                                {{ \Illuminate\Support\Str::limit($item->description, 70) ?: 'Sin descripción adicional' }}
-                                            </p>
+                                            @if ($item->description)
+                                                <p class="text-xs text-gray-400 mt-0.5 truncate">
+                                                    {{ \Illuminate\Support\Str::limit($item->description, 70) }}
+                                                </p>
+                                            @endif
                                         </td>
                                         <td class="px-3 py-3 text-gray-700 text-center truncate">
                                             {{ $item->type?->name ?? 'Sin sección' }}</td>
@@ -336,3 +340,5 @@
         @endif
     </div>
 @endsection
+
+

@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+﻿@extends('layouts.admin')
 
 @section('title', 'Detalle Producto o Servicio')
 
@@ -116,7 +116,7 @@
                 </div>
                 <div>
                     <p class="text-xs text-gray-400 uppercase tracking-wide">Origen anterior</p>
-                    <p class="text-gray-700">{{ $catalogItem->legacy_source_type && $catalogItem->legacy_source_id ? $catalogItem->legacy_source_type . ' #' . $catalogItem->legacy_source_id : 'A?n no migrado' }}</p>
+                    <p class="text-gray-700">{{ $catalogItem->legacy_source_type && $catalogItem->legacy_source_id ? $catalogItem->legacy_source_type . ' #' . $catalogItem->legacy_source_id : 'Aún no migrado' }}</p>
                 </div>
                 <div>
                     <p class="text-xs text-gray-400 uppercase tracking-wide">Control de inventario</p>
@@ -174,7 +174,7 @@
                                     <th class="px-4 py-3">Presentación</th>
                                     <th class="px-4 py-3">Precio</th>
                                     <th class="px-4 py-3">Estado</th>
-                                    <th class="px-4 py-3">Acci?nes</th>
+                                    <th class="px-4 py-3">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y">
@@ -251,3 +251,5 @@
     </div>
 </div>
 @endsection
+
+

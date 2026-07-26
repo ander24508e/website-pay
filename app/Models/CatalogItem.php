@@ -18,6 +18,7 @@ class CatalogItem extends Model
         'slug',
         'description',
         'base_price',
+        'duration_minutes',
         'image',
         'active',
         'featured',
@@ -30,6 +31,7 @@ class CatalogItem extends Model
 
     protected $casts = [
         'base_price' => 'decimal:2',
+        'duration_minutes' => 'integer',
         'active' => 'boolean',
         'featured' => 'boolean',
         'purchasable' => 'boolean',
@@ -67,6 +69,16 @@ class CatalogItem extends Model
     public function vehicleTypePrices()
     {
         return $this->hasMany(ServiceVehicleTypePrice::class)->orderBy('vehicle_type_id');
+    }
+
+    public function supplies()
+    {
+        return $this->hasMany(CatalogItemSupply::class);
+    }
+
+    public function bundleItems()
+    {
+        return $this->hasMany(CatalogItemBundleItem::class);
     }
 
     public function scopeActive(Builder $query): Builder

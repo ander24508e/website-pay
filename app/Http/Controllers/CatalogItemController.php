@@ -146,6 +146,7 @@ class CatalogItemController extends Controller
         $returnToType = (bool) $request->boolean('return_to_type', $selectedTypeId > 0);
         $vehicleTypes = VehicleType::query()->where('active', true)->ordered()->get();
         $brands = VehicleBrand::query()->where('active', true)->orderBy('name')->get(['id', 'name']);
+        $supplyVariants = $this->getSupplyVariants($empresa->id);
 
         $view = $fromInventory || ($selectedType && $this->isProductBusiness($selectedType))
             ? 'admin.catalog.items.create-product'
@@ -162,7 +163,8 @@ class CatalogItemController extends Controller
             'returnToType',
             'fromInventory',
             'vehicleTypes',
-            'brands'
+            'brands',
+            'supplyVariants'
         ));
     }
 
@@ -177,6 +179,7 @@ class CatalogItemController extends Controller
             'slug' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'base_price' => ['nullable', 'numeric', 'min:0'],
+            'duration_minutes' => ['nullable', 'integer', 'min:1', 'max:1440'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:6144'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
             'active' => ['nullable', 'boolean'],
@@ -196,6 +199,12 @@ class CatalogItemController extends Controller
             'variant_min_stock' => ['nullable', 'integer', 'min:0'],
             'vehicle_type_prices' => ['nullable', 'array'],
             'vehicle_type_prices.*' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
+            'vehicle_type_durations' => ['nullable', 'array'],
+            'vehicle_type_durations.*' => ['nullable', 'integer', 'min:1', 'max:1440'],
+            'supplies' => ['nullable', 'array'],
+            'supplies.*.catalog_item_variant_id' => ['nullable', 'integer', 'exists:catalog_item_variants,id'],
+            'supplies.*.quantity' => ['nullable', 'numeric', 'min:0.001', 'max:999999.999'],
+            'supplies.*.unit' => ['nullable', 'string', 'max:30'],
         ]);
 
         $type = CatalogType::query()
@@ -220,6 +229,7 @@ class CatalogItemController extends Controller
             'slug' => $slug,
             'description' => $this->cleanInput($data['description'] ?? null),
             'base_price' => $data['base_price'] ?? null,
+            'duration_minutes' => $data['duration_minutes'] ?? null,
             'active' => $request->boolean('active', true),
             'featured' => $request->boolean('featured'),
             'purchasable' => $behavior['purchasable'],
@@ -233,7 +243,8 @@ class CatalogItemController extends Controller
         }
 
         $item = CatalogItem::create($payload);
-        $this->syncVehicleTypePrices($item, $type, $data['vehicle_type_prices'] ?? []);
+        $this->syncVehicleTypePrices($item, $type, $data['vehicle_type_prices'] ?? [], $data['vehicle_type_durations'] ?? []);
+        $this->syncSupplies($item, $type, $data['supplies'] ?? []);
 
         $shouldCreatePresentation = $this->isProductBusiness($type);
 
@@ -269,7 +280,7 @@ class CatalogItemController extends Controller
 
     public function show(CatalogItem $catalogItem)
     {
-        $catalogItem->load(['type', 'category', 'variants', 'vehicleTypePrices.vehicleType']);
+        $catalogItem->load(['type', 'category', 'variants', 'vehicleTypePrices.vehicleType', 'supplies.variant.item']);
 
         return view('admin.catalog.items.show', compact('catalogItem'));
     }
@@ -286,9 +297,10 @@ class CatalogItemController extends Controller
             ->ordered()
             ->get();
         $vehicleTypes = VehicleType::query()->where('active', true)->ordered()->get();
-        $catalogItem->load('vehicleTypePrices');
+        $catalogItem->load(['vehicleTypePrices', 'supplies.variant.item']);
+        $supplyVariants = $this->getSupplyVariants($catalogItem->empresa_id);
 
-        return view('admin.catalog.items.edit', compact('catalogItem', 'types', 'categories', 'vehicleTypes'));
+        return view('admin.catalog.items.edit', compact('catalogItem', 'types', 'categories', 'vehicleTypes', 'supplyVariants'));
     }
 
     public function update(Request $request, CatalogItem $catalogItem)
@@ -300,6 +312,7 @@ class CatalogItemController extends Controller
             'slug' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'base_price' => ['nullable', 'numeric', 'min:0'],
+            'duration_minutes' => ['nullable', 'integer', 'min:1', 'max:1440'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:6144'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
             'active' => ['nullable', 'boolean'],
@@ -309,6 +322,12 @@ class CatalogItemController extends Controller
             'uses_inventory' => ['nullable', 'boolean'],
             'vehicle_type_prices' => ['nullable', 'array'],
             'vehicle_type_prices.*' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
+            'vehicle_type_durations' => ['nullable', 'array'],
+            'vehicle_type_durations.*' => ['nullable', 'integer', 'min:1', 'max:1440'],
+            'supplies' => ['nullable', 'array'],
+            'supplies.*.catalog_item_variant_id' => ['nullable', 'integer', 'exists:catalog_item_variants,id'],
+            'supplies.*.quantity' => ['nullable', 'numeric', 'min:0.001', 'max:999999.999'],
+            'supplies.*.unit' => ['nullable', 'string', 'max:30'],
         ]);
 
         $type = CatalogType::query()
@@ -327,6 +346,7 @@ class CatalogItemController extends Controller
             'slug' => $slug,
             'description' => $this->cleanInput($data['description'] ?? null),
             'base_price' => $data['base_price'] ?? null,
+            'duration_minutes' => $data['duration_minutes'] ?? null,
             'active' => $request->boolean('active'),
             'featured' => $request->boolean('featured'),
             'purchasable' => $behavior['purchasable'],
@@ -343,7 +363,8 @@ class CatalogItemController extends Controller
         }
 
         $catalogItem->update($payload);
-        $this->syncVehicleTypePrices($catalogItem, $type, $data['vehicle_type_prices'] ?? []);
+        $this->syncVehicleTypePrices($catalogItem, $type, $data['vehicle_type_prices'] ?? [], $data['vehicle_type_durations'] ?? []);
+        $this->syncSupplies($catalogItem, $type, $data['supplies'] ?? []);
 
         if ($this->isProductBusiness($type)) {
             $this->ensureDefaultVariant($catalogItem);
@@ -437,7 +458,7 @@ class CatalogItemController extends Controller
         ]);
     }
 
-    private function syncVehicleTypePrices(CatalogItem $item, CatalogType $type, array $prices): void
+    private function syncVehicleTypePrices(CatalogItem $item, CatalogType $type, array $prices, array $durations = []): void
     {
         if ($this->isProductBusiness($type)) {
             $item->vehicleTypePrices()->delete();
@@ -445,20 +466,92 @@ class CatalogItemController extends Controller
         }
 
         $validTypeIds = VehicleType::query()->pluck('id')->map(fn ($id) => (int) $id)->all();
-        $normalized = collect($prices)
-            ->filter(fn ($price, $vehicleTypeId) => in_array((int) $vehicleTypeId, $validTypeIds, true) && $price !== null && $price !== '')
-            ->mapWithKeys(fn ($price, $vehicleTypeId) => [(int) $vehicleTypeId => (float) $price]);
+        $submittedTypeIds = collect(array_merge(array_keys($prices), array_keys($durations)))
+            ->map(fn ($vehicleTypeId) => (int) $vehicleTypeId)
+            ->unique()
+            ->filter(fn ($vehicleTypeId) => in_array($vehicleTypeId, $validTypeIds, true));
+
+        $normalized = $submittedTypeIds->mapWithKeys(function (int $vehicleTypeId) use ($prices, $durations) {
+            $price = $prices[$vehicleTypeId] ?? null;
+            $duration = $durations[$vehicleTypeId] ?? null;
+
+            if (($price === null || $price === '') && ($duration === null || $duration === '')) {
+                return [];
+            }
+
+            return [
+                $vehicleTypeId => [
+                    'price' => $price === null || $price === '' ? null : (float) $price,
+                    'duration_minutes' => $duration === null || $duration === '' ? null : (int) $duration,
+                ],
+            ];
+        });
 
         $item->vehicleTypePrices()
             ->whereNotIn('vehicle_type_id', $normalized->keys())
             ->delete();
 
-        foreach ($normalized as $vehicleTypeId => $price) {
+        foreach ($normalized as $vehicleTypeId => $values) {
             $item->vehicleTypePrices()->updateOrCreate(
                 ['vehicle_type_id' => $vehicleTypeId],
-                ['price' => $price]
+                $values
             );
         }
+    }
+
+    private function syncSupplies(CatalogItem $item, CatalogType $type, array $supplies): void
+    {
+        if ($this->isProductBusiness($type)) {
+            $item->supplies()->delete();
+            return;
+        }
+
+        $validVariantIds = CatalogItemVariant::query()
+            ->whereHas('item.type', fn ($query) => $query->where('business_model', CatalogType::BUSINESS_MODEL_PRODUCTS))
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        $normalized = collect($supplies)
+            ->map(function ($supply) {
+                return [
+                    'catalog_item_variant_id' => (int) ($supply['catalog_item_variant_id'] ?? 0),
+                    'quantity' => $supply['quantity'] ?? null,
+                    'unit' => $this->cleanInput($supply['unit'] ?? null),
+                ];
+            })
+            ->filter(fn ($supply) => in_array($supply['catalog_item_variant_id'], $validVariantIds, true) && $supply['quantity'] !== null && $supply['quantity'] !== '')
+            ->mapWithKeys(fn ($supply) => [
+                $supply['catalog_item_variant_id'] => [
+                    'quantity' => (float) $supply['quantity'],
+                    'unit' => $supply['unit'],
+                ],
+            ]);
+
+        $item->supplies()
+            ->whereNotIn('catalog_item_variant_id', $normalized->keys())
+            ->delete();
+
+        foreach ($normalized as $variantId => $values) {
+            $item->supplies()->updateOrCreate(
+                ['catalog_item_variant_id' => $variantId],
+                $values
+            );
+        }
+    }
+
+    private function getSupplyVariants(int $empresaId)
+    {
+        return CatalogItemVariant::query()
+            ->with(['item.type'])
+            ->whereHas('item', function ($query) use ($empresaId) {
+                $query->where('empresa_id', $empresaId)
+                    ->where('active', true)
+                    ->whereHas('type', fn ($typeQuery) => $typeQuery->where('business_model', CatalogType::BUSINESS_MODEL_PRODUCTS));
+            })
+            ->where('active', true)
+            ->orderBy('name')
+            ->get();
     }
 
     private function resolveSlug(int $empresaId, string $name, ?string $slug, ?int $ignoreId = null): ?string

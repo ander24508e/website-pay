@@ -90,6 +90,12 @@
             @enderror
         </div>
 
+        <button type="button" data-open-vehicle-modal="vehicleSpecificationsFullModal"
+            class="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-gray-700">
+            <x-heroicon-o-plus class="h-4 w-4" />
+            ¿No encuentras la marca o modelo? Créalo aquí
+        </button>
+
         <a href="{{ route('admin.vehiculos.specifications.index') }}"
             class="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-gray-100 px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-200">
             <x-heroicon-o-adjustments-horizontal class="h-4 w-4" />
@@ -97,6 +103,8 @@
         </a>
     </section>
 </div>
+
+@include('admin.vehiculos.partials.specifications-modal-full', ['modalId' => 'vehicleSpecificationsFullModal'])
 
 <div class="flex flex-col sm:flex-row gap-3 justify-end">
     @if (!empty($modalCancel))

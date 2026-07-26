@@ -49,6 +49,7 @@ return new class extends Migration
             $table->string('slug')->nullable();
             $table->text('description')->nullable();
             $table->decimal('base_price', 10, 2)->nullable();
+            $table->unsignedInteger('duration_minutes')->nullable();
             $table->string('image')->nullable();
             $table->boolean('active')->default(true);
             $table->boolean('featured')->default(false);
@@ -90,15 +91,55 @@ return new class extends Migration
             $table->id();
             $table->foreignId('catalog_item_id')->constrained('catalog_items')->cascadeOnDelete();
             $table->foreignId('vehicle_type_id')->constrained()->restrictOnDelete();
-            $table->decimal('price', 10, 2);
+            $table->decimal('price', 10, 2)->nullable();
+            $table->unsignedInteger('duration_minutes')->nullable();
             $table->timestamps();
 
             $table->unique(['catalog_item_id', 'vehicle_type_id'], 'service_vehicle_type_unique');
+        });
+
+        Schema::create('catalog_item_supplies', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('catalog_item_id')->constrained('catalog_items')->cascadeOnDelete();
+            $table->foreignId('catalog_item_variant_id')->constrained('catalog_item_variants')->restrictOnDelete();
+            $table->decimal('quantity', 10, 3);
+            $table->string('unit', 30)->nullable();
+            $table->timestamps();
+
+            $table->unique(['catalog_item_id', 'catalog_item_variant_id'], 'catalog_item_supplies_unique');
+        });
+
+        Schema::create('catalog_item_bundles', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('empresa_id')->constrained()->cascadeOnDelete();
+            $table->string('name');
+            $table->string('slug')->nullable();
+            $table->text('description')->nullable();
+            $table->decimal('price', 10, 2);
+            $table->boolean('active')->default(true);
+            $table->unsignedInteger('sort_order')->default(0);
+            $table->timestamps();
+
+            $table->unique(['empresa_id', 'slug']);
+            $table->index(['empresa_id', 'active']);
+        });
+
+        Schema::create('catalog_item_bundle_items', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('catalog_item_bundle_id')->constrained('catalog_item_bundles')->cascadeOnDelete();
+            $table->foreignId('catalog_item_id')->constrained('catalog_items')->restrictOnDelete();
+            $table->unsignedInteger('quantity')->default(1);
+            $table->timestamps();
+
+            $table->unique(['catalog_item_bundle_id', 'catalog_item_id'], 'catalog_bundle_items_unique');
         });
     }
 
     public function down(): void
     {
+        Schema::dropIfExists('catalog_item_bundle_items');
+        Schema::dropIfExists('catalog_item_bundles');
+        Schema::dropIfExists('catalog_item_supplies');
         Schema::dropIfExists('service_vehicle_type_prices');
         Schema::dropIfExists('catalog_item_variants');
         Schema::dropIfExists('catalog_items');

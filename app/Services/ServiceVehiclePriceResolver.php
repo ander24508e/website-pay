@@ -21,6 +21,7 @@ class ServiceVehiclePriceResolver
         if (($service->type?->business_model ?? CatalogType::BUSINESS_MODEL_SERVICES) !== CatalogType::BUSINESS_MODEL_SERVICES) {
             return [
                 'price' => (float) $service->display_price,
+                'duration_minutes' => null,
                 'vehicle_id' => null,
                 'vehicle_type_id' => null,
                 'vehicle_label' => null,
@@ -80,6 +81,7 @@ class ServiceVehiclePriceResolver
 
         return [
             'price' => (float) ($configuredPrice?->price ?? $service->base_price ?? $service->display_price),
+            'duration_minutes' => $configuredPrice?->duration_minutes ?? $service->duration_minutes,
             'vehicle_id' => $vehicle?->id,
             'vehicle_type_id' => $vehicleType?->id,
             'vehicle_label' => $vehicle

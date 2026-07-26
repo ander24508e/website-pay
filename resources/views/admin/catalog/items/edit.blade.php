@@ -103,14 +103,26 @@
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Precio</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Precio base</label>
                                 <div class="relative">
                                     <span class="absolute left-4 top-2.5 text-gray-400 text-sm font-semibold">$</span>
                                     <input type="number" name="base_price" value="{{ old('base_price', $catalogItem->base_price) }}"
                                            step="0.01" min="0"
                                            class="w-full border border-gray-200 rounded-lg pl-8 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-gray-50 @error('base_price') border-red-400 bg-red-50 @enderror">
                                 </div>
+                                <p class="text-xs text-gray-400 mt-1">Se usa si no defines un precio por tipo de vehículo.</p>
                                 @error('base_price')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Duración base</label>
+                                <input type="number" name="duration_minutes" value="{{ old('duration_minutes', $catalogItem->duration_minutes) }}"
+                                       min="1" step="1"
+                                       class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-gray-50 @error('duration_minutes') border-red-400 bg-red-50 @enderror"
+                                       placeholder="Ej: 45">
+                                <p class="text-xs text-gray-400 mt-1">Tiempo estimado del servicio en minutos.</p>
+                                @error('duration_minutes')
                                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
@@ -168,16 +180,22 @@
                                         <span class="block text-xs text-gray-400">Puede usarse para reservas</span>
                                     </span>
                                 </label>
-                                <div class="rounded-lg border border-gray-100 bg-gray-50 p-3">
-                                    <span class="block text-sm font-semibold text-gray-700">Servicio sin inventario</span>
-                                    <span class="block text-xs text-gray-400 mt-1">Los servicios no controlan stock ni aparecen como productos inventariables.</span>
-                                </div>
                             @endif
                         </div>
+
+                        @unless($isProductContext)
+                            <div class="rounded-lg border border-blue-100 bg-blue-50 p-3 text-sm text-blue-700">
+                                Este negocio está configurado como servicio; no maneja stock propio ni presentaciones.
+                            </div>
+                        @endunless
                     </section>
 
                     @if(!$isProductContext)
-                        @include('admin.catalog.items._vehicle-type-prices')
+                        @include('admin.catalog.items._vehicle-type-prices', [
+                            'quickVehicleModalAvailable' => true,
+                            'vehicleModalId' => 'serviceVehicleTypesModal',
+                        ])
+                        @include('admin.catalog.items._supplies')
                     @endif
 
                     <details class="mt-8 rounded-xl border border-gray-100 bg-gray-50 p-4">
@@ -214,6 +232,10 @@
                         </a>
                     </div>
                 </form>
+
+                @if (!$isProductContext)
+                    @include('admin.vehiculos.partials.specifications-modal-types-only', ['modalId' => 'serviceVehicleTypesModal'])
+                @endif
             </div>
         </div>
     </div>

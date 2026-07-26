@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+﻿@extends('layouts.admin')
 
 @section('title', 'Editar Categoría Universal')
 
@@ -94,3 +94,4 @@
     </div>
 </div>
 @endsection
+

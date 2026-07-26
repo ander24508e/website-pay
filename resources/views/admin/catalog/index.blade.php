@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+﻿@extends('layouts.admin')
 
 @section('title', 'Catálogo')
 
@@ -63,9 +63,9 @@
                             </span>
                         </div>
 
-                        <p class="text-sm text-gray-500 mt-3 break-words">
-                            {{ $section->description ?: 'Sin descripción adicional' }}
-                        </p>
+                        @if ($section->description)
+                            <p class="text-sm text-gray-500 mt-3 break-words">{{ $section->description }}</p>
+                        @endif
 
                         <div class="mt-3">
                             <span class="inline-flex rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">
@@ -116,7 +116,7 @@
                             <th class="w-[12%] px-4 py-3 text-center">Categorías</th>
                             <th class="w-[14%] px-4 py-3 text-center">Items</th>
                             <th class="w-[12%] px-4 py-3 text-center">Estado</th>
-                            <th class="w-[10%] px-4 py-3 text-center">Acci?nes</th>
+                            <th class="w-[10%] px-4 py-3 text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
@@ -127,7 +127,7 @@
                                     <p class="text-xs text-gray-400 mt-0.5 truncate">{{ $section->slug ?: 'Sin slug' }}</p>
                                 </td>
                             <td class="px-4 py-4 text-gray-500 text-center">
-                                    {{ \Illuminate\Support\Str::limit($section->description, 80) ?: 'Sin descripción adicional' }}
+                                    {{ $section->description ? \Illuminate\Support\Str::limit($section->description, 80) : '-' }}
                                 </td>
                                 <td class="px-4 py-4 text-center">
                                     <span class="inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700">
@@ -178,3 +178,5 @@
         </section>
     </div>
 @endsection
+
+
