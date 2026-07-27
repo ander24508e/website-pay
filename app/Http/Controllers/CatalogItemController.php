@@ -10,6 +10,7 @@ use App\Models\CatalogType;
 use App\Models\Empresa;
 use App\Models\VehicleBrand;
 use App\Models\VehicleType;
+use App\Services\Inventory\InventoryService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -169,7 +170,7 @@ class CatalogItemController extends Controller
         ));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, InventoryService $inventoryService)
     {
         $empresa = $this->getOrCreateEmpresa();
 
@@ -250,20 +251,30 @@ class CatalogItemController extends Controller
         $shouldCreatePresentation = $this->isProductBusiness($type);
 
         if ($shouldCreatePresentation) {
-            CatalogItemVariant::create([
+            $variant = CatalogItemVariant::create([
                 'catalog_item_id' => $item->id,
-                'name' => trim((string) ($data['variant_name'] ?? '')) ?: 'General',
-                'presentation' => $this->cleanInput($data['variant_presentation'] ?? null),
-                'specification' => $this->cleanInput($data['variant_specification'] ?? null),
+                'name' => 'General',
+                'presentation' => null,
+                'specification' => null,
                 'sku' => $this->cleanInput($data['variant_sku'] ?? null),
-                'price' => $data['variant_price'] ?? $item->base_price,
+                'price' => $item->base_price,
                 'cost_price' => $data['variant_cost_price'] ?? null,
-                'stock' => $data['variant_stock'] ?? null,
+                'stock' => 0,
                 'min_stock' => (int) ($data['variant_min_stock'] ?? 0),
                 'active' => true,
                 'is_default' => true,
                 'sort_order' => 0,
             ]);
+
+            $initialStock = (int) ($data['variant_stock'] ?? 0);
+
+            if ($initialStock > 0) {
+                $inventoryService->applyMovement($variant, 'adjust', $initialStock, 'Stock inicial al crear producto', [
+                    'reason' => 'stock_inicial',
+                    'reference' => 'catalog_item:' . $item->id,
+                    'unit_cost' => $data['variant_cost_price'] ?? null,
+                ]);
+            }
         }
 
         NotificationHelper::success($this->isProductBusiness($type) ? 'Producto creado correctamente.' : 'Servicio creado correctamente.');

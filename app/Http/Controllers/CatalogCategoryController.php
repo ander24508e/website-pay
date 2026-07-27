@@ -17,6 +17,7 @@ class CatalogCategoryController extends Controller
         $empresa = $this->getOrCreateEmpresa();
         $search = trim((string) $request->query('q', ''));
         $selectedTypeId = (int) $request->query('catalog_type_id', 0);
+        $selectedStatus = (string) $request->query('status', '');
         $selectedType = null;
         $baseQuery = CatalogCategory::query()->where('empresa_id', $empresa->id);
 
@@ -43,6 +44,9 @@ class CatalogCategoryController extends Controller
                         });
                 });
             })
+            ->when(in_array($selectedStatus, ['active', 'inactive'], true), function ($query) use ($selectedStatus) {
+                $query->where('active', $selectedStatus === 'active');
+            })
             ->ordered()
             ->paginate(12)
             ->withQueryString();
@@ -54,7 +58,12 @@ class CatalogCategoryController extends Controller
             'types' => CatalogType::query()->where('empresa_id', $empresa->id)->count(),
         ];
 
-        return view('admin.catalog.categories.index', compact('empresa', 'categories', 'stats', 'selectedType'));
+        $types = CatalogType::query()
+            ->where('empresa_id', $empresa->id)
+            ->ordered()
+            ->get(['id', 'name']);
+
+        return view('admin.catalog.categories.index', compact('empresa', 'categories', 'stats', 'selectedType', 'types', 'selectedStatus'));
     }
 
     public function create(Request $request)

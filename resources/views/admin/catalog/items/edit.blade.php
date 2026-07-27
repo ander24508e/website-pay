@@ -54,6 +54,8 @@
                 <form id="catalog-item-form" action="{{ route('admin.catalog-items.update', $catalogItem) }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
+                    <input type="hidden" name="slug" value="{{ old('slug', $catalogItem->slug) }}">
+                    <input type="hidden" name="sort_order" value="{{ old('sort_order', $catalogItem->sort_order) }}">
 
                     <section class="space-y-5">
                         <div>
@@ -197,29 +199,6 @@
                         ])
                         @include('admin.catalog.items._supplies')
                     @endif
-
-                    <details class="mt-8 rounded-xl border border-gray-100 bg-gray-50 p-4">
-                        <summary class="cursor-pointer text-sm font-semibold text-gray-700">Opciones avanzadas</summary>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-5">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Slug</label>
-                                <input type="text" name="slug" value="{{ old('slug', $catalogItem->slug) }}"
-                                       class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-white @error('slug') border-red-400 bg-red-50 @enderror">
-                                @error('slug')
-                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Orden</label>
-                                <input type="number" name="sort_order" value="{{ old('sort_order', $catalogItem->sort_order) }}" min="0"
-                                       class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-white @error('sort_order') border-red-400 bg-red-50 @enderror">
-                                @error('sort_order')
-                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-                        </div>
-                    </details>
 
                     <div class="flex flex-wrap gap-3 pt-6 mt-8 border-t border-gray-100">
                         <button type="submit"
