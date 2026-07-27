@@ -6,6 +6,7 @@ use App\Helpers\NotificationHelper;
 use App\Models\CatalogCategory;
 use App\Models\CatalogType;
 use App\Models\Empresa;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -171,11 +172,27 @@ class CatalogCategoryController extends Controller
         return redirect()->route('admin.catalog-categories.index');
     }
 
-    public function destroy(CatalogCategory $catalogCategory)
+    public function destroy(Request $request, CatalogCategory $catalogCategory)
     {
-        $catalogCategory->delete();
+        $catalogTypeId = $catalogCategory->catalog_type_id;
+
+        try {
+            $catalogCategory->delete();
+        } catch (QueryException $exception) {
+            NotificationHelper::error('No se puede eliminar esta categoría porque tiene relaciones activas.');
+
+            if ($request->boolean('return_to_type')) {
+                return redirect()->route('admin.catalog-types.show', $catalogTypeId);
+            }
+
+            return redirect()->route('admin.catalog-categories.index');
+        }
 
         NotificationHelper::success('Categoria universal eliminada correctamente.');
+
+        if ($request->boolean('return_to_type')) {
+            return redirect()->route('admin.catalog-types.show', $catalogTypeId);
+        }
 
         return redirect()->route('admin.catalog-categories.index');
     }

@@ -10,6 +10,7 @@ use App\Models\CatalogType;
 use App\Models\Empresa;
 use App\Models\VehicleBrand;
 use App\Models\VehicleType;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -377,17 +378,32 @@ class CatalogItemController extends Controller
         return redirect()->route('admin.catalog-items.index', ['catalog_type_id' => $catalogItem->catalog_type_id]);
     }
 
-    public function destroy(CatalogItem $catalogItem)
+    public function destroy(Request $request, CatalogItem $catalogItem)
     {
         $catalogTypeId = $catalogItem->catalog_type_id;
+        $image = $catalogItem->image;
 
-        if ($catalogItem->image && Storage::disk('public')->exists($catalogItem->image)) {
-            Storage::disk('public')->delete($catalogItem->image);
+        try {
+            $catalogItem->delete();
+        } catch (QueryException $exception) {
+            NotificationHelper::error('No se puede eliminar este item porque ya tiene movimientos, ventas, compras o paquetes relacionados.');
+
+            if ($request->boolean('return_to_type')) {
+                return redirect()->route('admin.catalog-types.show', $catalogTypeId);
+            }
+
+            return redirect()->route('admin.catalog-items.index', ['catalog_type_id' => $catalogTypeId]);
         }
 
-        $catalogItem->delete();
+        if ($image && Storage::disk('public')->exists($image)) {
+            Storage::disk('public')->delete($image);
+        }
 
         NotificationHelper::success('Item universal eliminado correctamente.');
+
+        if ($request->boolean('return_to_type')) {
+            return redirect()->route('admin.catalog-types.show', $catalogTypeId);
+        }
 
         return redirect()->route('admin.catalog-items.index', ['catalog_type_id' => $catalogTypeId]);
     }
