@@ -27,6 +27,10 @@ class CatalogItemController extends Controller
         $selectedType = null;
         $selectedCategory = null;
         $baseQuery = CatalogItem::query()->where('empresa_id', $empresa->id);
+        $types = CatalogType::query()
+            ->where('empresa_id', $empresa->id)
+            ->ordered()
+            ->get();
 
         if ($selectedTypeId > 0) {
             $selectedType = CatalogType::query()
@@ -48,12 +52,6 @@ class CatalogItemController extends Controller
                 $baseQuery->where('catalog_category_id', $selectedCategory->id);
                 $selectedType = $selectedCategory->type;
             }
-        }
-
-        if (!$selectedType) {
-            NotificationHelper::error('Primero ingresa a un negocio para ver sus productos o servicios.');
-
-            return redirect()->route('admin.catalog.index');
         }
 
         $items = (clone $baseQuery)
@@ -83,7 +81,7 @@ class CatalogItemController extends Controller
             'reservable' => (clone $baseQuery)->where('reservable', true)->count(),
         ];
 
-        return view('admin.catalog.items.index', compact('empresa', 'items', 'stats', 'selectedType', 'selectedCategory'));
+        return view('admin.catalog.items.index', compact('empresa', 'items', 'stats', 'selectedType', 'selectedCategory', 'types'));
     }
 
     public function create(Request $request)
@@ -145,7 +143,8 @@ class CatalogItemController extends Controller
             ->with('type')
             ->ordered()
             ->get();
-        $returnToType = (bool) $request->boolean('return_to_type', $selectedTypeId > 0);
+        $returnToCategory = (bool) $request->boolean('return_to_category', false);
+        $returnToType = (bool) $request->boolean('return_to_type', $selectedTypeId > 0 && !$returnToCategory);
         $vehicleTypes = VehicleType::query()->where('active', true)->ordered()->get();
         $brands = VehicleBrand::query()->where('active', true)->orderBy('name')->get(['id', 'name']);
         $supplyVariants = $this->getSupplyVariants($empresa->id);
@@ -163,6 +162,7 @@ class CatalogItemController extends Controller
             'selectedType',
             'selectedCategory',
             'returnToType',
+            'returnToCategory',
             'fromInventory',
             'vehicleTypes',
             'brands',
@@ -177,10 +177,13 @@ class CatalogItemController extends Controller
         $data = $request->validate([
             'catalog_type_id' => ['required', 'integer', 'exists:catalog_types,id'],
             'catalog_category_id' => ['nullable', 'integer', 'exists:catalog_categories,id'],
+            'new_category_name' => ['nullable', 'string', 'max:255'],
+            'new_category_description' => ['nullable', 'string', 'max:1000'],
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'base_price' => ['nullable', 'numeric', 'min:0'],
+            'profit_margin_percentage' => ['nullable', 'numeric', 'min:0', 'max:10000'],
             'duration_minutes' => ['nullable', 'integer', 'min:1', 'max:1440'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:6144'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
@@ -190,6 +193,7 @@ class CatalogItemController extends Controller
             'reservable' => ['nullable', 'boolean'],
             'uses_inventory' => ['nullable', 'boolean'],
             'redirect_to_inventory' => ['nullable', 'boolean'],
+            'redirect_to_category' => ['nullable', 'boolean'],
             'create_presentation' => ['nullable', 'boolean'],
             'variant_name' => ['nullable', 'string', 'max:255'],
             'variant_presentation' => ['nullable', 'string', 'max:255'],
@@ -219,6 +223,22 @@ class CatalogItemController extends Controller
         }
 
         $category = $this->resolveCategory($empresa->id, $type->id, $data['catalog_category_id'] ?? null);
+
+        if ($this->isProductBusiness($type) && $this->cleanInput($data['new_category_name'] ?? null)) {
+            $category = $this->createInlineCategory(
+                $empresa->id,
+                $type->id,
+                $data['new_category_name'],
+                $data['new_category_description'] ?? null
+            );
+        }
+
+        if ($this->isProductBusiness($type)) {
+            $cost = (float) ($data['variant_cost_price'] ?? 0);
+            $margin = (float) ($data['profit_margin_percentage'] ?? 0);
+            $data['base_price'] = $cost > 0 ? round($cost + ($cost * $margin / 100), 2) : ($data['base_price'] ?? null);
+        }
+
         $slug = $this->resolveSlug($empresa->id, $data['name'], $data['slug'] ?? null);
 
         $behavior = $this->resolveBehaviorForType($type, $request);
@@ -256,7 +276,7 @@ class CatalogItemController extends Controller
                 'name' => 'General',
                 'presentation' => null,
                 'specification' => null,
-                'sku' => $this->cleanInput($data['variant_sku'] ?? null),
+                'sku' => $this->resolveVariantSku($data['variant_sku'] ?? null, $type, $data['name']),
                 'price' => $item->base_price,
                 'cost_price' => $data['variant_cost_price'] ?? null,
                 'stock' => 0,
@@ -283,6 +303,13 @@ class CatalogItemController extends Controller
             return redirect()->route('admin.inventario.index', ['catalog_type_id' => $type->id]);
         }
 
+        if ($request->boolean('redirect_to_category') && $item->catalog_category_id) {
+            return redirect()->route('admin.catalog-items.index', [
+                'catalog_type_id' => $item->catalog_type_id,
+                'catalog_category_id' => $item->catalog_category_id,
+            ]);
+        }
+
         if ($request->boolean('redirect_to_type')) {
             return redirect()->route('admin.catalog-types.show', $item->catalog_type_id);
         }
@@ -290,14 +317,16 @@ class CatalogItemController extends Controller
         return redirect()->route('admin.catalog-items.index', ['catalog_type_id' => $item->catalog_type_id]);
     }
 
-    public function show(CatalogItem $catalogItem)
+    public function show(Request $request, CatalogItem $catalogItem)
     {
         $catalogItem->load(['type', 'category', 'variants', 'vehicleTypePrices.vehicleType', 'supplies.variant.item']);
+        $returnUrl = $this->catalogItemBackUrl($request, $catalogItem);
+        $returnContext = $this->catalogItemReturnContext($request);
 
-        return view('admin.catalog.items.show', compact('catalogItem'));
+        return view('admin.catalog.items.show', compact('catalogItem', 'returnUrl', 'returnContext'));
     }
 
-    public function edit(CatalogItem $catalogItem)
+    public function edit(Request $request, CatalogItem $catalogItem)
     {
         $types = CatalogType::query()
             ->where('empresa_id', $catalogItem->empresa_id)
@@ -309,10 +338,12 @@ class CatalogItemController extends Controller
             ->ordered()
             ->get();
         $vehicleTypes = VehicleType::query()->where('active', true)->ordered()->get();
-        $catalogItem->load(['vehicleTypePrices', 'supplies.variant.item']);
+        $catalogItem->load(['variants', 'vehicleTypePrices', 'supplies.variant.item']);
         $supplyVariants = $this->getSupplyVariants($catalogItem->empresa_id);
+        $returnUrl = $this->catalogItemBackUrl($request, $catalogItem, route('admin.catalog-items.show', $catalogItem));
+        $returnContext = $this->catalogItemReturnContext($request);
 
-        return view('admin.catalog.items.edit', compact('catalogItem', 'types', 'categories', 'vehicleTypes', 'supplyVariants'));
+        return view('admin.catalog.items.edit', compact('catalogItem', 'types', 'categories', 'vehicleTypes', 'supplyVariants', 'returnUrl', 'returnContext'));
     }
 
     public function update(Request $request, CatalogItem $catalogItem)
@@ -320,10 +351,13 @@ class CatalogItemController extends Controller
         $data = $request->validate([
             'catalog_type_id' => ['required', 'integer', 'exists:catalog_types,id'],
             'catalog_category_id' => ['nullable', 'integer', 'exists:catalog_categories,id'],
+            'new_category_name' => ['nullable', 'string', 'max:255'],
+            'new_category_description' => ['nullable', 'string', 'max:1000'],
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'base_price' => ['nullable', 'numeric', 'min:0'],
+            'profit_margin_percentage' => ['nullable', 'numeric', 'min:0', 'max:10000'],
             'duration_minutes' => ['nullable', 'integer', 'min:1', 'max:1440'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:6144'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
@@ -332,10 +366,17 @@ class CatalogItemController extends Controller
             'purchasable' => ['nullable', 'boolean'],
             'reservable' => ['nullable', 'boolean'],
             'uses_inventory' => ['nullable', 'boolean'],
+            'redirect_to_inventory' => ['nullable', 'boolean'],
+            'redirect_to_type' => ['nullable', 'boolean'],
+            'redirect_to_category' => ['nullable', 'boolean'],
+            'redirect_to_items' => ['nullable', 'boolean'],
             'vehicle_type_prices' => ['nullable', 'array'],
             'vehicle_type_prices.*' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
             'vehicle_type_durations' => ['nullable', 'array'],
             'vehicle_type_durations.*' => ['nullable', 'integer', 'min:1', 'max:1440'],
+            'variant_sku' => ['nullable', 'string', 'max:255'],
+            'variant_cost_price' => ['nullable', 'numeric', 'min:0'],
+            'variant_min_stock' => ['nullable', 'integer', 'min:0'],
             'supplies' => ['nullable', 'array'],
             'supplies.*.catalog_item_variant_id' => ['nullable', 'integer', 'exists:catalog_item_variants,id'],
             'supplies.*.quantity' => ['nullable', 'numeric', 'min:0.001', 'max:999999.999'],
@@ -347,6 +388,22 @@ class CatalogItemController extends Controller
             ->findOrFail($data['catalog_type_id']);
 
         $category = $this->resolveCategory($catalogItem->empresa_id, $type->id, $data['catalog_category_id'] ?? null);
+
+        if ($this->isProductBusiness($type) && $this->cleanInput($data['new_category_name'] ?? null)) {
+            $category = $this->createInlineCategory(
+                $catalogItem->empresa_id,
+                $type->id,
+                $data['new_category_name'],
+                $data['new_category_description'] ?? null
+            );
+        }
+
+        if ($this->isProductBusiness($type)) {
+            $cost = (float) ($data['variant_cost_price'] ?? 0);
+            $margin = (float) ($data['profit_margin_percentage'] ?? 0);
+            $data['base_price'] = $cost > 0 ? round($cost + ($cost * $margin / 100), 2) : ($data['base_price'] ?? null);
+        }
+
         $slug = $this->resolveSlug($catalogItem->empresa_id, $data['name'], $data['slug'] ?? null, $catalogItem->id);
 
         $behavior = $this->resolveBehaviorForType($type, $request);
@@ -380,13 +437,48 @@ class CatalogItemController extends Controller
 
         if ($this->isProductBusiness($type)) {
             $this->ensureDefaultVariant($catalogItem);
+            $defaultVariant = $catalogItem->variants()->where('is_default', true)->first()
+                ?? $catalogItem->variants()->orderBy('id')->first();
+
+            if ($defaultVariant) {
+                $defaultVariant->update([
+                    'sku' => $this->resolveVariantSku($data['variant_sku'] ?? null, $type, $data['name'], $defaultVariant->id),
+                    'price' => $catalogItem->base_price,
+                    'cost_price' => $data['variant_cost_price'] ?? null,
+                    'min_stock' => (int) ($data['variant_min_stock'] ?? 0),
+                    'active' => true,
+                    'is_default' => true,
+                ]);
+            }
         } else {
             $catalogItem->variants()->delete();
         }
 
         NotificationHelper::success($this->isProductBusiness($type) ? 'Producto actualizado correctamente.' : 'Servicio actualizado correctamente.');
 
-        return redirect()->route('admin.catalog-items.index', ['catalog_type_id' => $catalogItem->catalog_type_id]);
+        if ($request->boolean('redirect_to_inventory')) {
+            return redirect()->route('admin.inventario.index', ['catalog_type_id' => $catalogItem->catalog_type_id]);
+        }
+
+        if ($request->boolean('redirect_to_type')) {
+            return redirect()->route('admin.catalog-types.show', $catalogItem->catalog_type_id);
+        }
+
+        if ($request->boolean('redirect_to_category') && $catalogItem->catalog_category_id) {
+            return redirect()->route('admin.catalog-items.index', [
+                'catalog_type_id' => $catalogItem->catalog_type_id,
+                'catalog_category_id' => $catalogItem->catalog_category_id,
+            ]);
+        }
+
+        if ($request->boolean('redirect_to_items')) {
+            return redirect()->route('admin.catalog-items.index', array_filter([
+                'catalog_type_id' => $catalogItem->catalog_type_id,
+                'catalog_category_id' => $catalogItem->catalog_category_id,
+            ]));
+        }
+
+        return redirect()->route('admin.catalog-items.show', $catalogItem);
     }
 
     public function destroy(Request $request, CatalogItem $catalogItem)
@@ -431,6 +523,43 @@ class CatalogItemController extends Controller
         $value = trim((string) $value);
 
         return $value === '' ? null : $value;
+    }
+
+    private function catalogItemReturnContext(Request $request): array
+    {
+        return array_filter([
+            'from_inventory' => $request->boolean('from_inventory') ? 1 : null,
+            'return_to_type' => $request->boolean('return_to_type') ? 1 : null,
+            'return_to_category' => $request->boolean('return_to_category') ? 1 : null,
+            'return_to_items' => $request->boolean('return_to_items') ? 1 : null,
+        ]);
+    }
+
+    private function catalogItemBackUrl(Request $request, CatalogItem $catalogItem, ?string $defaultUrl = null): string
+    {
+        if ($request->boolean('from_inventory')) {
+            return route('admin.inventario.index', ['catalog_type_id' => $catalogItem->catalog_type_id]);
+        }
+
+        if ($request->boolean('return_to_type') && $catalogItem->catalog_type_id) {
+            return route('admin.catalog-types.show', $catalogItem->catalog_type_id);
+        }
+
+        if ($request->boolean('return_to_category') && $catalogItem->catalog_category_id) {
+            return route('admin.catalog-items.index', [
+                'catalog_type_id' => $catalogItem->catalog_type_id,
+                'catalog_category_id' => $catalogItem->catalog_category_id,
+            ]);
+        }
+
+        if ($request->boolean('return_to_items')) {
+            return route('admin.catalog-items.index', array_filter([
+                'catalog_type_id' => $catalogItem->catalog_type_id,
+                'catalog_category_id' => $catalogItem->catalog_category_id,
+            ]));
+        }
+
+        return $defaultUrl ?: route('admin.catalog-items.index', ['catalog_type_id' => $catalogItem->catalog_type_id]);
     }
 
     private function resolveCategory(int $empresaId, int $typeId, ?int $categoryId): ?CatalogCategory
@@ -483,6 +612,60 @@ class CatalogItemController extends Controller
             'is_default' => true,
             'sort_order' => 0,
         ]);
+    }
+
+    private function createInlineCategory(int $empresaId, int $typeId, string $name, ?string $description = null): CatalogCategory
+    {
+        $name = trim($name);
+        $slug = Str::slug($name);
+        $candidate = $slug;
+        $suffix = 2;
+
+        while (
+            $candidate !== ''
+            && CatalogCategory::query()
+                ->where('catalog_type_id', $typeId)
+                ->where('slug', $candidate)
+                ->exists()
+        ) {
+            $candidate = $slug . '-' . $suffix;
+            $suffix++;
+        }
+
+        return CatalogCategory::create([
+            'empresa_id' => $empresaId,
+            'catalog_type_id' => $typeId,
+            'name' => $name,
+            'slug' => $candidate ?: null,
+            'description' => $this->cleanInput($description),
+            'sort_order' => 0,
+            'active' => true,
+        ]);
+    }
+
+    private function resolveVariantSku(?string $sku, CatalogType $type, string $productName, ?int $ignoreVariantId = null): string
+    {
+        $cleanSku = $this->cleanInput($sku);
+
+        if ($cleanSku) {
+            $exists = CatalogItemVariant::query()
+                ->where('sku', $cleanSku)
+                ->when($ignoreVariantId, fn ($query) => $query->whereKeyNot($ignoreVariantId))
+                ->exists();
+
+            if (!$exists) {
+                return $cleanSku;
+            }
+        }
+
+        $prefix = Str::upper(Str::substr(Str::slug($type->slug ?: $type->name ?: $productName, ''), 0, 4));
+        $prefix = $prefix !== '' ? $prefix : 'PROD';
+
+        do {
+            $candidate = $prefix . '-' . now()->format('ymd') . '-' . Str::upper(Str::random(5));
+        } while (CatalogItemVariant::query()->where('sku', $candidate)->exists());
+
+        return $candidate;
     }
 
     private function syncVehicleTypePrices(CatalogItem $item, CatalogType $type, array $prices, array $durations = []): void

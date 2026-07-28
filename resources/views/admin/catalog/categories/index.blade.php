@@ -111,21 +111,6 @@
                                 </td>
                                 <td class="px-4 sm:px-6 py-3 sm:py-4 text-center">
                                     <div class="flex items-center justify-center gap-1">
-                                        <a href="{{ route('admin.catalog-categories.show', $category) }}"
-                                            class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-blue-600 hover:bg-blue-50 transition"
-                                            title="Ver" aria-label="Ver">
-                                            <x-heroicon-o-eye class="w-4 h-4" />
-                                        </a>
-                                        <a href="{{ route('admin.catalog-items.index', ['catalog_type_id' => $category->catalog_type_id, 'catalog_category_id' => $category->id]) }}"
-                                            class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-indigo-600 hover:bg-indigo-50 transition"
-                                            title="Ver ítems" aria-label="Ver ítems">
-                                            <x-heroicon-o-list-bullet class="w-4 h-4" />
-                                        </a>
-                                        <a href="{{ route('admin.catalog-items.create', ['catalog_type_id' => $category->catalog_type_id, 'catalog_category_id' => $category->id, 'return_to_type' => 1]) }}"
-                                            class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-emerald-600 hover:bg-emerald-50 transition"
-                                            title="Agregar ítem" aria-label="Agregar ítem">
-                                            <x-heroicon-o-plus class="w-4 h-4" />
-                                        </a>
                                         <a href="{{ route('admin.catalog-categories.edit', $category) }}"
                                             class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-yellow-600 hover:bg-yellow-50 transition"
                                             title="Editar" aria-label="Editar">

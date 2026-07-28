@@ -3,6 +3,11 @@
 @section('title', 'Detalle Producto o Servicio')
 
 @section('content')
+@php
+    $returnUrl = $returnUrl ?? route('admin.catalog-items.index', ['catalog_type_id' => $catalogItem->catalog_type_id]);
+    $returnContext = $returnContext ?? [];
+@endphp
+
 <div class="container mx-auto px-4 sm:px-6">
     <div class="flex flex-wrap items-center gap-2 text-xs text-gray-400 uppercase tracking-wide mb-4">
         <a href="{{ route('admin.catalog.index') }}" class="hover:text-gray-600 transition">Catálogo</a>
@@ -12,14 +17,14 @@
             <span>/</span>
         @endif
         @if($catalogItem->category)
-            <a href="{{ route('admin.catalog-categories.show', $catalogItem->category) }}" class="hover:text-gray-600 transition">{{ $catalogItem->category->name }}</a>
+            <a href="{{ route('admin.catalog-items.index', ['catalog_type_id' => $catalogItem->catalog_type_id, 'catalog_category_id' => $catalogItem->catalog_category_id]) }}" class="hover:text-gray-600 transition">{{ $catalogItem->category->name }}</a>
             <span>/</span>
         @endif
         <span class="text-gray-600 font-semibold">{{ $catalogItem->name }}</span>
     </div>
 
     <div class="flex flex-wrap items-center gap-3 mb-6">
-        <a href="{{ route('admin.catalog-items.index', ['catalog_type_id' => $catalogItem->catalog_type_id]) }}"
+        <a href="{{ $returnUrl }}"
            class="flex items-center justify-center w-9 h-9 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition text-gray-500 hover:text-gray-800">
             <span aria-hidden="true">&larr;</span>
         </a>
@@ -35,7 +40,7 @@
             <p class="text-lg font-bold text-gray-800 mt-2">{{ $catalogItem->type?->name ?? 'Sin sección' }}</p>
             <p class="text-xs text-gray-400 mt-1">Volver a la sección</p>
         </a>
-        <a href="{{ $catalogItem->category ? route('admin.catalog-categories.show', $catalogItem->category) : route('admin.catalog-items.index', ['catalog_type_id' => $catalogItem->catalog_type_id]) }}" class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:border-gray-300 transition">
+        <a href="{{ $catalogItem->category ? route('admin.catalog-items.index', ['catalog_type_id' => $catalogItem->catalog_type_id, 'catalog_category_id' => $catalogItem->catalog_category_id]) : route('admin.catalog-items.index', ['catalog_type_id' => $catalogItem->catalog_type_id]) }}" class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:border-gray-300 transition">
             <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Categoría</p>
             <p class="text-lg font-bold text-gray-800 mt-2">{{ $catalogItem->category?->name ?? 'Sin categoría' }}</p>
             <p class="text-xs text-gray-400 mt-1">Ver contexto del producto o servicio</p>
@@ -230,7 +235,7 @@
             </div>
 
             <div class="flex flex-wrap gap-3 pt-2 border-t border-gray-100">
-                <a href="{{ route('admin.catalog-items.edit', $catalogItem) }}"
+                <a href="{{ route('admin.catalog-items.edit', ['catalogItem' => $catalogItem, ...$returnContext]) }}"
                    class="bg-gray-900 text-white px-5 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-sm">
                     Editar
                 </a>
@@ -251,5 +256,3 @@
     </div>
 </div>
 @endsection
-
-

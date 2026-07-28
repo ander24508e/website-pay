@@ -102,6 +102,7 @@ class CatalogCategoryController extends Controller
             'description' => ['nullable', 'string'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
             'active' => ['nullable', 'boolean'],
+            'redirect_to_type' => ['nullable', 'boolean'],
         ]);
 
         $type = CatalogType::query()
@@ -131,13 +132,10 @@ class CatalogCategoryController extends Controller
 
     public function show(CatalogCategory $catalogCategory)
     {
-        $catalogCategory->load(['type']);
-        $catalogCategory->loadCount(['items']);
-        $catalogCategory->load([
-            'items' => fn ($query) => $query->withCount('variants')->ordered()->limit(12),
+        return redirect()->route('admin.catalog-items.index', [
+            'catalog_type_id' => $catalogCategory->catalog_type_id,
+            'catalog_category_id' => $catalogCategory->id,
         ]);
-
-        return view('admin.catalog.categories.show', compact('catalogCategory'));
     }
 
     public function edit(CatalogCategory $catalogCategory)
@@ -177,6 +175,10 @@ class CatalogCategoryController extends Controller
         ]);
 
         NotificationHelper::success('Categoria universal actualizada correctamente.');
+
+        if ($request->boolean('redirect_to_type')) {
+            return redirect()->route('admin.catalog-types.show', $catalogCategory->catalog_type_id);
+        }
 
         return redirect()->route('admin.catalog-categories.index');
     }

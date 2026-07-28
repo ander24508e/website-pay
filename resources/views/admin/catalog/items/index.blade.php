@@ -14,16 +14,37 @@
         $isProductContext =
             $contextType &&
             ($contextType->business_model ?? 'services') === \App\Models\CatalogType::BUSINESS_MODEL_PRODUCTS;
-        $itemSingular = $isProductContext ? 'Producto' : 'Servicio';
-        $itemPlural = $isProductContext ? 'Productos' : 'Servicios';
+        $itemSingular = $contextType ? ($isProductContext ? 'Producto' : 'Servicio') : 'Producto o Servicio';
+        $itemPlural = $contextType ? ($isProductContext ? 'Productos' : 'Servicios') : 'Productos y Servicios';
         $itemsCollection = $items->getCollection();
+        $backUrl =
+            isset($selectedCategory) && $selectedCategory
+                ? route('admin.catalog-categories.index', ['catalog_type_id' => $selectedCategory->catalog_type_id])
+                : (isset($selectedType) && $selectedType
+                    ? route('admin.catalog-types.show', $selectedType)
+                    : route('admin.catalog.index'));
+        $createParams = array_filter([
+            'catalog_type_id' => isset($selectedType) && $selectedType ? $selectedType->id : null,
+            'catalog_category_id' => isset($selectedCategory) && $selectedCategory ? $selectedCategory->id : null,
+            'return_to_category' => isset($selectedCategory) && $selectedCategory ? 1 : null,
+            'return_to_type' =>
+                isset($selectedCategory) && $selectedCategory
+                    ? null
+                    : (isset($selectedType) && $selectedType
+                        ? 1
+                        : null),
+        ]);
+        $showEditContext =
+            isset($selectedCategory) && $selectedCategory ? ['return_to_items' => 1] : ['return_to_items' => 1];
 
         $sectionsForView = collect([
             [
                 'title' => $itemPlural,
-                'description' => $isProductContext
-                    ? 'Productos del negocio seleccionado.'
-                    : 'Servicios del negocio seleccionado.',
+                'description' => !$contextType
+                    ? 'Productos y servicios del catalogo.'
+                    : ($isProductContext
+                        ? 'Productos del negocio seleccionado.'
+                        : 'Servicios del negocio seleccionado.'),
                 'items' => $itemsCollection,
                 'empty' => 'No hay ' . strtolower($itemPlural) . ' registrados.',
                 'singular' => $itemSingular,
@@ -35,7 +56,7 @@
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
             <div class="min-w-0">
                 <div class="flex items-center gap-2">
-                    <a href="{{ route('admin.catalog.index') }}"
+                    <a href="{{ $backUrl }}"
                         class="flex items-center justify-center w-9 h-9 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition text-gray-500 hover:text-gray-800"
                         title="Volver" aria-label="Volver">
                         <x-heroicon-o-arrow-left class="w-5 h-5" />
@@ -47,6 +68,8 @@
                                 Estás viendo {{ strtolower($itemPlural) }} de la categoría {{ $selectedCategory->name }}.
                             @elseif(isset($selectedType) && $selectedType)
                                 Estás viendo {{ strtolower($itemPlural) }} de la sección {{ $selectedType->name }}.
+                            @else
+                                Estás viendo todos los productos y servicios del catálogo.
                             @endif
                         </p>
                     </div>
@@ -68,49 +91,31 @@
                 </div>
             </form>
 
-            <a href="{{ route('admin.catalog-items.create', array_filter(['catalog_type_id' => isset($selectedType) && $selectedType ? $selectedType->id : null, 'catalog_category_id' => isset($selectedCategory) && $selectedCategory ? $selectedCategory->id : null, 'return_to_type' => isset($selectedType) && $selectedType ? 1 : null])) }}"
+            <a href="{{ route('admin.catalog-items.create', $createParams) }}"
                 class="inline-flex items-center justify-center bg-gray-900 text-white w-11 h-11 rounded-lg hover:bg-gray-700 transition"
                 title="Nuevo {{ strtolower($itemSingular) }}" aria-label="Nuevo {{ strtolower($itemSingular) }}">
                 <x-heroicon-o-plus class="w-5 h-5" />
             </a>
         </div>
 
-        <div class="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-                <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">
-                    {{ $itemPlural }}</p>
-                <p class="text-2xl font-bold text-gray-800 mt-2">{{ $stats['total'] }}</p>
-            </div>
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-                <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Activos</p>
-                <p class="text-2xl font-bold text-emerald-700 mt-2">{{ $stats['active'] }}</p>
-            </div>
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-                <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Vendibles</p>
-                <p class="text-2xl font-bold text-blue-700 mt-2">{{ $stats['purchasable'] }}</p>
-            </div>
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-                <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Reservables</p>
-                <p class="text-2xl font-bold text-amber-700 mt-2">{{ $stats['reservable'] }}</p>
+        <div class="mb-6 overflow-x-auto">
+            <div
+                class="inline-flex min-w-max items-center gap-1 rounded-full bg-white p-1 shadow-sm border border-gray-100">
+                <a href="{{ route('admin.catalog-items.index') }}"
+                    class="px-5 py-2 rounded-full text-sm font-semibold transition {{ isset($selectedType) && $selectedType ? 'text-gray-700 hover:bg-gray-50' : 'bg-gray-900 text-white shadow-sm' }}">
+                    Todos
+                </a>
+
+                @foreach ($types as $type)
+                    <a href="{{ route('admin.catalog-items.index', ['catalog_type_id' => $type->id]) }}"
+                        class="px-5 py-2 rounded-full text-sm font-semibold transition {{ isset($selectedType) && $selectedType && (int) $selectedType->id === (int) $type->id ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-700 hover:bg-gray-50' }}">
+                        {{ $type->name }}
+                    </a>
+                @endforeach
             </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6 flex flex-wrap items-center gap-3">
-            <span class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Contexto actual</span>
-            @if (isset($selectedType) && $selectedType)
-                <a href="{{ route('admin.catalog-types.show', $selectedType) }}"
-                    class="inline-flex items-center rounded-full bg-gray-100 text-gray-700 px-3 py-1 text-sm font-medium hover:bg-gray-200 transition">
-                    Sección: {{ $selectedType->name }}
-                </a>
-            @endif
-            @if (isset($selectedCategory) && $selectedCategory)
-                <a href="{{ route('admin.catalog-categories.show', $selectedCategory) }}"
-                    class="inline-flex items-center rounded-full bg-gray-100 text-gray-700 px-3 py-1 text-sm font-medium hover:bg-gray-200 transition">
-                    Categoría: {{ $selectedCategory->name }}
-                </a>
-            @endif
-        </div>
-
+        
         <div class="space-y-6">
             @foreach ($sectionsForView as $section)
                 @php
@@ -194,13 +199,13 @@
                                 </div>
 
                                 <div class="flex items-center justify-end gap-2 pt-1">
-                                    <a href="{{ route('admin.catalog-items.show', $item) }}"
+                                    <a href="{{ route('admin.catalog-items.show', ['catalogItem' => $item, ...$showEditContext]) }}"
                                         class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition"
                                         title="Ver {{ strtolower($sectionSingular) }}"
                                         aria-label="Ver {{ strtolower($sectionSingular) }}">
                                         <x-heroicon-o-eye class="w-5 h-5" />
                                     </a>
-                                    <a href="{{ route('admin.catalog-items.edit', $item) }}"
+                                    <a href="{{ route('admin.catalog-items.edit', ['catalogItem' => $item, ...$showEditContext]) }}"
                                         class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gray-50 text-gray-700 hover:bg-gray-100 transition"
                                         title="Editar {{ strtolower($sectionSingular) }}"
                                         aria-label="Editar {{ strtolower($sectionSingular) }}">
@@ -293,13 +298,13 @@
                                         </td>
                                         <td class="px-3 py-3 text-center">
                                             <div class="flex items-center justify-center gap-1">
-                                                <a href="{{ route('admin.catalog-items.show', $item) }}"
+                                                <a href="{{ route('admin.catalog-items.show', ['catalogItem' => $item, ...$showEditContext]) }}"
                                                     class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-blue-600 hover:bg-blue-50 transition"
                                                     title="Ver {{ strtolower($sectionSingular) }}"
                                                     aria-label="Ver {{ strtolower($sectionSingular) }}">
                                                     <x-heroicon-o-eye class="w-4 h-4" />
                                                 </a>
-                                                <a href="{{ route('admin.catalog-items.edit', $item) }}"
+                                                <a href="{{ route('admin.catalog-items.edit', ['catalogItem' => $item, ...$showEditContext]) }}"
                                                     class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-gray-700 hover:bg-gray-100 transition"
                                                     title="Editar {{ strtolower($sectionSingular) }}"
                                                     aria-label="Editar {{ strtolower($sectionSingular) }}">
@@ -340,5 +345,3 @@
         @endif
     </div>
 @endsection
-
-

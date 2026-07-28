@@ -1,97 +1,109 @@
-﻿@extends('layouts.admin')
+@extends('layouts.admin')
 
-@section('title', 'Editar Categoría Universal')
+@section('title', 'Editar Categoria')
 
 @section('content')
-<div class="container mx-auto px-4 sm:px-6">
-    <div class="flex flex-wrap items-center gap-3 mb-6">
-        <a href="{{ route('admin.catalog-categories.index') }}"
-           class="flex items-center justify-center w-9 h-9 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition text-gray-500 hover:text-gray-800">
+@php
+    $returnToType = (bool) request()->boolean('return_to_type');
+    $returnUrl = $returnToType
+        ? route('admin.catalog-types.show', $catalogCategory->catalog_type_id)
+        : route('admin.catalog-categories.index', ['catalog_type_id' => $catalogCategory->catalog_type_id]);
+    $selectedType = $types->firstWhere('id', old('catalog_type_id', $catalogCategory->catalog_type_id));
+    $inputClass = 'w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300';
+    $labelClass = 'mb-1 block text-xs font-semibold text-gray-700';
+@endphp
+
+<div class="mx-auto w-full max-w-[1500px] px-3 pb-4 sm:px-5 xl:h-[calc(100vh-2rem)] xl:overflow-hidden">
+    <div class="mb-3 flex items-center gap-3">
+        <a href="{{ $returnUrl }}"
+            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-gray-500 shadow-sm transition hover:bg-gray-50 hover:text-gray-800">
             <span aria-hidden="true">&larr;</span>
         </a>
-        <div>
-            <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Editar Categoría Universal</h2>
-            <p class="text-gray-400 text-sm">Modificando <strong class="text-gray-600">{{ $catalogCategory->name }}</strong></p>
+        <div class="min-w-0">
+            <h2 class="text-xl font-bold leading-tight text-gray-900 sm:text-2xl">Editar Categoria</h2>
+            <p class="truncate text-sm text-gray-400">Modificando <strong class="text-gray-600">{{ $catalogCategory->name }}</strong></p>
         </div>
     </div>
 
-    <div class="max-w-2xl mx-auto">
-        <div class="bg-white rounded-xl shadow-sm p-4 sm:p-8">
-            <form action="{{ route('admin.catalog-categories.update', $catalogCategory) }}" method="POST">
-                @csrf
-                @method('PUT')
+    <form action="{{ route('admin.catalog-categories.update', $catalogCategory) }}" method="POST"
+        class="rounded-lg bg-white shadow-sm xl:flex xl:h-[calc(100%-4.25rem)] xl:flex-col xl:overflow-hidden">
+        @csrf
+        @method('PUT')
+        <input type="hidden" name="redirect_to_type" value="{{ $returnToType ? 1 : 0 }}">
+        <input type="hidden" name="sort_order" value="{{ old('sort_order', $catalogCategory->sort_order) }}">
+        @if (old('active', $catalogCategory->active))
+            <input type="hidden" name="active" value="1">
+        @endif
 
-                <div class="mb-5">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Tipo *</label>
-                    <select name="catalog_type_id"
-                            class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-400 @error('catalog_type_id') border-red-400 bg-red-50 @enderror">
-                        @foreach($types as $type)
-                            <option value="{{ $type->id }}" {{ old('catalog_type_id', $catalogCategory->catalog_type_id) == $type->id ? 'selected' : '' }}>{{ $type->name }}</option>
-                        @endforeach
-                    </select>
-                    @error('catalog_type_id')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="mb-5">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
-                    <input type="text" name="name" value="{{ old('name', $catalogCategory->name) }}"
-                           class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-400 @error('name') border-red-400 bg-red-50 @enderror">
-                    @error('name')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="mb-5">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Slug</label>
-                    <input type="text" name="slug" value="{{ old('slug', $catalogCategory->slug) }}"
-                           class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-400 @error('slug') border-red-400 bg-red-50 @enderror">
-                    @error('slug')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="mb-5">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
-                    <textarea name="description" rows="4"
-                           class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-400 @error('description') border-red-400 bg-red-50 @enderror">{{ old('description', $catalogCategory->description) }}</textarea>
-                    @error('description')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-8">
+        <div class="grid gap-4 p-4 xl:overflow-y-auto">
+            <div class="min-w-0 space-y-4">
+                <section class="space-y-3">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Orden</label>
-                        <input type="number" name="sort_order" value="{{ old('sort_order', $catalogCategory->sort_order) }}" min="0"
-                               class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-400 @error('sort_order') border-red-400 bg-red-50 @enderror">
-                        @error('sort_order')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Informacion principal</p>
+                        <p class="text-xs text-gray-500">Nombre, slug y descripcion de la categoria.</p>
+                    </div>
+
+                    @if ($returnToType && $selectedType)
+                        <input type="hidden" name="catalog_type_id" value="{{ $selectedType->id }}">
+                    @else
+                        <div>
+                            <label class="{{ $labelClass }}">Seccion *</label>
+                            <select name="catalog_type_id"
+                                class="{{ $inputClass }} @error('catalog_type_id') border-red-400 bg-red-50 @enderror">
+                                @foreach ($types as $type)
+                                    <option value="{{ $type->id }}" {{ old('catalog_type_id', $catalogCategory->catalog_type_id) == $type->id ? 'selected' : '' }}>
+                                        {{ $type->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('catalog_type_id')
+                                <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    @endif
+
+                    <div>
+                        <label class="{{ $labelClass }}">Nombre *</label>
+                        <input type="text" name="name" value="{{ old('name', $catalogCategory->name) }}"
+                            class="{{ $inputClass }} @error('name') border-red-400 bg-red-50 @enderror">
+                        @error('name')
+                            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    <div class="flex items-center pt-8">
-                        <label class="inline-flex items-center gap-3 text-sm text-gray-700">
-                            <input type="checkbox" name="active" value="1" {{ old('active', $catalogCategory->active) ? 'checked' : '' }} class="rounded border-gray-300 text-gray-900 focus:ring-gray-400">
-                            Categoría activa
-                        </label>
+                    <div>
+                        <label class="{{ $labelClass }}">Slug</label>
+                        <input type="text" name="slug" value="{{ old('slug', $catalogCategory->slug) }}"
+                            class="{{ $inputClass }} @error('slug') border-red-400 bg-red-50 @enderror"
+                            placeholder="Se genera automaticamente si lo dejas vacio">
+                        @error('slug')
+                            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                        @enderror
                     </div>
-                </div>
 
-                <div class="flex flex-wrap gap-3 pt-2">
-                    <button type="submit"
-                            class="bg-gray-900 text-white px-6 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-sm">
-                        Actualizar Categoría
-                    </button>
-                    <a href="{{ route('admin.catalog-categories.index') }}"
-                       class="bg-gray-100 text-gray-700 px-6 py-2.5 rounded-lg hover:bg-gray-200 transition font-medium text-sm text-center">
-                        Cancelar
-                    </a>
-                </div>
-            </form>
+                    <div>
+                        <label class="{{ $labelClass }}">Descripcion</label>
+                        <textarea name="description" rows="5"
+                            class="{{ $inputClass }} resize-none @error('description') border-red-400 bg-red-50 @enderror"
+                            placeholder="Describe que agrupa esta categoria">{{ old('description', $catalogCategory->description) }}</textarea>
+                        @error('description')
+                            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </section>
+            </div>
         </div>
-    </div>
+
+        <div class="flex flex-col gap-2 border-t border-gray-100 p-4 sm:flex-row sm:justify-end">
+            <a href="{{ $returnUrl }}"
+                class="inline-flex h-10 items-center justify-center rounded-lg bg-gray-100 px-5 text-sm font-semibold text-gray-600 transition hover:bg-gray-200">
+                Cancelar
+            </a>
+            <button type="submit"
+                class="inline-flex h-10 items-center justify-center rounded-lg bg-gray-900 px-5 text-sm font-semibold text-white transition hover:bg-gray-700">
+                Actualizar Categoria
+            </button>
+        </div>
+    </form>
 </div>
 @endsection
-
