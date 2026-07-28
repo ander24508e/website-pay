@@ -15,8 +15,8 @@
         $secondaryButtonClass = 'inline-flex items-center justify-center gap-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition text-sm font-medium text-center shrink-0';
     @endphp
 
-    <div class="container mx-auto px-4 sm:px-6 min-h-0 xl:h-[calc(100vh-3rem)] xl:overflow-hidden xl:flex xl:flex-col">
-        <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4 shrink-0">
+    <div class="mx-auto w-full max-w-6xl overflow-x-hidden px-3 pb-4 sm:px-6">
+        <div class="flex items-start gap-3 mb-4">
             <a href="{{ route('admin.catalog.index') }}"
                 class="flex items-center justify-center w-9 h-9 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition text-gray-500 hover:text-gray-800 shrink-0">
                 <span aria-hidden="true">&larr;</span>
@@ -27,9 +27,9 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 xl:grid-cols-12 gap-4 xl:min-h-0 xl:flex-1">
-            <aside class="xl:col-span-4 xl:min-h-0">
-                <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6 xl:h-full xl:max-h-full xl:overflow-y-auto">
+        <div class="grid grid-cols-1 lg:grid-cols-[320px_minmax(0,1fr)] gap-4">
+            <aside class="min-w-0">
+                <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6">
                     <div class="flex flex-wrap gap-3 mb-5">
                         <h3 class="text-lg font-bold text-gray-800">Información del Negocio</h3>
                     </div>
@@ -51,11 +51,7 @@
                             <p class="text-xs text-gray-400 uppercase tracking-wide">Modelo del negocio</p>
                             <span class="inline-flex rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">{{ $businessModelLabel }}</span>
                         </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <div>
-                                <p class="text-xs text-gray-400 uppercase tracking-wide">Orden</p>
-                                <p class="text-gray-700 font-semibold">{{ $catalogType->sort_order }}</p>
-                            </div>
+                        <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <p class="text-xs text-gray-400 uppercase tracking-wide">Categorías</p>
                                 <p class="text-gray-700 font-semibold">{{ $catalogType->categories_count }}</p>
@@ -75,9 +71,9 @@
                         </div>
                     </div>
 
-                    <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
+                    <div class="flex flex-col gap-3 pt-4 border-t border-gray-100 sm:flex-row">
                         <a href="{{ route('admin.catalog-types.edit', $catalogType) }}"
-                            class="bg-gray-900 text-white px-5 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-sm">
+                            class="w-full bg-gray-900 text-white px-5 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-sm text-center sm:w-auto">
                             Editar
                         </a>
                         <form action="{{ route('admin.catalog-types.destroy', $catalogType) }}" method="POST"
@@ -85,7 +81,7 @@
                             @csrf
                             @method('DELETE')
                             <button
-                                class="bg-red-50 text-red-600 px-5 py-2.5 rounded-lg hover:bg-red-100 transition font-medium text-sm border border-red-200">
+                                class="w-full bg-red-50 text-red-600 px-5 py-2.5 rounded-lg hover:bg-red-100 transition font-medium text-sm border border-red-200 sm:w-auto">
                                 Eliminar
                             </button>
                         </form>
@@ -93,14 +89,14 @@
                 </div>
             </aside>
 
-            <section class="xl:col-span-8 xl:min-h-0 flex flex-col xl:grid xl:grid-rows-2 gap-4">
-                <div class="bg-white rounded-xl shadow-sm overflow-hidden xl:min-h-0 flex flex-col">
+            <section class="min-w-0 flex flex-col gap-4">
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden flex flex-col">
                     <div class="p-4 sm:p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shrink-0">
                         <div class="min-w-0">
                             <h3 class="text-lg font-bold text-gray-800">Categorías de esta sección</h3>
                             <p class="text-sm text-gray-400">Organiza tus {{ $itemPlural }} por categoría.</p>
                         </div>
-                        <div class="flex flex-wrap items-center gap-2 shrink-0">
+                        <div class="flex flex-col items-stretch gap-2 shrink-0 sm:flex-row sm:items-center">
                             <a href="{{ route('admin.catalog-categories.create', ['catalog_type_id' => $catalogType->id, 'return_to_type' => 1]) }}"
                                 class="{{ $primaryButtonClass }}">
                                 + Nueva Categoría
@@ -169,7 +165,7 @@
                             @endforeach
                         </div>
 
-                        <div class="hidden md:block overflow-y-auto overflow-x-hidden max-h-[320px] xl:max-h-none xl:min-h-0 flex-1">
+                        <div class="hidden md:block overflow-y-auto overflow-x-hidden max-h-[320px] flex-1">
                             <table class="w-full table-fixed text-sm text-left">
                                 <thead class="bg-gray-50 border-b sticky top-0 z-10">
                                     <tr>
@@ -233,13 +229,13 @@
                     @endif
                 </div>
 
-                <div class="bg-white rounded-xl shadow-sm overflow-hidden xl:min-h-0 flex flex-col">
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden flex flex-col">
                     <div class="p-4 sm:p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shrink-0">
                         <div class="min-w-0">
                             <h3 class="text-lg font-bold text-gray-800">{{ $itemPluralTitle }} dentro de {{ $catalogType->name }}</h3>
                             <p class="text-sm text-gray-400">Se muestran en la web y se usan en ventas.</p>
                         </div>
-                        <div class="flex flex-wrap items-center gap-2 shrink-0">
+                        <div class="flex flex-col items-stretch gap-2 shrink-0 sm:flex-row sm:items-center">
                             <a href="{{ route('admin.catalog-items.create', ['catalog_type_id' => $catalogType->id, 'return_to_type' => 1]) }}"
                                 class="{{ $primaryButtonClass }}">
                                 + Agregar {{ $itemSingularTitle }}
@@ -318,7 +314,7 @@
                             @endforeach
                         </div>
 
-                        <div class="hidden md:block overflow-y-auto overflow-x-hidden max-h-[320px] xl:max-h-none xl:min-h-0 flex-1">
+                        <div class="hidden md:block overflow-y-auto overflow-x-hidden max-h-[320px] flex-1">
                             <table class="w-full table-fixed text-sm text-left">
                                 <thead class="bg-gray-50 border-b sticky top-0 z-10">
                                     <tr>

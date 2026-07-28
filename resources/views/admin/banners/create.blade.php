@@ -3,7 +3,7 @@
 @section('title', 'Nuevo Banner')
 
 @section('content')
-<div class="container mx-auto px-4 sm:px-6">
+<div class="mx-auto w-full max-w-full overflow-x-hidden px-3 pb-4 sm:px-6">
     <div class="flex flex-wrap items-center gap-3 mb-6">
         <a href="{{ route('admin.banners.index') }}"
            class="flex items-center justify-center w-9 h-9 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition text-gray-500 hover:text-gray-800">

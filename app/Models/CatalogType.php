@@ -16,13 +16,11 @@ class CatalogType extends Model
         'slug',
         'description',
         'business_model',
-        'sort_order',
         'active',
     ];
 
     protected $casts = [
         'active' => 'boolean',
-        'sort_order' => 'integer',
     ];
 
     public function empresa()
@@ -47,6 +45,6 @@ class CatalogType extends Model
 
     public function scopeOrdered(Builder $query): Builder
     {
-        return $query->orderBy('sort_order')->orderBy('name');
+        return $query->orderBy('name');
     }
 }

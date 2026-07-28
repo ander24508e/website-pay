@@ -370,12 +370,18 @@
         .main-content {
             margin-left: var(--sidebar-width);
             padding: 1.5rem;
+            width: calc(100% - var(--sidebar-width));
+            max-width: calc(100vw - var(--sidebar-width));
+            min-width: 0;
+            overflow-x: hidden;
             transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         /* Cuando sidebar está colapsado */
         .sidebar.collapsed~.main-content {
             margin-left: var(--sidebar-collapsed-width);
+            width: calc(100% - var(--sidebar-collapsed-width));
+            max-width: calc(100vw - var(--sidebar-collapsed-width));
         }
 
         /* ========== BOTTOM SHEET (Móvil) ========== */
@@ -585,7 +591,9 @@
 
             .main-content {
                 margin-left: 0 !important;
-                padding: 1rem;
+                width: 100%;
+                max-width: 100vw;
+                padding: 1rem 0.75rem;
             }
 
             .bottom-sheet-trigger {

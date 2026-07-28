@@ -8,7 +8,7 @@
     $returnContext = $returnContext ?? [];
 @endphp
 
-<div class="container mx-auto px-4 sm:px-6">
+<div class="mx-auto w-full max-w-full overflow-x-hidden px-3 pb-4 sm:px-6">
     <div class="flex flex-wrap items-center gap-2 text-xs text-gray-400 uppercase tracking-wide mb-4">
         <a href="{{ route('admin.catalog.index') }}" class="hover:text-gray-600 transition">Catálogo</a>
         <span>/</span>
@@ -52,7 +52,7 @@
         </a>
     </div>
 
-    <div class="max-w-4xl mx-auto">
+    <div class="mx-auto w-full max-w-4xl">
         <div class="bg-white rounded-xl shadow-sm p-4 sm:p-8">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                 <div class="lg:col-span-1">
@@ -159,19 +159,67 @@
             @endif
 
             <div class="mb-8">
-                <div class="flex items-center justify-between gap-3 mb-3">
+                <div class="flex flex-col gap-3 mb-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <p class="text-sm font-semibold text-gray-800">Presentaciones</p>
                         <p class="text-xs text-gray-400">Gestiona tamaños, versiones y precios derivados.</p>
                     </div>
                     <a href="{{ route('admin.catalog-variants.create', ['catalog_item_id' => $catalogItem->id]) }}"
-                       class="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition text-sm font-medium">
+                       class="w-full bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition text-sm font-medium text-center sm:w-auto">
                         + Nueva Presentación
                     </a>
                 </div>
 
                 <div class="rounded-xl border border-gray-200 overflow-hidden">
-                    <div class="overflow-x-auto">
+                    <div class="md:hidden divide-y divide-gray-100">
+                        @forelse($catalogItem->variants as $variant)
+                            <article class="p-4 space-y-3">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div class="min-w-0">
+                                        <p class="font-medium text-gray-800 break-words">{{ $variant->name }}</p>
+                                        <p class="text-xs text-gray-400 break-words">{{ $variant->sku ?: 'Sin SKU' }}</p>
+                                    </div>
+                                    <div class="shrink-0 flex flex-wrap justify-end gap-1">
+                                        @if($variant->active)
+                                            <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-medium">Activa</span>
+                                        @else
+                                            <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs font-medium">Oculta</span>
+                                        @endif
+                                        @if($variant->is_default)
+                                            <span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-xs font-medium">Base</span>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-3 text-sm">
+                                    <div>
+                                        <p class="text-xs uppercase text-gray-400 font-semibold">Presentación</p>
+                                        <p class="text-gray-700 break-words">
+                                            @php
+                                                $variantPresentation = isset($variant->presentation) ? $variant->presentation : '';
+                                                $variantSpecification = isset($variant->specification) ? $variant->specification : '';
+                                                $variantDetails = trim($variantPresentation . ' ' . $variantSpecification);
+                                            @endphp
+                                            {{ $variantDetails !== '' ? $variantDetails : '-' }}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs uppercase text-gray-400 font-semibold">Precio</p>
+                                        <p class="font-semibold text-gray-800">{{ $variant->price !== null ? '$' . number_format((float) $variant->price, 2) : '-' }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex justify-end gap-2">
+                                    <a href="{{ route('admin.catalog-variants.show', $variant) }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Ver</a>
+                                    <a href="{{ route('admin.catalog-variants.edit', $variant) }}" class="text-yellow-600 hover:text-yellow-800 text-sm font-medium">Editar</a>
+                                </div>
+                            </article>
+                        @empty
+                            <div class="px-4 py-8 text-center text-gray-400">Este producto o servicio aún no tiene presentaciones.</div>
+                        @endforelse
+                    </div>
+
+                    <div class="hidden md:block">
                         <table class="min-w-full text-sm text-left">
                             <thead class="bg-gray-50 border-b">
                                 <tr>
@@ -234,20 +282,20 @@
                 </div>
             </div>
 
-            <div class="flex flex-wrap gap-3 pt-2 border-t border-gray-100">
+            <div class="flex flex-col gap-3 pt-2 border-t border-gray-100 sm:flex-row">
                 <a href="{{ route('admin.catalog-items.edit', ['catalogItem' => $catalogItem, ...$returnContext]) }}"
-                   class="bg-gray-900 text-white px-5 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-sm">
+                   class="w-full bg-gray-900 text-white px-5 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-sm text-center sm:w-auto">
                     Editar
                 </a>
                 <a href="{{ route('admin.catalog-variants.create', ['catalog_item_id' => $catalogItem->id]) }}"
-                   class="bg-gray-100 text-gray-700 px-5 py-2.5 rounded-lg hover:bg-gray-200 transition font-medium text-sm">
+                   class="w-full bg-gray-100 text-gray-700 px-5 py-2.5 rounded-lg hover:bg-gray-200 transition font-medium text-sm text-center sm:w-auto">
                     + Presentación
                 </a>
                 <form action="{{ route('admin.catalog-items.destroy', $catalogItem) }}" method="POST"
                       onsubmit="return confirm('¿Eliminar este producto o servicio?')">
                     @csrf
                     @method('DELETE')
-                    <button class="bg-red-50 text-red-600 px-5 py-2.5 rounded-lg hover:bg-red-100 transition font-medium text-sm border border-red-200">
+                    <button class="w-full bg-red-50 text-red-600 px-5 py-2.5 rounded-lg hover:bg-red-100 transition font-medium text-sm border border-red-200 sm:w-auto">
                         Eliminar
                     </button>
                 </form>

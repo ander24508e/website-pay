@@ -19,7 +19,7 @@
             : route('admin.catalog.index');
     @endphp
 
-    <div class="container mx-auto px-4 sm:px-6">
+    <div class="mx-auto w-full max-w-full overflow-x-hidden px-3 pb-4 sm:px-6">
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
             <div class="min-w-0">
                 <div class="flex items-center gap-2">
@@ -65,8 +65,61 @@
         </div>
 
         <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-            <div class="overflow-x-auto overflow-y-auto max-h-[70vh]">
-                <table class="min-w-[840px] w-full text-sm text-left">
+            <div class="md:hidden divide-y divide-gray-100">
+                @forelse($categories as $category)
+                    <article class="p-4 space-y-4">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0">
+                                <p class="font-semibold text-gray-900 break-words">{{ $category->name }}</p>
+                                <p class="mt-1 font-mono text-xs text-gray-400 break-all">{{ $category->slug ?: '-' }}</p>
+                            </div>
+                            @if ($category->active)
+                                <span class="shrink-0 bg-green-100 text-green-700 px-2.5 py-1 rounded-full text-xs font-medium">Activa</span>
+                            @else
+                                <span class="shrink-0 bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full text-xs font-medium">Oculta</span>
+                            @endif
+                        </div>
+
+                        @if ($category->description)
+                            <p class="text-sm text-gray-500 break-words">{{ \Illuminate\Support\Str::limit($category->description, 110) }}</p>
+                        @endif
+
+                        <div class="grid grid-cols-2 gap-3 text-sm">
+                            <div class="rounded-lg bg-gray-50 px-3 py-2">
+                                <p class="text-[11px] uppercase tracking-wide text-gray-400 font-semibold">Seccion</p>
+                                <p class="mt-1 text-gray-800 break-words">{{ $category->type?->name ?? 'Sin seccion' }}</p>
+                            </div>
+                            <div class="rounded-lg bg-gray-50 px-3 py-2">
+                                <p class="text-[11px] uppercase tracking-wide text-gray-400 font-semibold">{{ ucfirst($itemPlural) }}</p>
+                                <p class="mt-1 font-semibold text-gray-800">{{ $category->items_count }}</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-end gap-2">
+                            <a href="{{ route('admin.catalog-categories.edit', $category) }}"
+                                class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-yellow-50 text-yellow-700 hover:bg-yellow-100 transition"
+                                title="Editar" aria-label="Editar">
+                                <x-heroicon-o-pencil-square class="w-5 h-5" />
+                            </a>
+                            <form method="POST" action="{{ route('admin.catalog-categories.destroy', $category) }}"
+                                onsubmit="return confirm('¿Eliminar esta categoría universal?');">
+                                @csrf
+                                @method('DELETE')
+                                <button
+                                    class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition"
+                                    title="Eliminar" aria-label="Eliminar">
+                                    <x-heroicon-o-trash class="w-5 h-5" />
+                                </button>
+                            </form>
+                        </div>
+                    </article>
+                @empty
+                    <div class="px-4 py-10 text-center text-gray-400">No hay Categorias registradas</div>
+                @endforelse
+            </div>
+
+            <div class="hidden md:block overflow-y-auto max-h-[70vh]">
+                <table class="w-full table-fixed text-sm text-left">
                     <thead class="bg-gray-50 border-b sticky top-0 z-10">
                         <tr>
                             <th class="px-4 sm:px-6 py-3 sm:py-4 text-center">Nombre</th>

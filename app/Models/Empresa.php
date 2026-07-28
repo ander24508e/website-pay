@@ -37,7 +37,7 @@ class Empresa extends Model
 
     public function catalogTypes()
     {
-        return $this->hasMany(CatalogType::class)->orderBy('sort_order')->orderBy('name');
+        return $this->hasMany(CatalogType::class)->orderBy('name');
     }
 
     public function catalogCategories()

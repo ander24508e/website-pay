@@ -3,7 +3,7 @@
 @section('title', 'Transferencias de Inventario')
 
 @section('content')
-<div class="container mx-auto px-4 sm:px-6 space-y-6">
+<div class="mx-auto w-full max-w-full overflow-x-hidden px-3 pb-4 sm:px-6 space-y-6">
     <div class="flex items-center justify-between gap-3">
         <div>
             <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Transferencias</h2>

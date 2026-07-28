@@ -3,7 +3,7 @@
 @section('title', 'Banners')
 
 @section('content')
-<div class="container mx-auto px-4 sm:px-6">
+<div class="mx-auto w-full max-w-full overflow-x-hidden px-3 pb-4 sm:px-6">
 
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
         <div class="min-w-0">
@@ -14,7 +14,7 @@
             <p class="text-gray-500 text-sm mt-1">Gestiona el carrusel del landing page</p>
         </div>
 
-        <form method="GET" action="{{ route('admin.banners.index') }}" class="flex-1 max-w-xl">
+        <form method="GET" action="{{ route('admin.banners.index') }}" class="w-full flex-1 lg:max-w-xl">
             <div class="relative">
                 <x-heroicon-o-magnifying-glass class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input type="search" name="q" value="{{ request('q') }}" placeholder="Buscar por titulo, texto o boton del banner..." class="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm text-gray-700 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none focus:ring-0">
@@ -22,7 +22,7 @@
         </form>
 
         <a href="{{ route('admin.banners.create') }}"
-           class="bg-gray-900 text-white px-5 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-center">
+           class="w-full bg-gray-900 text-white px-5 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-center sm:w-auto">
             + Nuevo Banner
         </a>
     </div>

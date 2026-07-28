@@ -3,7 +3,7 @@
 @section('title', 'Detalle Transacción')
 
 @section('content')
-    <div class="container mx-auto px-4 sm:px-6">
+    <div class="mx-auto w-full max-w-full overflow-x-hidden px-3 pb-4 sm:px-6">
 
         {{-- HEADER --}}
         <div class="flex flex-wrap items-center gap-3 mb-6">

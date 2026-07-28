@@ -15,7 +15,6 @@ return new class extends Migration
             $table->string('slug')->nullable();
             $table->text('description')->nullable();
             $table->string('business_model', 20)->default('services');
-            $table->unsignedInteger('sort_order')->default(0);
             $table->boolean('active')->default(true);
             $table->timestamps();
 

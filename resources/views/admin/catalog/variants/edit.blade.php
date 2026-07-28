@@ -3,7 +3,7 @@
 @section('title', 'Editar Variante Universal')
 
 @section('content')
-<div class="container mx-auto px-4 sm:px-6">
+<div class="mx-auto w-full max-w-full overflow-x-hidden px-3 pb-4 sm:px-6">
     <div class="flex flex-wrap items-center gap-3 mb-6">
         <a href="{{ route('admin.catalog-variants.index') }}"
            class="flex items-center justify-center w-9 h-9 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition text-gray-500 hover:text-gray-800">
@@ -15,7 +15,7 @@
         </div>
     </div>
 
-    <div class="max-w-2xl mx-auto">
+    <div class="mx-auto w-full max-w-3xl">
         <div class="bg-white rounded-xl shadow-sm p-4 sm:p-8">
             <form action="{{ route('admin.catalog-variants.update', $catalogVariant) }}" method="POST">
                 @csrf
@@ -45,7 +45,7 @@
                     @enderror
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Presentación</label>
                         <input type="text" name="presentation" value="{{ old('presentation', $catalogVariant->presentation) }}"
@@ -138,13 +138,13 @@
                     Si marcas esta variante como base, reemplazara a cualquier otra variante base del mismo item.
                 </div>
 
-                <div class="flex flex-wrap gap-3 pt-2">
+                <div class="flex flex-col gap-3 pt-2 sm:flex-row">
                     <button type="submit"
-                            class="bg-gray-900 text-white px-6 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-sm">
+                            class="w-full bg-gray-900 text-white px-6 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-sm sm:w-auto">
                         Actualizar Variante
                     </button>
                     <a href="{{ route('admin.catalog-variants.index') }}"
-                       class="bg-gray-100 text-gray-700 px-6 py-2.5 rounded-lg hover:bg-gray-200 transition font-medium text-sm text-center">
+                       class="w-full bg-gray-100 text-gray-700 px-6 py-2.5 rounded-lg hover:bg-gray-200 transition font-medium text-sm text-center sm:w-auto">
                         Cancelar
                     </a>
                 </div>
@@ -153,4 +153,3 @@
     </div>
 </div>
 @endsection
-

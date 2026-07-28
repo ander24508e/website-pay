@@ -23,7 +23,7 @@
         $businessModelLabel = fn($section) => $isProductBusiness($section) ? 'Productos' : 'Servicios';
     @endphp
 
-    <div class="container mx-auto px-4 sm:px-6">
+    <div class="mx-auto w-full max-w-full overflow-x-hidden px-3 pb-4 sm:px-6">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div class="min-w-0">
                 <div class="flex items-center gap-2">
@@ -178,5 +178,4 @@
         </section>
     </div>
 @endsection
-
 

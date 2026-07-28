@@ -61,8 +61,6 @@ class CatalogoController extends Controller
                             ->orWhereHas('category', fn($cq) => $cq->where('name', 'LIKE', "%{$search}%"));
                     });
                 })
-                ->orderByRaw('CASE WHEN catalog_types.sort_order > 0 THEN 0 ELSE 1 END')
-                ->orderBy('catalog_types.sort_order')
                 ->orderBy('catalog_types.name')
                 ->orderByRaw('CASE WHEN catalog_items.sort_order > 0 THEN 0 ELSE 1 END')
                 ->orderBy('catalog_items.sort_order')

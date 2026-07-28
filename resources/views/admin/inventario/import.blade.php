@@ -3,7 +3,7 @@
 @section('title', 'Importar Inventario')
 
 @section('content')
-<div class="container mx-auto px-4 sm:px-6 max-w-5xl">
+<div class="mx-auto w-full max-w-5xl overflow-x-hidden px-3 pb-4 sm:px-6">
     <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div class="flex items-center gap-3">
             <a href="{{ route('admin.inventario.index') }}"

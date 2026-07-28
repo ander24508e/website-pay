@@ -52,7 +52,7 @@
         ]);
     @endphp
 
-    <div class="container mx-auto px-4 sm:px-6">
+    <div class="mx-auto w-full max-w-full overflow-x-hidden px-3 pb-4 sm:px-6">
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
             <div class="min-w-0">
                 <div class="flex items-center gap-2">
@@ -76,7 +76,7 @@
                 </div>
             </div>
 
-            <form method="GET" action="{{ route('admin.catalog-items.index') }}" class="flex-1 max-w-xl">
+            <form method="GET" action="{{ route('admin.catalog-items.index') }}" class="w-full flex-1 lg:max-w-xl">
                 @if (isset($selectedType) && $selectedType)
                     <input type="hidden" name="catalog_type_id" value="{{ $selectedType->id }}">
                 @endif
@@ -92,7 +92,7 @@
             </form>
 
             <a href="{{ route('admin.catalog-items.create', $createParams) }}"
-                class="inline-flex items-center justify-center bg-gray-900 text-white w-11 h-11 rounded-lg hover:bg-gray-700 transition"
+                class="inline-flex h-11 w-full items-center justify-center rounded-lg bg-gray-900 text-white transition hover:bg-gray-700 sm:w-11"
                 title="Nuevo {{ strtolower($itemSingular) }}" aria-label="Nuevo {{ strtolower($itemSingular) }}">
                 <x-heroicon-o-plus class="w-5 h-5" />
             </a>

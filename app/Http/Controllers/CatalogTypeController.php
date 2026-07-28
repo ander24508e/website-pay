@@ -35,7 +35,6 @@ class CatalogTypeController extends Controller
                 CatalogType::BUSINESS_MODEL_SERVICES,
                 CatalogType::BUSINESS_MODEL_PRODUCTS,
             ])],
-            'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
             'active' => ['nullable', 'boolean'],
         ]);
 
@@ -47,7 +46,6 @@ class CatalogTypeController extends Controller
             'slug' => $slug,
             'description' => $this->cleanInput($data['description'] ?? null),
             'business_model' => $data['business_model'],
-            'sort_order' => (int) ($data['sort_order'] ?? 0),
             'active' => $request->boolean('active', true),
         ]);
 
@@ -82,7 +80,6 @@ class CatalogTypeController extends Controller
                 CatalogType::BUSINESS_MODEL_SERVICES,
                 CatalogType::BUSINESS_MODEL_PRODUCTS,
             ])],
-            'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
             'active' => ['nullable', 'boolean'],
         ]);
 
@@ -93,7 +90,6 @@ class CatalogTypeController extends Controller
             'slug' => $slug,
             'description' => $this->cleanInput($data['description'] ?? null),
             'business_model' => $data['business_model'],
-            'sort_order' => (int) ($data['sort_order'] ?? 0),
             'active' => $request->boolean('active'),
         ]);
 

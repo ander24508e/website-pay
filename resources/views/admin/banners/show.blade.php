@@ -3,7 +3,7 @@
 @section('title', 'Detalle Banner')
 
 @section('content')
-<div class="container mx-auto px-4 sm:px-6">
+<div class="mx-auto w-full max-w-full overflow-x-hidden px-3 pb-4 sm:px-6">
 
     <div class="flex items-center gap-4 mb-6">
         <a href="{{ route('admin.banners.index') }}"

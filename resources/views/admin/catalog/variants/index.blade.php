@@ -3,7 +3,7 @@
 @section('title', 'Presentaciones')
 
 @section('content')
-<div class="container mx-auto px-4 sm:px-6">
+<div class="mx-auto w-full max-w-full overflow-x-hidden px-3 pb-4 sm:px-6">
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
         <div class="min-w-0">
             <div class="flex items-center gap-2">
@@ -19,7 +19,7 @@
             </div>
         </div>
 
-        <form method="GET" action="{{ route('admin.catalog-variants.index') }}" class="flex-1 max-w-xl">
+        <form method="GET" action="{{ route('admin.catalog-variants.index') }}" class="w-full flex-1 lg:max-w-xl">
             <div class="relative">
                 <x-heroicon-o-magnifying-glass class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input type="search" name="q" value="{{ request('q') }}" placeholder="Buscar por presentación, SKU, producto o sección..." class="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm text-gray-700 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none focus:ring-0">
@@ -27,7 +27,7 @@
         </form>
 
         <a href="{{ route('admin.catalog-variants.create') }}"
-            class="inline-flex items-center justify-center bg-gray-900 text-white w-11 h-11 rounded-lg hover:bg-gray-700 transition"
+            class="inline-flex h-11 w-full items-center justify-center rounded-lg bg-gray-900 text-white transition hover:bg-gray-700 sm:w-11"
             title="Nueva presentación" aria-label="Nueva presentación">
             <x-heroicon-o-plus class="w-5 h-5" />
         </a>
