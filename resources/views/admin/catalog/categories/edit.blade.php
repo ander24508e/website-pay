@@ -64,7 +64,7 @@
 
                     <div>
                         <label class="{{ $labelClass }}">Nombre *</label>
-                        <input type="text" name="name" value="{{ old('name', $catalogCategory->name) }}"
+                        <input type="text" name="name" id="category_name" value="{{ old('name', $catalogCategory->name) }}"
                             class="{{ $inputClass }} @error('name') border-red-400 bg-red-50 @enderror">
                         @error('name')
                             <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
@@ -73,9 +73,9 @@
 
                     <div>
                         <label class="{{ $labelClass }}">Slug</label>
-                        <input type="text" name="slug" value="{{ old('slug', $catalogCategory->slug) }}"
-                            class="{{ $inputClass }} @error('slug') border-red-400 bg-red-50 @enderror"
-                            placeholder="Se genera automaticamente si lo dejas vacio">
+                        <input type="text" name="slug" id="category_slug" value="{{ old('slug', $catalogCategory->slug) }}"
+                            class="{{ $inputClass }} bg-white text-gray-500 @error('slug') border-red-400 bg-red-50 @enderror"
+                            placeholder="Se genera automaticamente" readonly>
                         @error('slug')
                             <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                         @enderror
@@ -107,3 +107,25 @@
     </form>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const nameInput = document.getElementById('category_name');
+        const slugInput = document.getElementById('category_slug');
+
+        function slugify(value) {
+            return value.toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '')
+                .replace(/\s+/g, '-').replace(/-+/g, '-');
+        }
+
+        function syncSlug() {
+            if (slugInput) slugInput.value = slugify(nameInput?.value || '');
+        }
+
+        nameInput?.addEventListener('input', syncSlug);
+        if (nameInput?.value && !slugInput?.value) syncSlug();
+    });
+</script>
+@endpush

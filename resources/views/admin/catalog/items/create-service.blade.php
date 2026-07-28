@@ -83,7 +83,7 @@
 
                             <div>
                                 <label class="{{ $labelClass }}">Nombre *</label>
-                                <input type="text" name="name" value="{{ old('name') }}"
+                                <input type="text" name="name" id="service_name" value="{{ old('name') }}"
                                     class="{{ $inputClass }} @error('name') border-red-400 bg-red-50 @enderror"
                                     placeholder="Ej: Lavado premium, mantenimiento, asesoría">
                                 @error('name') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
@@ -204,8 +204,8 @@
                             <div class="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
                                 <div>
                                     <label class="{{ $labelClass }}">Slug</label>
-                                    <input type="text" name="slug" value="{{ old('slug') }}"
-                                        class="{{ $inputClass }} bg-white @error('slug') border-red-400 bg-red-50 @enderror"
+                                    <input type="text" name="slug" id="service_slug" value="{{ old('slug') }}" readonly
+                                        class="{{ $inputClass }} bg-white text-gray-500 @error('slug') border-red-400 bg-red-50 @enderror"
                                         placeholder="Se genera automáticamente">
                                     @error('slug') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                                 </div>
@@ -256,6 +256,25 @@ function previewImage(input) {
     reader.readAsDataURL(file);
     document.getElementById('img-name').textContent = file.name;
 }
+
+function slugifyCatalogValue(value) {
+    return value.toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-').replace(/-+/g, '-');
+}
+
+(function syncServiceSlug() {
+    const nameInput = document.getElementById('service_name');
+    const slugInput = document.getElementById('service_slug');
+    if (!nameInput || !slugInput) return;
+
+    function syncSlug() {
+        slugInput.value = slugifyCatalogValue(nameInput.value || '');
+    }
+
+    nameInput.addEventListener('input', syncSlug);
+    if (nameInput.value && !slugInput.value) syncSlug();
+})();
 
 (function filterCategoriesByType() {
     const typeSelect = document.getElementById('catalog_type_id');

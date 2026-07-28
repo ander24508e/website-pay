@@ -37,7 +37,7 @@
         class="rounded-lg bg-white shadow-sm xl:flex xl:h-[calc(100%-4.25rem)] xl:flex-col xl:overflow-hidden">
         @csrf
         @method('PUT')
-        <input type="hidden" name="slug" value="{{ old('slug', $catalogItem->slug) }}">
+        <input type="hidden" name="slug" value="">
         <input type="hidden" name="sort_order" value="{{ old('sort_order', $catalogItem->sort_order) }}">
         <input type="hidden" name="base_price" id="base_price" value="{{ old('base_price', $catalogItem->base_price) }}">
         <input type="hidden" name="new_category_name" id="new_category_name" value="{{ old('new_category_name') }}">

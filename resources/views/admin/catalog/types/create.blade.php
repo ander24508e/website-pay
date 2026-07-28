@@ -25,7 +25,7 @@
 
                     <div class="mb-5">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
-                        <input type="text" name="name" value="{{ old('name') }}"
+                        <input type="text" name="name" id="catalog_type_name" value="{{ old('name') }}"
                             class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-400 @error('name') border-red-400 bg-red-50 @enderror"
                             placeholder="Ej: Servicios, Productos, Comida, Bebidas">
                         @error('name')
@@ -67,9 +67,9 @@
                     <div class="grid grid-cols-1 gap-5 mb-5">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Slug</label>
-                            <input type="text" name="slug" value="{{ old('slug') }}"
-                                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-400 @error('slug') border-red-400 bg-red-50 @enderror"
-                                placeholder="Se genera automáticamente si lo dejas vacío">
+                            <input type="text" name="slug" id="catalog_type_slug" value="{{ old('slug') }}"
+                                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-50 text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-400 @error('slug') border-red-400 bg-red-50 @enderror"
+                                placeholder="Se genera automaticamente" readonly>
                             @error('slug')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
@@ -123,4 +123,25 @@
     </div>
 @endsection
 
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const nameInput = document.getElementById('catalog_type_name');
+        const slugInput = document.getElementById('catalog_type_slug');
+
+        function slugify(value) {
+            return value.toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '')
+                .replace(/\s+/g, '-').replace(/-+/g, '-');
+        }
+
+        function syncSlug() {
+            if (slugInput) slugInput.value = slugify(nameInput?.value || '');
+        }
+
+        nameInput?.addEventListener('input', syncSlug);
+        if (nameInput?.value && !slugInput?.value) syncSlug();
+    });
+</script>
+@endpush
 

@@ -23,7 +23,7 @@
 
                 <div class="mb-5">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
-                    <input type="text" name="name" value="{{ old('name', $catalogType->name) }}"
+                    <input type="text" name="name" id="catalog_type_name" value="{{ old('name', $catalogType->name) }}"
                            class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-400 @error('name') border-red-400 bg-red-50 @enderror">
                     @error('name')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -61,8 +61,9 @@
                 <div class="grid grid-cols-1 gap-5 mb-5">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Slug</label>
-                        <input type="text" name="slug" value="{{ old('slug', $catalogType->slug) }}"
-                               class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-400 @error('slug') border-red-400 bg-red-50 @enderror">
+                        <input type="text" name="slug" id="catalog_type_slug" value="{{ old('slug', $catalogType->slug) }}"
+                               class="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-50 text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-400 @error('slug') border-red-400 bg-red-50 @enderror"
+                               readonly>
                         @error('slug')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
@@ -113,4 +114,25 @@
 </div>
 @endsection
 
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const nameInput = document.getElementById('catalog_type_name');
+        const slugInput = document.getElementById('catalog_type_slug');
+
+        function slugify(value) {
+            return value.toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '')
+                .replace(/\s+/g, '-').replace(/-+/g, '-');
+        }
+
+        function syncSlug() {
+            if (slugInput) slugInput.value = slugify(nameInput?.value || '');
+        }
+
+        nameInput?.addEventListener('input', syncSlug);
+        if (nameInput?.value && !slugInput?.value) syncSlug();
+    });
+</script>
+@endpush
 

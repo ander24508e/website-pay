@@ -14,13 +14,16 @@
                     ? 'productos'
                     : 'servicios')
                 : 'productos y servicios';
+        $backUrl = isset($selectedType) && $selectedType
+            ? route('admin.catalog-types.show', $selectedType)
+            : route('admin.catalog.index');
     @endphp
 
     <div class="container mx-auto px-4 sm:px-6">
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
             <div class="min-w-0">
                 <div class="flex items-center gap-2">
-                    <a href="{{ route('admin.catalog.index') }}"
+                    <a href="{{ $backUrl }}"
                         class="flex items-center justify-center w-9 h-9 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition text-gray-500 hover:text-gray-800">
                         <span aria-hidden="true">&larr;</span>
                     </a>
