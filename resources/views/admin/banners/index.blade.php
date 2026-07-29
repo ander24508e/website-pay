@@ -17,7 +17,7 @@
         <form method="GET" action="{{ route('admin.banners.index') }}" class="w-full flex-1 lg:max-w-xl">
             <div class="relative">
                 <x-heroicon-o-magnifying-glass class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input type="search" name="q" value="{{ request('q') }}" placeholder="Buscar por titulo, texto o boton del banner..." class="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm text-gray-700 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none focus:ring-0">
+                <input type="search" name="q" value="{{ request('q') }}" placeholder="Buscar por etiqueta, titulo o texto del banner..." class="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm text-gray-700 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none focus:ring-0">
             </div>
         </form>
 
@@ -34,7 +34,7 @@
                     <tr>
                         <th class="px-4 sm:px-6 py-3 sm:py-4">Imagen</th>
                         <th class="px-4 sm:px-6 py-3 sm:py-4">Titulo</th>
-                        <th class="px-4 sm:px-6 py-3 sm:py-4">Boton</th>
+                        <th class="px-4 sm:px-6 py-3 sm:py-4">Orden</th>
                         <th class="px-4 sm:px-6 py-3 sm:py-4">Principal</th>
                         <th class="px-4 sm:px-6 py-3 sm:py-4">Estado</th>
                         <th class="px-4 sm:px-6 py-3 sm:py-4">Acciones</th>
@@ -50,17 +50,14 @@
 
                             <td class="px-4 sm:px-6 py-3 sm:py-4">
                                 <p class="font-medium text-gray-800">{{ $banner->titulo ?: 'Sin titulo' }}</p>
+                                @if($banner->etiqueta)
+                                    <p class="text-xs text-amber-600 mt-0.5">{{ $banner->etiqueta }}</p>
+                                @endif
                                 <p class="text-xs text-gray-400 mt-0.5">{{ \Illuminate\Support\Str::limit($banner->texto, 70) ?: 'Sin texto adicional' }}</p>
                             </td>
 
-                            <td class="px-4 sm:px-6 py-3 sm:py-4 text-gray-500">
-                                @if($banner->boton_texto)
-                                    <span class="bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full text-xs font-medium">
-                                        {{ $banner->boton_texto }}
-                                    </span>
-                                @else
-                                    -
-                                @endif
+                            <td class="px-4 sm:px-6 py-3 sm:py-4 font-semibold text-gray-700">
+                                {{ $banner->orden }}
                             </td>
 
                             <td class="px-4 sm:px-6 py-3 sm:py-4">

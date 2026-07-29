@@ -47,11 +47,21 @@
     image-rendering: auto;
 }
 
+.hero-slide-media-cover {
+    object-fit: cover;
+}
+
 .hero-slide-overlay {
     position: absolute;
     inset: 0;
     z-index: 1;
     background: linear-gradient(90deg, rgba(8, 8, 8, 0.36) 0%, rgba(8, 8, 8, 0.22) 45%, rgba(8, 8, 8, 0.1) 100%);
+}
+
+.hero-slide-overlay-strong {
+    background:
+        radial-gradient(ellipse 70% 65% at 50% 45%, rgba(8, 8, 8, 0.38) 0%, rgba(8, 8, 8, 0.76) 75%),
+        linear-gradient(90deg, rgba(8, 8, 8, 0.72) 0%, rgba(8, 8, 8, 0.5) 50%, rgba(8, 8, 8, 0.72) 100%);
 }
 
 .hero-slide-content {

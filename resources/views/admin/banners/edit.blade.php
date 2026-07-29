@@ -36,7 +36,7 @@
                         class="w-full bg-gray-900 text-white py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-sm">
                     Cambiar Imagen
                 </button>
-                <p class="text-xs text-gray-400 text-center mt-2">JPG, PNG o WEBP - Max. 6MB</p>
+                <p class="text-xs text-gray-400 text-center mt-2">JPG, PNG o WEBP - Max. 6MB. Opcional para portada principal.</p>
 
                 @error('imagen')
                     <p class="text-red-500 text-xs mt-2 text-center">{{ $message }}</p>
@@ -69,7 +69,7 @@
                     </div>
                     <div>
                         <p class="text-sm font-semibold text-gray-700">Banner principal</p>
-                        <p class="text-xs text-gray-400">Si activas este, los demas dejan de ser principal.</p>
+                        <p class="text-xs text-gray-400">Se usara como portada inicial. Los demas dejan de ser principal.</p>
                     </div>
                 </label>
             </div>
@@ -97,6 +97,16 @@
                     @method('PUT')
 
                     <div class="mb-5">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Etiqueta superior</label>
+                        <input type="text" name="etiqueta" value="{{ old('etiqueta', $banner->etiqueta) }}"
+                               class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-gray-50 @error('etiqueta') border-red-400 bg-red-50 @enderror"
+                               placeholder="Ej: Servicio destacado">
+                        @error('etiqueta')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="mb-5">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Titulo</label>
                         <input type="text" name="titulo" value="{{ old('titulo', $banner->titulo) }}"
                                class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-gray-50 @error('titulo') border-red-400 bg-red-50 @enderror"
@@ -116,26 +126,15 @@
                         @enderror
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Texto del boton</label>
-                            <input type="text" name="boton_texto" value="{{ old('boton_texto', $banner->boton_texto) }}"
-                                   class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-gray-50 @error('boton_texto') border-red-400 bg-red-50 @enderror"
-                                   placeholder="Ej: Ver catalogo">
-                            @error('boton_texto')
-                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Link del boton</label>
-                            <input type="text" name="boton_link" value="{{ old('boton_link', $banner->boton_link) }}"
-                                   class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-gray-50 @error('boton_link') border-red-400 bg-red-50 @enderror"
-                                   placeholder="Ej: #catalogo o https://...">
-                            @error('boton_link')
-                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
+                    <div class="mb-5">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Orden</label>
+                        <input type="number" name="orden" min="0" max="9999" value="{{ old('orden', $banner->orden) }}"
+                               class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-gray-50 @error('orden') border-red-400 bg-red-50 @enderror">
+                        @error('orden')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
+
                     <div class="flex flex-wrap gap-3 pt-2 border-t border-gray-100">
                         <button type="submit"
                                 class="bg-gray-900 text-white px-6 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-sm">

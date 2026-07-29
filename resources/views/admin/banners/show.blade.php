@@ -79,18 +79,18 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div>
+                        <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Etiqueta superior</p>
+                        <p class="font-semibold text-gray-800">{{ $banner->etiqueta ?: '-' }}</p>
+                    </div>
+
+                    <div>
                         <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Titulo</p>
                         <p class="font-semibold text-gray-800">{{ $banner->titulo ?: '-' }}</p>
                     </div>
 
                     <div>
-                        <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Texto del boton</p>
-                        <p class="text-gray-700">{{ $banner->boton_texto ?: '-' }}</p>
-                    </div>
-
-                    <div>
-                        <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Link del boton</p>
-                        <p class="text-gray-700 break-all">{{ $banner->boton_link ?: '-' }}</p>
+                        <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Orden</p>
+                        <p class="text-gray-700">{{ $banner->orden }}</p>
                     </div>
                 </div>
             </div>

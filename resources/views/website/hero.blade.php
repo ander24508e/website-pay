@@ -4,26 +4,46 @@
 
 @php
     $landingBanners = $empresa->landingBanners->where('activo', true)->values();
+    $primaryBanner = $landingBanners->firstWhere('es_principal', true);
+    $imageBanners = $primaryBanner
+        ? $landingBanners->reject(fn ($banner) => $banner->id === $primaryBanner->id)->values()
+        : $landingBanners;
     $heroNombre = strtoupper($empresa->nombre ?? 'Lavadora y Lubricadora');
+    $heroTitulo = strtoupper($primaryBanner?->titulo ?: $heroNombre);
     $heroPartes = explode(' ', $heroNombre);
-    $heroInicio = implode(' ', array_slice($heroPartes, 0, 2));
-    $heroDestacado = implode(' ', array_slice($heroPartes, 2));
-    $totalSlides = 1 + $landingBanners->count();
+    $heroTitleParts = explode(' ', $heroTitulo);
+    $heroInicio = implode(' ', array_slice($heroTitleParts, 0, 2));
+    $heroDestacado = implode(' ', array_slice($heroTitleParts, 2));
+    $heroEtiqueta = $primaryBanner?->etiqueta ?: 'Servicio destacado';
+    $heroTexto = $primaryBanner?->texto ?: $empresa->descripcion_corta_texto;
+    $heroImage = $primaryBanner?->imagen ? $primaryBanner->imagen_url : null;
+    $totalSlides = 1 + $imageBanners->count();
 @endphp
 
 <section class="hero hero-carousel" id="inicio">
     <div class="hero-carousel-track" id="hero-carousel-track">
         <article class="hero-slide is-active" data-slide="0">
-            <div class="hero-bg"></div>
+            @if($heroImage)
+                <img class="hero-slide-media hero-slide-media-cover"
+                     src="{{ $heroImage }}"
+                     alt="{{ $primaryBanner->titulo ?: 'Portada principal' }}">
+                <div class="hero-slide-overlay hero-slide-overlay-strong"></div>
+            @else
+                <div class="hero-bg"></div>
+            @endif
             <div class="hero-slide-content hero-content">
-                <div class="hero-eyebrow">Servicio destacado</div>
+                @if($heroEtiqueta)
+                    <div class="hero-eyebrow">{{ $heroEtiqueta }}</div>
+                @endif
                 <h1 class="hero-title">
                     {{ $heroInicio ?: $heroNombre }}
                     @if($heroDestacado)
                         <span class="accent">{{ $heroDestacado }}</span>
                     @endif
                 </h1>
-                <p class="hero-sub">{{ $empresa->descripcion_corta_texto }}</p>
+                @if($heroTexto)
+                    <p class="hero-sub">{{ $heroTexto }}</p>
+                @endif
                 <div class="hero-actions">
                     <a href="#catalogo" class="btn-primary">Ver Catalogo</a>
                     <a href="#contacto" class="btn-outline">Contactanos</a>
@@ -47,28 +67,11 @@
             </div>
         </article>
 
-        @foreach($landingBanners as $index => $banner)
+        @foreach($imageBanners as $index => $banner)
             <article class="hero-slide" data-slide="{{ $index + 1 }}">
                 <img class="hero-slide-media"
                         src="{{ $banner->imagen_url }}"
                         alt="{{ $banner->titulo ?: 'Banner promocional' }}">
-                <div class="hero-slide-overlay"></div>
-                <div class="hero-slide-content">
-                    @if($banner->titulo)
-                        <div class="hero-eyebrow">Promocion destacada</div>
-                        <h1 class="hero-title hero-title-banner">{{ $banner->titulo }}</h1>
-                    @endif
-
-                    @if($banner->texto)
-                        <p class="hero-sub hero-sub-banner">{{ $banner->texto }}</p>
-                    @endif
-
-                    @if($banner->boton_texto && $banner->boton_link)
-                        <div class="hero-actions">
-                            <a href="{{ $banner->boton_link }}" class="btn-primary">{{ $banner->boton_texto }}</a>
-                        </div>
-                    @endif
-                </div>
             </article>
         @endforeach
     </div>

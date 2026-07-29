@@ -21,10 +21,9 @@ class BannerController extends Controller
             ->where('empresa_id', '=', $empresa->id)
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($subQuery) use ($search) {
-                    $subQuery->where('titulo', 'like', "%{$search}%")
-                        ->orWhere('texto', 'like', "%{$search}%")
-                        ->orWhere('boton_texto', 'like', "%{$search}%")
-                        ->orWhere('boton_link', 'like', "%{$search}%");
+                    $subQuery->where('etiqueta', 'like', "%{$search}%")
+                        ->orWhere('titulo', 'like', "%{$search}%")
+                        ->orWhere('texto', 'like', "%{$search}%");
                 });
             })
             ->ordered()
@@ -40,8 +39,9 @@ class BannerController extends Controller
     public function create()
     {
         $empresa = $this->getOrCreateEmpresa();
+        $nextOrder = (int) (LandingBanner::where('empresa_id', $empresa->id)->max('orden') ?? -1) + 1;
 
-        return view('admin.banners.create', compact('empresa'));
+        return view('admin.banners.create', compact('empresa', 'nextOrder'));
     }
 
     /**
@@ -66,11 +66,11 @@ class BannerController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
+            'etiqueta'    => 'nullable|string|max:80',
             'titulo'      => 'nullable|string|max:120',
             'texto'       => 'nullable|string|max:400',
-            'imagen'      => 'required|image|mimes:jpeg,png,jpg,webp|max:6144',
-            'boton_texto' => 'nullable|string|max:60',
-            'boton_link'  => 'nullable|string|max:1000',
+            'imagen'      => 'nullable|image|mimes:jpeg,png,jpg,webp|max:6144',
+            'orden'       => 'nullable|integer|min:0|max:9999',
             'activo'      => 'nullable|boolean',
             'es_principal' => 'nullable|boolean',
         ]);
@@ -79,13 +79,15 @@ class BannerController extends Controller
 
         $banner = new LandingBanner();
         $banner->empresa_id = $empresa->id;
+        $banner->etiqueta    = $this->cleanInput($data['etiqueta'] ?? null);
         $banner->titulo      = $this->cleanInput($data['titulo'] ?? null);
         $banner->texto       = $this->cleanInput($data['texto'] ?? null);
-        $banner->boton_texto = $this->cleanInput($data['boton_texto'] ?? null);
-        $banner->boton_link  = $this->cleanInput($data['boton_link'] ?? null);
+        $banner->orden       = (int) ($data['orden'] ?? 0);
         $banner->activo      = (bool) ($data['activo'] ?? true);
         $banner->es_principal = (bool) ($data['es_principal'] ?? false);
-        $banner->imagen      = $request->file('imagen')->store('landing_banners', 'public');
+        if ($request->hasFile('imagen') && $request->file('imagen')->isValid()) {
+            $banner->imagen = $request->file('imagen')->store('landing_banners', 'public');
+        }
         $banner->save();
 
         if ($banner->es_principal) {
@@ -105,21 +107,21 @@ class BannerController extends Controller
     public function update(Request $request, LandingBanner $banner)
     {
         $data = $request->validate([
+            'etiqueta'    => 'nullable|string|max:80',
             'titulo'      => 'nullable|string|max:120',
             'texto'       => 'nullable|string|max:400',
             'imagen'      => 'nullable|image|mimes:jpeg,png,jpg,webp|max:6144',
-            'boton_texto' => 'nullable|string|max:60',
-            'boton_link'  => 'nullable|string|max:1000',
+            'orden'       => 'nullable|integer|min:0|max:9999',
             'activo'      => 'nullable|boolean',
             'es_principal' => 'nullable|boolean',
         ]);
 
         $empresa = $this->getOrCreateEmpresa();
 
+        $banner->etiqueta    = $this->cleanInput($data['etiqueta'] ?? null);
         $banner->titulo      = $this->cleanInput($data['titulo'] ?? null);
         $banner->texto       = $this->cleanInput($data['texto'] ?? null);
-        $banner->boton_texto = $this->cleanInput($data['boton_texto'] ?? null);
-        $banner->boton_link  = $this->cleanInput($data['boton_link'] ?? null);
+        $banner->orden       = (int) ($data['orden'] ?? 0);
         $banner->activo      = (bool) ($data['activo'] ?? false);
         $banner->es_principal = (bool) ($data['es_principal'] ?? false);
 

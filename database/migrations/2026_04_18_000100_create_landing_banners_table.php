@@ -11,16 +11,16 @@ return new class extends Migration
         Schema::create('landing_banners', function (Blueprint $table) {
             $table->id();
             $table->foreignId('empresa_id')->constrained()->cascadeOnDelete();
+            $table->string('etiqueta')->nullable();
             $table->string('titulo')->nullable();
             $table->text('texto')->nullable();
-            $table->string('imagen');
-            $table->string('boton_texto')->nullable();
-            $table->string('boton_link')->nullable();
+            $table->string('imagen')->nullable();
+            $table->unsignedInteger('orden')->default(0);
             $table->boolean('activo')->default(true);
             $table->boolean('es_principal')->default(false);
             $table->timestamps();
 
-            $table->index(['empresa_id', 'es_principal']);
+            $table->index(['empresa_id', 'es_principal', 'orden']);
         });
     }
 

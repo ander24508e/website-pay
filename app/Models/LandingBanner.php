@@ -10,11 +10,11 @@ class LandingBanner extends Model
 {
     protected $fillable = [
         'empresa_id',
+        'etiqueta',
         'titulo',
         'texto',
         'imagen',
-        'boton_texto',
-        'boton_link',
+        'orden',
         'activo',
         'es_principal',
     ];
@@ -31,7 +31,7 @@ class LandingBanner extends Model
 
     public function scopeOrdered(Builder $query): Builder
     {
-        return $query->orderByDesc('es_principal')->orderByDesc('created_at');
+        return $query->orderByDesc('es_principal')->orderBy('orden')->orderByDesc('created_at');
     }
 
     public function scopeActive(Builder $query): Builder
