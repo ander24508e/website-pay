@@ -7,6 +7,8 @@
     $itemSingular = 'Servicio';
     $itemPlural = 'servicios';
     $returnToCategory = $returnToCategory ?? false;
+    $selectedServiceTypeId = (int) old('catalog_type_id', $selectedTypeId ?: ($types->first()?->id ?? 0));
+    $selectedServiceType = $types->firstWhere('id', $selectedServiceTypeId) ?? $types->first();
     $returnUrl = ($returnToCategory && $selectedCategoryId > 0)
         ? route('admin.catalog-items.index', [
             'catalog_type_id' => $selectedTypeId,
@@ -50,6 +52,7 @@
                 @csrf
                 <input type="hidden" name="redirect_to_type" value="{{ $returnToType ? 1 : 0 }}">
                 <input type="hidden" name="redirect_to_category" value="{{ $returnToCategory ? 1 : 0 }}">
+                <input type="hidden" name="catalog_type_id" id="catalog_type_id" value="{{ $selectedServiceTypeId }}">
 
                 <div class="grid gap-4 p-4 xl:grid-cols-[minmax(0,1fr)_340px] xl:overflow-y-auto">
                     <div class="space-y-4 min-w-0">
@@ -91,16 +94,9 @@
 
                             <div class="grid gap-3 sm:grid-cols-2">
                                 <div>
-                                    <label class="{{ $labelClass }}">Negocio *</label>
-                                    <select name="catalog_type_id" id="catalog_type_id"
-                                        class="{{ $inputClass }} @error('catalog_type_id') border-red-400 bg-red-50 @enderror">
-                                        @unless($returnToType && $selectedTypeId > 0)
-                                            <option value="">Selecciona un negocio</option>
-                                        @endunless
-                                        @foreach($types as $type)
-                                            <option value="{{ $type->id }}" {{ (old('catalog_type_id', $selectedTypeId ?: null) == $type->id) ? 'selected' : '' }}>{{ $type->name }}</option>
-                                        @endforeach
-                                    </select>
+                                    <label class="{{ $labelClass }}">Negocio</label>
+                                    <input type="text" id="catalog_type_display" value="{{ $selectedServiceType?->name }}"
+                                        class="{{ $inputClass }} text-gray-700 @error('catalog_type_id') border-red-400 bg-red-50 @enderror" readonly>
                                     @error('catalog_type_id') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                                 </div>
 
@@ -110,9 +106,11 @@
                                         class="{{ $inputClass }} @error('catalog_category_id') border-red-400 bg-red-50 @enderror">
                                         <option value="">Sin categoría</option>
                                         @foreach($categories as $category)
-                                            <option value="{{ $category->id }}" data-type="{{ $category->catalog_type_id }}" {{ (old('catalog_category_id', $selectedCategoryId ?: null) == $category->id) ? 'selected' : '' }}>
-                                                {{ $category->type->name }} / {{ $category->name }}
-                                            </option>
+                                            @if ((int) $category->catalog_type_id === $selectedServiceTypeId)
+                                                <option value="{{ $category->id }}" data-type="{{ $category->catalog_type_id }}" {{ (old('catalog_category_id', $selectedCategoryId ?: null) == $category->id) ? 'selected' : '' }}>
+                                                    {{ $category->name }}
+                                                </option>
+                                            @endif
                                         @endforeach
                                     </select>
                                     @error('catalog_category_id') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror

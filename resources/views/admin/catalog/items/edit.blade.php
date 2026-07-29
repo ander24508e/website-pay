@@ -46,9 +46,7 @@
         <input type="hidden" name="redirect_to_type" value="{{ !empty($returnContext['return_to_type']) ? 1 : 0 }}">
         <input type="hidden" name="redirect_to_category" value="{{ !empty($returnContext['return_to_category']) ? 1 : 0 }}">
         <input type="hidden" name="redirect_to_items" value="{{ !empty($returnContext['return_to_items']) ? 1 : 0 }}">
-        @if ($isProductContext)
-            <input type="hidden" name="catalog_type_id" id="catalog_type_id" value="{{ $selectedTypeId }}">
-        @endif
+        <input type="hidden" name="catalog_type_id" id="catalog_type_id" value="{{ $selectedTypeId }}">
 
         <div class="grid gap-4 p-4 xl:grid-cols-[minmax(0,1fr)_340px] xl:overflow-y-auto">
             <div class="min-w-0 space-y-4">
@@ -93,51 +91,47 @@
                         @error('name') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                     </div>
 
-                    @unless ($isProductContext)
+                    <div class="grid gap-3 sm:grid-cols-2">
                         <div>
-                            <label class="{{ $labelClass }}">Seccion *</label>
-                            <select name="catalog_type_id" id="catalog_type_id"
-                                class="{{ $inputClass }} @error('catalog_type_id') border-red-400 bg-red-50 @enderror">
-                                @foreach($types as $type)
-                                    <option value="{{ $type->id }}" {{ old('catalog_type_id', $catalogItem->catalog_type_id) == $type->id ? 'selected' : '' }}>{{ $type->name }}</option>
-                                @endforeach
-                            </select>
+                            <label class="{{ $labelClass }}">Negocio</label>
+                            <input type="text" id="catalog_type_display" value="{{ $currentType?->name }}"
+                                class="{{ $inputClass }} text-gray-700 @error('catalog_type_id') border-red-400 bg-red-50 @enderror" readonly>
                             @error('catalog_type_id') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                         </div>
-                    @endunless
 
-                    <div>
-                        <div class="mb-1 flex items-center justify-between gap-3">
-                            <label class="block text-xs font-semibold text-gray-700">Categoria</label>
+                        <div>
+                            <div class="mb-1 flex items-center justify-between gap-3">
+                                <label class="block text-xs font-semibold text-gray-700">Categoria</label>
+                                @if ($isProductContext)
+                                    <button type="button" data-open-category-modal
+                                        class="inline-flex h-8 items-center justify-center rounded-lg bg-gray-100 px-3 text-xs font-semibold text-gray-700 transition hover:bg-gray-200">
+                                        + Nueva categoria
+                                    </button>
+                                @endif
+                            </div>
+                            <select name="catalog_category_id" id="catalog_category_id"
+                                class="{{ $inputClass }} @error('catalog_category_id') border-red-400 bg-red-50 @enderror">
+                                <option value="">Sin categoria</option>
+                                @foreach($categories as $category)
+                                    @if ((int) $category->catalog_type_id === $selectedTypeId)
+                                        <option value="{{ $category->id }}" data-type="{{ $category->catalog_type_id }}"
+                                            {{ old('catalog_category_id', $catalogItem->catalog_category_id) == $category->id ? 'selected' : '' }}>
+                                            {{ $category->name }}
+                                        </option>
+                                    @endif
+                                @endforeach
+                            </select>
                             @if ($isProductContext)
-                                <button type="button" data-open-category-modal
-                                    class="inline-flex h-8 items-center justify-center rounded-lg bg-gray-100 px-3 text-xs font-semibold text-gray-700 transition hover:bg-gray-200">
-                                    + Nueva categoria
-                                </button>
+                                <p id="new-category-preview"
+                                    class="mt-1 {{ old('new_category_name') ? '' : 'hidden' }} text-xs text-gray-500">
+                                    @if (old('new_category_name'))
+                                        Nueva categoria: {{ old('new_category_name') }}
+                                    @endif
+                                </p>
                             @endif
+                            @error('catalog_category_id') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                            @error('new_category_name') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                         </div>
-                        <select name="catalog_category_id" id="catalog_category_id"
-                            class="{{ $inputClass }} @error('catalog_category_id') border-red-400 bg-red-50 @enderror">
-                            <option value="">Sin categoria</option>
-                            @foreach($categories as $category)
-                                @if (!$isProductContext || (int) $category->catalog_type_id === $selectedTypeId)
-                                    <option value="{{ $category->id }}" data-type="{{ $category->catalog_type_id }}"
-                                        {{ old('catalog_category_id', $catalogItem->catalog_category_id) == $category->id ? 'selected' : '' }}>
-                                        {{ $isProductContext ? $category->name : ($category->type->name . ' / ' . $category->name) }}
-                                    </option>
-                                @endif
-                            @endforeach
-                        </select>
-                        @if ($isProductContext)
-                            <p id="new-category-preview"
-                                class="mt-1 {{ old('new_category_name') ? '' : 'hidden' }} text-xs text-gray-500">
-                                @if (old('new_category_name'))
-                                    Nueva categoria: {{ old('new_category_name') }}
-                                @endif
-                            </p>
-                        @endif
-                        @error('catalog_category_id') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
-                        @error('new_category_name') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                     </div>
 
                     @if ($isProductContext)

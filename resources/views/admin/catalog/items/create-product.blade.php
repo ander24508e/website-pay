@@ -40,7 +40,7 @@
             </a>
             <div class="min-w-0">
                 <h2 class="text-xl font-bold leading-tight text-gray-900 sm:text-2xl">Nuevo Producto</h2>
-                <p class="text-sm text-gray-400">Crea un producto fisico para venderlo y controlarlo en inventario.</p>
+                <p class="text-sm text-gray-400">Crea un producto fisico para venderlo y controlarlo en inventariote.</p>
             </div>
         </div>
 
@@ -112,38 +112,46 @@
                                 @enderror
                             </div>
 
-                            <div>
-                                <div class="mb-1 flex items-center justify-between gap-3">
-                                    <label class="block text-xs font-semibold text-gray-700">Categoria</label>
-                                    <button type="button" data-open-category-modal
-                                        class="inline-flex h-8 items-center justify-center rounded-lg bg-gray-100 px-3 text-xs font-semibold text-gray-700 transition hover:bg-gray-200">
-                                        + Nueva categoria
-                                    </button>
+                            <div class="grid gap-3 sm:grid-cols-2">
+                                <div>
+                                    <label class="{{ $labelClass }}">Negocio</label>
+                                    <input type="text" id="catalog_type_display" value="{{ $selectedProductType?->name }}"
+                                        class="{{ $inputClass }} text-gray-700" readonly>
                                 </div>
-                                <select name="catalog_category_id" id="catalog_category_id"
-                                    class="{{ $inputClass }} @error('catalog_category_id') border-red-400 bg-red-50 @enderror">
-                                    <option value="">Sin categoria</option>
-                                    @foreach ($categories as $category)
-                                        @if ((int) $category->catalog_type_id === $selectedProductTypeId)
-                                            <option value="{{ $category->id }}"
-                                                {{ old('catalog_category_id', $selectedCategoryId ?: null) == $category->id ? 'selected' : '' }}>
-                                                {{ $category->name }}
-                                            </option>
+
+                                <div>
+                                    <div class="mb-1 flex items-center justify-between gap-3">
+                                        <label class="block text-xs font-semibold text-gray-700">Categoria</label>
+                                        <button type="button" data-open-category-modal
+                                            class="inline-flex h-8 items-center justify-center rounded-lg bg-gray-100 px-3 text-xs font-semibold text-gray-700 transition hover:bg-gray-200">
+                                            + Nueva categoria
+                                        </button>
+                                    </div>
+                                    <select name="catalog_category_id" id="catalog_category_id"
+                                        class="{{ $inputClass }} @error('catalog_category_id') border-red-400 bg-red-50 @enderror">
+                                        <option value="">Sin categoria</option>
+                                        @foreach ($categories as $category)
+                                            @if ((int) $category->catalog_type_id === $selectedProductTypeId)
+                                                <option value="{{ $category->id }}"
+                                                    {{ old('catalog_category_id', $selectedCategoryId ?: null) == $category->id ? 'selected' : '' }}>
+                                                    {{ $category->name }}
+                                                </option>
+                                            @endif
+                                        @endforeach
+                                    </select>
+                                    <p id="new-category-preview"
+                                        class="mt-1 {{ old('new_category_name') ? '' : 'hidden' }} text-xs text-gray-500">
+                                        @if (old('new_category_name'))
+                                            Nueva categoria: {{ old('new_category_name') }}
                                         @endif
-                                    @endforeach
-                                </select>
-                                <p id="new-category-preview"
-                                    class="mt-1 {{ old('new_category_name') ? '' : 'hidden' }} text-xs text-gray-500">
-                                    @if (old('new_category_name'))
-                                        Nueva categoria: {{ old('new_category_name') }}
-                                    @endif
-                                </p>
-                                @error('catalog_category_id')
-                                    <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                                @enderror
-                                @error('new_category_name')
-                                    <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                                @enderror
+                                    </p>
+                                    @error('catalog_category_id')
+                                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                                    @enderror
+                                    @error('new_category_name')
+                                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                                    @enderror
+                                </div>
                             </div>
 
                             <div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_220px]">
