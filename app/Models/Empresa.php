@@ -42,12 +42,12 @@ class Empresa extends Model
 
     public function catalogCategories()
     {
-        return $this->hasMany(CatalogCategory::class)->orderBy('sort_order')->orderBy('name');
+        return $this->hasMany(CatalogCategory::class)->orderBy('name');
     }
 
     public function catalogItems()
     {
-        return $this->hasMany(CatalogItem::class)->orderBy('sort_order')->orderBy('name');
+        return $this->hasMany(CatalogItem::class)->orderBy('name');
     }
 
     public function getLogoUrlAttribute(): string

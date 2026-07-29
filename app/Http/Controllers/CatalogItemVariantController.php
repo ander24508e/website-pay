@@ -90,7 +90,6 @@ class CatalogItemVariantController extends Controller
             'cost_price' => ['nullable', 'numeric', 'min:0'],
             'stock' => ['nullable', 'integer', 'min:0'],
             'min_stock' => ['nullable', 'integer', 'min:0'],
-            'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
             'active' => ['nullable', 'boolean'],
             'is_default' => ['nullable', 'boolean'],
         ]);
@@ -112,7 +111,6 @@ class CatalogItemVariantController extends Controller
             'cost_price' => $data['cost_price'] ?? null,
             'stock' => $data['stock'] ?? null,
             'min_stock' => (int) ($data['min_stock'] ?? 0),
-            'sort_order' => (int) ($data['sort_order'] ?? 0),
             'active' => $request->boolean('active', true),
             'is_default' => $request->boolean('is_default'),
         ]);
@@ -137,7 +135,7 @@ class CatalogItemVariantController extends Controller
             return redirect()->route('admin.catalog.index');
         }
 
-        return view('admin.catalog.variants.show', compact('catalogVariant'));
+        return redirect()->route('admin.catalog-variants.edit', $catalogVariant);
     }
 
     public function edit(CatalogItemVariant $catalogVariant)
@@ -182,7 +180,6 @@ class CatalogItemVariantController extends Controller
             'cost_price' => ['nullable', 'numeric', 'min:0'],
             'stock' => ['nullable', 'integer', 'min:0'],
             'min_stock' => ['nullable', 'integer', 'min:0'],
-            'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
             'active' => ['nullable', 'boolean'],
             'is_default' => ['nullable', 'boolean'],
         ]);
@@ -204,7 +201,6 @@ class CatalogItemVariantController extends Controller
             'cost_price' => $data['cost_price'] ?? null,
             'stock' => $data['stock'] ?? null,
             'min_stock' => (int) ($data['min_stock'] ?? 0),
-            'sort_order' => (int) ($data['sort_order'] ?? 0),
             'active' => $request->boolean('active'),
             'is_default' => $request->boolean('is_default'),
         ]);

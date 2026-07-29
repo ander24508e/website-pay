@@ -3,7 +3,6 @@
         $reservableItems = \App\Models\CatalogItem::with(['type', 'category'])
             ->where('active', true)
             ->where('reservable', true)
-            ->orderBy('sort_order')
             ->orderBy('name')
             ->get();
 

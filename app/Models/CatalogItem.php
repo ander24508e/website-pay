@@ -25,7 +25,6 @@ class CatalogItem extends Model
         'purchasable',
         'reservable',
         'uses_inventory',
-        'sort_order',
         'metadata',
     ];
 
@@ -37,7 +36,6 @@ class CatalogItem extends Model
         'purchasable' => 'boolean',
         'reservable' => 'boolean',
         'uses_inventory' => 'boolean',
-        'sort_order' => 'integer',
         'metadata' => 'array',
     ];
 
@@ -58,12 +56,12 @@ class CatalogItem extends Model
 
     public function variants()
     {
-        return $this->hasMany(CatalogItemVariant::class)->orderBy('sort_order')->orderBy('name');
+        return $this->hasMany(CatalogItemVariant::class)->orderByDesc('is_default')->orderBy('name');
     }
 
     public function activeVariants()
     {
-        return $this->hasMany(CatalogItemVariant::class)->where('active', true)->orderBy('sort_order')->orderBy('name');
+        return $this->hasMany(CatalogItemVariant::class)->where('active', true)->orderByDesc('is_default')->orderBy('name');
     }
 
     public function vehicleTypePrices()
@@ -93,7 +91,7 @@ class CatalogItem extends Model
 
     public function scopeOrdered(Builder $query): Builder
     {
-        return $query->orderBy('sort_order')->orderBy('name');
+        return $query->orderBy('name');
     }
 
     public function getDisplayPriceAttribute(): float

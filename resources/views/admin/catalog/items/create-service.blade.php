@@ -207,12 +207,6 @@
                                         placeholder="Se genera automáticamente">
                                     @error('slug') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                                 </div>
-                                <div>
-                                    <label class="{{ $labelClass }}">Orden</label>
-                                    <input type="number" name="sort_order" value="{{ old('sort_order', 0) }}" min="0"
-                                        class="{{ $inputClass }} bg-white @error('sort_order') border-red-400 bg-red-50 @enderror">
-                                    @error('sort_order') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
-                                </div>
                             </div>
                         </details>
                     </aside>

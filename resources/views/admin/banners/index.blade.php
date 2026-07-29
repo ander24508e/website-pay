@@ -35,7 +35,6 @@
                         <th class="px-4 sm:px-6 py-3 sm:py-4">Imagen</th>
                         <th class="px-4 sm:px-6 py-3 sm:py-4">Titulo</th>
                         <th class="px-4 sm:px-6 py-3 sm:py-4">Boton</th>
-                        <th class="px-4 sm:px-6 py-3 sm:py-4">Orden</th>
                         <th class="px-4 sm:px-6 py-3 sm:py-4">Principal</th>
                         <th class="px-4 sm:px-6 py-3 sm:py-4">Estado</th>
                         <th class="px-4 sm:px-6 py-3 sm:py-4">Acciones</th>
@@ -62,10 +61,6 @@
                                 @else
                                     -
                                 @endif
-                            </td>
-
-                            <td class="px-4 sm:px-6 py-3 sm:py-4 font-semibold text-gray-800">
-                                {{ $banner->orden }}
                             </td>
 
                             <td class="px-4 sm:px-6 py-3 sm:py-4">

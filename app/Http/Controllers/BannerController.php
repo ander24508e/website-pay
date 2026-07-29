@@ -18,7 +18,7 @@ class BannerController extends Controller
         $search = trim((string) $request->query('q', ''));
 
         $banners = LandingBanner::query()
-            ->where('empresa_id', $empresa->id)
+            ->where('empresa_id', '=', $empresa->id)
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($subQuery) use ($search) {
                     $subQuery->where('titulo', 'like', "%{$search}%")
@@ -40,9 +40,8 @@ class BannerController extends Controller
     public function create()
     {
         $empresa = $this->getOrCreateEmpresa();
-        $nextOrder = (int) (LandingBanner::where('empresa_id', $empresa->id)->max('orden') ?? -1) + 1;
 
-        return view('admin.banners.create', compact('empresa', 'nextOrder'));
+        return view('admin.banners.create', compact('empresa'));
     }
 
     /**
@@ -72,7 +71,6 @@ class BannerController extends Controller
             'imagen'      => 'required|image|mimes:jpeg,png,jpg,webp|max:6144',
             'boton_texto' => 'nullable|string|max:60',
             'boton_link'  => 'nullable|string|max:1000',
-            'orden'       => 'nullable|integer|min:0|max:9999',
             'activo'      => 'nullable|boolean',
             'es_principal' => 'nullable|boolean',
         ]);
@@ -85,7 +83,6 @@ class BannerController extends Controller
         $banner->texto       = $this->cleanInput($data['texto'] ?? null);
         $banner->boton_texto = $this->cleanInput($data['boton_texto'] ?? null);
         $banner->boton_link  = $this->cleanInput($data['boton_link'] ?? null);
-        $banner->orden       = (int) ($data['orden'] ?? 0);
         $banner->activo      = (bool) ($data['activo'] ?? true);
         $banner->es_principal = (bool) ($data['es_principal'] ?? false);
         $banner->imagen      = $request->file('imagen')->store('landing_banners', 'public');
@@ -93,9 +90,9 @@ class BannerController extends Controller
 
         if ($banner->es_principal) {
             LandingBanner::query()
-                ->where('empresa_id', $empresa->id)
+                ->where('empresa_id', '=', $empresa->id)
                 ->where('id', '!=', $banner->id)
-                ->where('es_principal', true)
+                ->where('es_principal', '=', true)
                 ->update(['es_principal' => false]);
         }
 
@@ -113,7 +110,6 @@ class BannerController extends Controller
             'imagen'      => 'nullable|image|mimes:jpeg,png,jpg,webp|max:6144',
             'boton_texto' => 'nullable|string|max:60',
             'boton_link'  => 'nullable|string|max:1000',
-            'orden'       => 'nullable|integer|min:0|max:9999',
             'activo'      => 'nullable|boolean',
             'es_principal' => 'nullable|boolean',
         ]);
@@ -124,7 +120,6 @@ class BannerController extends Controller
         $banner->texto       = $this->cleanInput($data['texto'] ?? null);
         $banner->boton_texto = $this->cleanInput($data['boton_texto'] ?? null);
         $banner->boton_link  = $this->cleanInput($data['boton_link'] ?? null);
-        $banner->orden       = (int) ($data['orden'] ?? 0);
         $banner->activo      = (bool) ($data['activo'] ?? false);
         $banner->es_principal = (bool) ($data['es_principal'] ?? false);
 
@@ -139,9 +134,9 @@ class BannerController extends Controller
 
         if ($banner->es_principal) {
             LandingBanner::query()
-                ->where('empresa_id', $empresa->id)
+                ->where('empresa_id', '=', $empresa->id)
                 ->where('id', '!=', $banner->id)
-                ->where('es_principal', true)
+                ->where('es_principal', '=', true)
                 ->update(['es_principal' => false]);
         }
 
@@ -156,7 +151,7 @@ class BannerController extends Controller
         if ($banner->imagen && Storage::disk('public')->exists($banner->imagen)) {
             Storage::disk('public')->delete($banner->imagen);
         }
-        $banner->delete();
+        LandingBanner::destroy($banner->id);
 
         return redirect()->route('admin.banners.index')->with('success', 'Banner eliminado correctamente.');
     }
@@ -172,7 +167,7 @@ class BannerController extends Controller
 
     private function getOrCreateEmpresa(): Empresa
     {
-        return Empresa::query()->first() ?? Empresa::create([
+        return Empresa::query()->first(['*']) ?? Empresa::create([
             'nombre' => 'Mi negocio',
         ]);
     }

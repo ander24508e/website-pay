@@ -128,14 +128,10 @@
                                         @endif
                                     </div>
                                     <p class="text-sm text-gray-500 mt-3 break-words">{{ $category->description ?: 'Sin descripción' }}</p>
-                                    <div class="grid grid-cols-2 gap-3 text-sm mt-3">
+                                    <div class="grid grid-cols-1 gap-3 text-sm mt-3">
                                         <div>
                                             <p class="text-xs text-gray-400 uppercase">{{ $itemPluralTitle }}</p>
                                             <p class="font-semibold text-gray-700">{{ $category->items_count }}</p>
-                                        </div>
-                                        <div>
-                                            <p class="text-xs text-gray-400 uppercase">Orden</p>
-                                            <p class="font-semibold text-gray-700">{{ $category->sort_order }}</p>
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-2 mt-3">
@@ -171,10 +167,9 @@
                                     <tr>
                                         <th class="w-[28%] px-3 py-2.5 text-gray-600 font-semibold text-center">Categoría</th>
                                         <th class="w-[18%] px-3 py-2.5 text-gray-600 font-semibold text-center hidden sm:table-cell">Slug</th>
-                                        <th class="w-[12%] px-3 py-2.5 text-gray-600 font-semibold text-center">{{ $itemShortLabel }}</th>
-                                        <th class="w-[10%] px-3 py-2.5 text-gray-600 font-semibold text-center hidden md:table-cell">Orden</th>
+                                        <th class="w-[16%] px-3 py-2.5 text-gray-600 font-semibold text-center">{{ $itemShortLabel }}</th>
                                         <th class="w-[12%] px-3 py-2.5 text-gray-600 font-semibold text-center">Estado</th>
-                                        <th class="w-[20%] px-3 py-2.5 text-gray-600 font-semibold text-center">Acciones</th>
+                                        <th class="w-[24%] px-3 py-2.5 text-gray-600 font-semibold text-center">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y">
@@ -188,7 +183,6 @@
                                             </td>
                                             <td class="px-3 py-2.5 text-gray-600 text-center truncate hidden sm:table-cell">{{ $category->slug ?: '-' }}</td>
                                             <td class="px-3 py-2.5 text-gray-700 text-center">{{ $category->items_count }}</td>
-                                            <td class="px-3 py-2.5 text-gray-700 text-center hidden md:table-cell">{{ $category->sort_order }}</td>
                                             <td class="px-3 py-2.5 text-center">
                                                 @if ($category->active)
                                                     <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-[11px] font-medium">Activo</span>

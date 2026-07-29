@@ -119,11 +119,6 @@
                 </div>
 
                 <div class="flex items-center justify-end gap-2 pt-1">
-                    <a href="{{ route('admin.catalog-variants.show', $variant) }}"
-                        class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition"
-                        title="Ver presentación" aria-label="Ver presentación">
-                        <x-heroicon-o-eye class="w-5 h-5" />
-                    </a>
                     <a href="{{ route('admin.catalog-variants.edit', $variant) }}"
                         class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gray-50 text-gray-700 hover:bg-gray-100 transition"
                         title="Editar presentación" aria-label="Editar presentación">
@@ -203,11 +198,6 @@
                             </td>
                             <td class="px-3 py-3 text-center">
                                 <div class="flex items-center justify-end gap-1">
-                                    <a href="{{ route('admin.catalog-variants.show', $variant) }}"
-                                        class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-blue-600 hover:bg-blue-50 transition"
-                                        title="Ver presentación" aria-label="Ver presentación">
-                                        <x-heroicon-o-eye class="w-4 h-4" />
-                                    </a>
                                     <a href="{{ route('admin.catalog-variants.edit', $variant) }}"
                                         class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-gray-700 hover:bg-gray-100 transition"
                                         title="Editar presentación" aria-label="Editar presentación">

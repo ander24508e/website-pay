@@ -105,13 +105,11 @@ class VehicleSpecificationsController extends Controller
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255', 'unique:vehicle_types,name'],
-            'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
             'active' => ['nullable', 'boolean'],
         ]);
 
         VehicleType::create([
             'name' => trim($data['name']),
-            'sort_order' => $data['sort_order'] ?? 0,
             'active' => $request->boolean('active'),
         ]);
 
@@ -122,13 +120,11 @@ class VehicleSpecificationsController extends Controller
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255', Rule::unique('vehicle_types', 'name')->ignore($vehicleType->id)],
-            'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
             'active' => ['nullable', 'boolean'],
         ]);
 
         $vehicleType->update([
             'name' => trim($data['name']),
-            'sort_order' => $data['sort_order'] ?? 0,
             'active' => $request->boolean('active'),
         ]);
 

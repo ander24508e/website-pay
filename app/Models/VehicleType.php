@@ -15,12 +15,10 @@ class VehicleType extends Model
     protected $fillable = [
         'name',
         'description',
-        'sort_order',
         'active',
     ];
 
     protected $casts = [
-        'sort_order' => 'integer',
         'active' => 'boolean',
     ];
 
@@ -48,6 +46,6 @@ class VehicleType extends Model
 
     public function scopeOrdered(Builder $query): Builder
     {
-        return $query->orderBy('sort_order')->orderBy('name');
+        return $query->orderBy('name');
     }
 }

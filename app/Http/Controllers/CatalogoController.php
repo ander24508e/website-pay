@@ -62,8 +62,6 @@ class CatalogoController extends Controller
                     });
                 })
                 ->orderBy('catalog_types.name')
-                ->orderByRaw('CASE WHEN catalog_items.sort_order > 0 THEN 0 ELSE 1 END')
-                ->orderBy('catalog_items.sort_order')
                 ->orderBy('catalog_items.name');
 
             $catalogoUniversales = $universalesQuery->get()->map(function ($item) {
@@ -105,9 +103,11 @@ class CatalogoController extends Controller
                     'requiere_tipo_vehiculo' => !$isInventariable && $vehiclePrices->isNotEmpty(),
                     'precios_vehiculo' => $vehiclePrices,
                     'variantes' => $item->activeVariants
-                        ->sortBy(function ($variant) {
-                            return $variant->is_default ? -1 : $variant->sort_order;
-                        })
+                        ->sortBy(fn ($variant) => sprintf(
+                            '%d-%s',
+                            $variant->is_default ? 0 : 1,
+                            (string) $variant->name
+                        ))
                         ->values()
                         ->map(function ($variant) {
                             return [
@@ -151,9 +151,8 @@ class CatalogoController extends Controller
         $availableVariant = $item->activeVariants
             ->filter(fn ($itemVariant) => (int) ($itemVariant->stock ?? 0) > 0)
             ->sortBy(fn ($itemVariant) => sprintf(
-                '%d-%05d-%s',
+                '%d-%s',
                 $itemVariant->is_default ? 0 : 1,
-                (int) $itemVariant->sort_order,
                 (string) $itemVariant->name
             ))
             ->first();

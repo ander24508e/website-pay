@@ -84,11 +84,6 @@
                     </div>
 
                     <div>
-                        <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Orden</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ $banner->orden }}</p>
-                    </div>
-
-                    <div>
                         <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Texto del boton</p>
                         <p class="text-gray-700">{{ $banner->boton_texto ?: '-' }}</p>
                     </div>

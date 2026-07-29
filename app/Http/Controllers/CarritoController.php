@@ -67,7 +67,7 @@ class CarritoController extends Controller
             $variantQuery = $item->activeVariants()
                 ->when($item->uses_inventory, fn ($query) => $query->where('stock', '>', 0))
                 ->orderByDesc('is_default')
-                ->orderBy('sort_order')
+                ->orderBy('name')
                 ->orderBy('price');
             $variant = $variantQuery->first();
         }

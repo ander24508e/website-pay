@@ -186,7 +186,6 @@ class CatalogItemController extends Controller
             'profit_margin_percentage' => ['nullable', 'numeric', 'min:0', 'max:10000'],
             'duration_minutes' => ['nullable', 'integer', 'min:1', 'max:1440'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:6144'],
-            'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
             'active' => ['nullable', 'boolean'],
             'featured' => ['nullable', 'boolean'],
             'purchasable' => ['nullable', 'boolean'],
@@ -257,7 +256,6 @@ class CatalogItemController extends Controller
             'purchasable' => $behavior['purchasable'],
             'reservable' => $behavior['reservable'],
             'uses_inventory' => $behavior['uses_inventory'],
-            'sort_order' => (int) ($data['sort_order'] ?? 0),
         ];
 
         if ($request->hasFile('image')) {
@@ -283,7 +281,6 @@ class CatalogItemController extends Controller
                 'min_stock' => (int) ($data['variant_min_stock'] ?? 0),
                 'active' => true,
                 'is_default' => true,
-                'sort_order' => 0,
             ]);
 
             $initialStock = (int) ($data['variant_stock'] ?? 0);
@@ -338,12 +335,15 @@ class CatalogItemController extends Controller
             ->ordered()
             ->get();
         $vehicleTypes = VehicleType::query()->where('active', true)->ordered()->get();
-        $catalogItem->load(['variants', 'vehicleTypePrices', 'supplies.variant.item']);
+        $catalogItem->load(['type', 'variants', 'vehicleTypePrices', 'supplies.variant.item']);
         $supplyVariants = $this->getSupplyVariants($catalogItem->empresa_id);
         $returnUrl = $this->catalogItemBackUrl($request, $catalogItem, route('admin.catalog-items.show', $catalogItem));
         $returnContext = $this->catalogItemReturnContext($request);
+        $view = $catalogItem->type && $this->isProductBusiness($catalogItem->type)
+            ? 'admin.catalog.items.edit-product'
+            : 'admin.catalog.items.edit-service';
 
-        return view('admin.catalog.items.edit', compact('catalogItem', 'types', 'categories', 'vehicleTypes', 'supplyVariants', 'returnUrl', 'returnContext'));
+        return view($view, compact('catalogItem', 'types', 'categories', 'vehicleTypes', 'supplyVariants', 'returnUrl', 'returnContext'));
     }
 
     public function update(Request $request, CatalogItem $catalogItem)
@@ -360,7 +360,6 @@ class CatalogItemController extends Controller
             'profit_margin_percentage' => ['nullable', 'numeric', 'min:0', 'max:10000'],
             'duration_minutes' => ['nullable', 'integer', 'min:1', 'max:1440'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:6144'],
-            'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
             'active' => ['nullable', 'boolean'],
             'featured' => ['nullable', 'boolean'],
             'purchasable' => ['nullable', 'boolean'],
@@ -421,7 +420,6 @@ class CatalogItemController extends Controller
             'purchasable' => $behavior['purchasable'],
             'reservable' => $behavior['reservable'],
             'uses_inventory' => $behavior['uses_inventory'],
-            'sort_order' => (int) ($data['sort_order'] ?? 0),
         ];
 
         if ($request->hasFile('image')) {
@@ -610,7 +608,6 @@ class CatalogItemController extends Controller
             'min_stock' => 0,
             'active' => true,
             'is_default' => true,
-            'sort_order' => 0,
         ]);
     }
 
@@ -638,7 +635,6 @@ class CatalogItemController extends Controller
             'name' => $name,
             'slug' => $candidate ?: null,
             'description' => $this->cleanInput($description),
-            'sort_order' => 0,
             'active' => true,
         ]);
     }

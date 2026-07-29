@@ -13,13 +13,11 @@ class CatalogCategory extends Model
         'name',
         'slug',
         'description',
-        'sort_order',
         'active',
     ];
 
     protected $casts = [
         'active' => 'boolean',
-        'sort_order' => 'integer',
     ];
 
     public function empresa()
@@ -34,7 +32,7 @@ class CatalogCategory extends Model
 
     public function items()
     {
-        return $this->hasMany(CatalogItem::class)->orderBy('sort_order')->orderBy('name');
+        return $this->hasMany(CatalogItem::class)->orderBy('name');
     }
 
     public function scopeActive(Builder $query): Builder
@@ -44,6 +42,6 @@ class CatalogCategory extends Model
 
     public function scopeOrdered(Builder $query): Builder
     {
-        return $query->orderBy('sort_order')->orderBy('name');
+        return $query->orderBy('name');
     }
 }

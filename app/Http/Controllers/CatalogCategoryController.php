@@ -100,7 +100,6 @@ class CatalogCategoryController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
             'active' => ['nullable', 'boolean'],
             'redirect_to_type' => ['nullable', 'boolean'],
         ]);
@@ -117,7 +116,6 @@ class CatalogCategoryController extends Controller
             'name' => trim($data['name']),
             'slug' => $slug,
             'description' => $this->cleanInput($data['description'] ?? null),
-            'sort_order' => (int) ($data['sort_order'] ?? 0),
             'active' => $request->boolean('active', true),
         ]);
 
@@ -155,7 +153,6 @@ class CatalogCategoryController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
             'active' => ['nullable', 'boolean'],
         ]);
 
@@ -170,7 +167,6 @@ class CatalogCategoryController extends Controller
             'name' => trim($data['name']),
             'slug' => $slug,
             'description' => $this->cleanInput($data['description'] ?? null),
-            'sort_order' => (int) ($data['sort_order'] ?? 0),
             'active' => $request->boolean('active'),
         ]);
 

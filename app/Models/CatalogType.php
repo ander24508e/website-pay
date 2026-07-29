@@ -30,12 +30,12 @@ class CatalogType extends Model
 
     public function categories()
     {
-        return $this->hasMany(CatalogCategory::class)->orderBy('sort_order')->orderBy('name');
+        return $this->hasMany(CatalogCategory::class)->orderBy('name');
     }
 
     public function items()
     {
-        return $this->hasMany(CatalogItem::class)->orderBy('sort_order')->orderBy('name');
+        return $this->hasMany(CatalogItem::class)->orderBy('name');
     }
 
     public function scopeActive(Builder $query): Builder

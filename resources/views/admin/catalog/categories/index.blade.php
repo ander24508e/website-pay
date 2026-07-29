@@ -125,7 +125,6 @@
                             <th class="px-4 sm:px-6 py-3 sm:py-4 text-center">Nombre</th>
                             <th class="px-4 sm:px-6 py-3 sm:py-4 text-center">Sección</th>
                             <th class="px-4 sm:px-6 py-3 sm:py-4 text-center">Slug</th>
-                            <th class="px-4 sm:px-6 py-3 sm:py-4 text-center">Orden</th>
                             <th class="px-4 sm:px-6 py-3 sm:py-4 text-center">Ítems</th>
                             <th class="px-4 sm:px-6 py-3 sm:py-4 text-center">Estado</th>
                             <th class="px-4 sm:px-6 py-3 sm:py-4 text-center">Acciones</th>
@@ -149,9 +148,6 @@
                                 </td>
                                 <td class="px-4 sm:px-6 py-3 sm:py-4 text-gray-500 font-mono text-xs text-center">
                                     {{ $category->slug ?: '-' }}
-                                </td>
-                                <td class="px-4 sm:px-6 py-3 sm:py-4 font-semibold text-gray-800 text-center">
-                                    {{ $category->sort_order }}
                                 </td>
                                 <td class="px-4 sm:px-6 py-3 sm:py-4 font-semibold text-gray-800 text-center">
                                     {{ $category->items_count }}

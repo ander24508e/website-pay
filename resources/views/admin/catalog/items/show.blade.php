@@ -110,11 +110,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-                <div>
-                    <p class="text-xs text-gray-400 uppercase tracking-wide">Orden</p>
-                    <p class="text-gray-700 font-semibold">{{ $catalogItem->sort_order }}</p>
-                </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
                 <div>
                     <p class="text-xs text-gray-400 uppercase tracking-wide">Presentaciones</p>
                     <p class="text-gray-700 font-semibold">{{ $catalogItem->variants->count() }}</p>
@@ -210,7 +206,6 @@
                                 </div>
 
                                 <div class="flex justify-end gap-2">
-                                    <a href="{{ route('admin.catalog-variants.show', $variant) }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Ver</a>
                                     <a href="{{ route('admin.catalog-variants.edit', $variant) }}" class="text-yellow-600 hover:text-yellow-800 text-sm font-medium">Editar</a>
                                 </div>
                             </article>
@@ -266,7 +261,6 @@
                                         </td>
                                         <td class="px-4 py-3">
                                             <div class="flex flex-wrap gap-2">
-                                                <a href="{{ route('admin.catalog-variants.show', $variant) }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Ver</a>
                                                 <a href="{{ route('admin.catalog-variants.edit', $variant) }}" class="text-yellow-600 hover:text-yellow-800 text-sm font-medium">Editar</a>
                                             </div>
                                         </td>

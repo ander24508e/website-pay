@@ -12,7 +12,6 @@ return new class extends Migration
             $table->id();
             $table->string('name')->unique();
             $table->text('description')->nullable();
-            $table->unsignedInteger('sort_order')->default(0);
             $table->boolean('active')->default(true);
             $table->timestamps();
         });
@@ -39,12 +38,11 @@ return new class extends Migration
             $table->foreignId('vehicle_brand_id')->constrained('vehicle_brands')->restrictOnDelete();
             $table->foreignId('vehicle_model_id')->constrained('vehicle_models')->restrictOnDelete();
             $table->foreignId('vehicle_type_id')->constrained('vehicle_types')->restrictOnDelete();
-            $table->unsignedInteger('sort_order')->default(0);
             $table->boolean('active')->default(true);
             $table->timestamps();
 
             $table->unique(['vehicle_brand_id', 'vehicle_model_id', 'vehicle_type_id'], 'vehicle_specs_unique');
-            $table->index(['active', 'sort_order']);
+            $table->index(['active']);
         });
 
         Schema::create('vehicles', function (Blueprint $table) {

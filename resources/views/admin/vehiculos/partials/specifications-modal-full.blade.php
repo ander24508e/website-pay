@@ -88,10 +88,7 @@
                         <input type="text" name="name"
                             class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm"
                             placeholder="Ej: SUV, camioneta grande" required>
-                        <div class="grid grid-cols-[1fr_auto] items-center gap-3">
-                            <input type="number" name="sort_order" value="0" min="0" max="9999"
-                                class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm"
-                                placeholder="Orden">
+                        <div class="flex items-center justify-between gap-3">
                             <label class="inline-flex items-center gap-2 text-sm text-gray-600">
                                 <input type="hidden" name="active" value="0">
                                 <input type="checkbox" name="active" value="1" class="rounded border-gray-300" checked>

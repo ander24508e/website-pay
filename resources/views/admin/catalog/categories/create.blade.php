@@ -8,6 +8,8 @@
         ? route('admin.catalog-types.show', $selectedTypeId)
         : route('admin.catalog-categories.index');
     $selectedType = $selectedType ?? $types->firstWhere('id', $selectedTypeId);
+    $showTypeSelector = !($returnToType && $selectedTypeId > 0);
+    $catalogCategory = null;
     $inputClass = 'w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300';
     $labelClass = 'mb-1 block text-xs font-semibold text-gray-700';
 @endphp
@@ -20,7 +22,7 @@
         </a>
         <div class="min-w-0">
             <h2 class="text-xl font-bold leading-tight text-gray-900 sm:text-2xl">Nueva Categoria</h2>
-            <p class="text-sm text-gray-400">Crea una categoria para ordenar productos o servicios dentro del negocio.</p>
+            <p class="text-sm text-gray-400">Crea una categoria para agrupar productos o servicios dentro del negocio.</p>
         </div>
     </div>
 
@@ -43,70 +45,9 @@
             class="rounded-lg bg-white shadow-sm xl:flex xl:h-[calc(100%-4.25rem)] xl:flex-col xl:overflow-hidden">
             @csrf
             <input type="hidden" name="redirect_to_type" value="{{ $returnToType ? 1 : 0 }}">
-            <input type="hidden" name="sort_order" value="{{ old('sort_order', 0) }}">
             <input type="hidden" name="active" value="1">
-            @if ($returnToType && $selectedTypeId > 0)
-                <input type="hidden" name="catalog_type_id" value="{{ $selectedTypeId }}">
-            @endif
 
-            <div class="grid gap-4 p-4 xl:overflow-y-auto">
-                <div class="min-w-0 space-y-4">
-                    <section class="space-y-3">
-                        <div>
-                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Informacion principal</p>
-                            <p class="text-xs text-gray-500">Nombre, slug y descripcion de la categoria.</p>
-                        </div>
-
-                        @unless ($returnToType && $selectedTypeId > 0)
-                            <div>
-                                <label class="{{ $labelClass }}">Seccion *</label>
-                                <select name="catalog_type_id"
-                                    class="{{ $inputClass }} @error('catalog_type_id') border-red-400 bg-red-50 @enderror">
-                                    <option value="">Selecciona una seccion</option>
-                                    @foreach ($types as $type)
-                                        <option value="{{ $type->id }}" {{ old('catalog_type_id', $selectedTypeId ?: null) == $type->id ? 'selected' : '' }}>
-                                            {{ $type->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('catalog_type_id')
-                                    <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                                @enderror
-                            </div>
-                        @endunless
-
-                        <div>
-                            <label class="{{ $labelClass }}">Nombre *</label>
-                            <input type="text" name="name" id="category_name" value="{{ old('name') }}"
-                                class="{{ $inputClass }} @error('name') border-red-400 bg-red-50 @enderror"
-                                placeholder="Categoria de tu negocio">
-                            @error('name')
-                                <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div>
-                            <label class="{{ $labelClass }}">Slug</label>
-                            <input type="text" name="slug" id="category_slug" value="{{ old('slug') }}"
-                                class="{{ $inputClass }} bg-white text-gray-500 @error('slug') border-red-400 bg-red-50 @enderror"
-                                placeholder="Se genera automaticamente" readonly>
-                            @error('slug')
-                                <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div>
-                            <label class="{{ $labelClass }}">Descripcion</label>
-                            <textarea name="description" rows="5"
-                                class="{{ $inputClass }} resize-none @error('description') border-red-400 bg-red-50 @enderror"
-                                placeholder="Describe que agrupa esta categoria">{{ old('description') }}</textarea>
-                            @error('description')
-                                <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                            @enderror
-                        </div>
-                    </section>
-                </div>
-            </div>
+            @include('admin.catalog.categories._form')
 
             <div class="flex flex-col gap-2 border-t border-gray-100 p-4 sm:flex-row sm:justify-end">
                 <a href="{{ $returnUrl }}"
@@ -123,24 +64,4 @@
 </div>
 @endsection
 
-@push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const nameInput = document.getElementById('category_name');
-        const slugInput = document.getElementById('category_slug');
-
-        function slugify(value) {
-            return value.toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-                .toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '')
-                .replace(/\s+/g, '-').replace(/-+/g, '-');
-        }
-
-        function syncSlug() {
-            if (slugInput) slugInput.value = slugify(nameInput?.value || '');
-        }
-
-        nameInput?.addEventListener('input', syncSlug);
-        if (nameInput?.value && !slugInput?.value) syncSlug();
-    });
-</script>
-@endpush
+@include('admin.catalog.partials._slug-script', ['nameInputId' => 'category_name', 'slugInputId' => 'category_slug'])

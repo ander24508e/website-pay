@@ -1,8 +1,3 @@
-@extends('layouts.admin')
-
-@section('title', 'Editar Producto o Servicio')
-
-@section('content')
 @php
     $selectedTypeId = (int) old('catalog_type_id', $catalogItem->catalog_type_id);
     $currentType = $types->firstWhere('id', $selectedTypeId) ?? $catalogItem->type;
@@ -38,7 +33,6 @@
         @csrf
         @method('PUT')
         <input type="hidden" name="slug" value="">
-        <input type="hidden" name="sort_order" value="{{ old('sort_order', $catalogItem->sort_order) }}">
         <input type="hidden" name="base_price" id="base_price" value="{{ old('base_price', $catalogItem->base_price) }}">
         <input type="hidden" name="new_category_name" id="new_category_name" value="{{ old('new_category_name') }}">
         <input type="hidden" name="new_category_description" id="new_category_description" value="{{ old('new_category_description') }}">
@@ -352,7 +346,6 @@
         @include('admin.vehiculos.partials.specifications-modal-types-only', ['modalId' => 'serviceVehicleTypesModal'])
     @endif
 </div>
-@endsection
 
 @push('scripts')
 <script>

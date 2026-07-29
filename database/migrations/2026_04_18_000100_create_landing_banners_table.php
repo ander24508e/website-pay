@@ -16,7 +16,6 @@ return new class extends Migration
             $table->string('imagen');
             $table->string('boton_texto')->nullable();
             $table->string('boton_link')->nullable();
-            $table->unsignedInteger('orden')->default(0);
             $table->boolean('activo')->default(true);
             $table->boolean('es_principal')->default(false);
             $table->timestamps();

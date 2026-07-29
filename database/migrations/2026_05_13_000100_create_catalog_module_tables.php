@@ -29,7 +29,6 @@ return new class extends Migration
             $table->string('name');
             $table->string('slug')->nullable();
             $table->text('description')->nullable();
-            $table->unsignedInteger('sort_order')->default(0);
             $table->boolean('active')->default(true);
             $table->timestamps();
 
@@ -55,7 +54,6 @@ return new class extends Migration
             $table->boolean('purchasable')->default(true);
             $table->boolean('reservable')->default(false);
             $table->boolean('uses_inventory')->default(false);
-            $table->unsignedInteger('sort_order')->default(0);
             $table->json('metadata')->nullable();
             $table->timestamps();
 
@@ -78,7 +76,6 @@ return new class extends Migration
             $table->unsignedInteger('min_stock')->default(0);
             $table->boolean('active')->default(true);
             $table->boolean('is_default')->default(false);
-            $table->unsignedInteger('sort_order')->default(0);
             $table->json('metadata')->nullable();
             $table->timestamps();
 
@@ -116,7 +113,6 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->decimal('price', 10, 2);
             $table->boolean('active')->default(true);
-            $table->unsignedInteger('sort_order')->default(0);
             $table->timestamps();
 
             $table->unique(['empresa_id', 'slug']);

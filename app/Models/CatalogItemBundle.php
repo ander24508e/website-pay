@@ -14,13 +14,11 @@ class CatalogItemBundle extends Model
         'description',
         'price',
         'active',
-        'sort_order',
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
         'active' => 'boolean',
-        'sort_order' => 'integer',
     ];
 
     public function empresa()
@@ -47,6 +45,6 @@ class CatalogItemBundle extends Model
 
     public function scopeOrdered(Builder $query): Builder
     {
-        return $query->orderBy('sort_order')->orderBy('name');
+        return $query->orderBy('name');
     }
 }

@@ -61,7 +61,7 @@ class ClientesController extends Controller
             ->where('active', true)
             ->with(['brand:id,name', 'model:id,name,vehicle_brand_id', 'type:id,name'])
             ->ordered()
-            ->get(['id', 'vehicle_brand_id', 'vehicle_model_id', 'vehicle_type_id', 'sort_order', 'active']);
+            ->get(['id', 'vehicle_brand_id', 'vehicle_model_id', 'vehicle_type_id', 'active']);
 
         return view('admin.clientes.show', compact('cliente', 'resumen', 'vehicleSpecifications'));
     }

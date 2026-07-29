@@ -19,7 +19,6 @@ class CatalogItemVariant extends Model
         'min_stock',
         'active',
         'is_default',
-        'sort_order',
         'metadata',
     ];
 
@@ -30,7 +29,6 @@ class CatalogItemVariant extends Model
         'min_stock' => 'integer',
         'active' => 'boolean',
         'is_default' => 'boolean',
-        'sort_order' => 'integer',
         'metadata' => 'array',
     ];
 
@@ -56,6 +54,6 @@ class CatalogItemVariant extends Model
 
     public function scopeOrdered(Builder $query): Builder
     {
-        return $query->orderBy('sort_order')->orderBy('name');
+        return $query->orderByDesc('is_default')->orderBy('name');
     }
 }

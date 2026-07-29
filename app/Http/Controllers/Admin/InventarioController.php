@@ -440,7 +440,6 @@ class InventarioController extends Controller
             'min_stock' => 0,
             'active' => true,
             'is_default' => true,
-            'sort_order' => 0,
         ])->load('item.type');
     }
 
