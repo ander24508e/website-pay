@@ -58,7 +58,13 @@ class OrderItem extends Model
 
     public function getItemDisplayNameAttribute(): string
     {
-        return $this->itemable->name ?? 'Item eliminado';
+        $name = $this->itemable->name ?? 'Item eliminado';
+
+        if ($this->variant?->name) {
+            $name .= ' (' . $this->variant->name . ')';
+        }
+
+        return $name;
     }
 
     public function getVehicleDisplayAttribute(): ?string

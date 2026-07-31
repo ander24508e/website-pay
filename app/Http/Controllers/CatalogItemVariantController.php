@@ -8,6 +8,7 @@ use App\Models\CatalogItemVariant;
 use App\Models\CatalogType;
 use App\Models\Empresa;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class CatalogItemVariantController extends Controller
 {
@@ -15,21 +16,21 @@ class CatalogItemVariantController extends Controller
     {
         $empresa = $this->getOrCreateEmpresa();
         $search = trim((string) $request->query('q', ''));
+        $selectedItemId = (int) $request->query('catalog_item_id', 0);
         $baseQuery = CatalogItemVariant::query()
             ->whereHas('item', function ($query) use ($empresa) {
                 $query->where('empresa_id', $empresa->id)
                     ->whereHas('type', function ($typeQuery) {
                         $typeQuery->where('business_model', CatalogType::BUSINESS_MODEL_PRODUCTS);
                     });
-            });
+            })
+            ->when($selectedItemId > 0, fn ($query) => $query->where('catalog_item_id', $selectedItemId));
 
         $variants = (clone $baseQuery)
             ->with(['item.type', 'item.category'])
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($subQuery) use ($search) {
                     $subQuery->where('name', 'like', "%{$search}%")
-                        ->orWhere('presentation', 'like', "%{$search}%")
-                        ->orWhere('specification', 'like', "%{$search}%")
                         ->orWhere('sku', 'like', "%{$search}%")
                         ->orWhereHas('item', function ($itemQuery) use ($search) {
                             $itemQuery->where('name', 'like', "%{$search}%")
@@ -53,7 +54,7 @@ class CatalogItemVariantController extends Controller
                 ->count(),
         ];
 
-        return view('admin.catalog.variants.index', compact('empresa', 'variants', 'stats'));
+        return view('admin.catalog.variants.index', compact('empresa', 'variants', 'stats', 'selectedItemId'));
     }
 
     public function create(Request $request)
@@ -83,18 +84,19 @@ class CatalogItemVariantController extends Controller
         $data = $request->validate([
             'catalog_item_id' => ['required', 'integer', 'exists:catalog_items,id'],
             'name' => ['required', 'string', 'max:255'],
-            'presentation' => ['nullable', 'string', 'max:255'],
-            'specification' => ['nullable', 'string', 'max:255'],
             'sku' => ['nullable', 'string', 'max:255'],
             'price' => ['nullable', 'numeric', 'min:0'],
             'cost_price' => ['nullable', 'numeric', 'min:0'],
+            'profit_margin_percentage' => ['nullable', 'numeric', 'min:0', 'max:10000'],
             'stock' => ['nullable', 'integer', 'min:0'],
             'min_stock' => ['nullable', 'integer', 'min:0'],
             'active' => ['nullable', 'boolean'],
             'is_default' => ['nullable', 'boolean'],
+            'redirect_to_item' => ['nullable', 'boolean'],
         ]);
 
         $item = CatalogItem::query()
+            ->with('type')
             ->where('empresa_id', $empresa->id)
             ->whereHas('type', function ($typeQuery) {
                 $typeQuery->where('business_model', CatalogType::BUSINESS_MODEL_PRODUCTS);
@@ -104,10 +106,8 @@ class CatalogItemVariantController extends Controller
         $variant = CatalogItemVariant::create([
             'catalog_item_id' => $item->id,
             'name' => trim($data['name']),
-            'presentation' => $this->cleanInput($data['presentation'] ?? null),
-            'specification' => $this->cleanInput($data['specification'] ?? null),
-            'sku' => $this->cleanInput($data['sku'] ?? null),
-            'price' => $data['price'] ?? null,
+            'sku' => $this->resolveSku($data['sku'] ?? null, $item, $data['name']),
+            'price' => $this->resolveSalePrice($data['cost_price'] ?? null, $data['profit_margin_percentage'] ?? null, $data['price'] ?? null),
             'cost_price' => $data['cost_price'] ?? null,
             'stock' => $data['stock'] ?? null,
             'min_stock' => (int) ($data['min_stock'] ?? 0),
@@ -117,10 +117,14 @@ class CatalogItemVariantController extends Controller
 
         $this->syncDefaultVariant($variant);
 
-        NotificationHelper::success('Presentación de producto creada correctamente.');
+        NotificationHelper::success('Presentacion de producto creada correctamente.');
 
         if ($request->boolean('redirect_to_type')) {
             return redirect()->route('admin.catalog-types.show', $item->catalog_type_id);
+        }
+
+        if ($request->boolean('redirect_to_item')) {
+            return redirect()->route('admin.catalog-items.show', $item);
         }
 
         return redirect()->route('admin.catalog-variants.index');
@@ -138,7 +142,7 @@ class CatalogItemVariantController extends Controller
         return redirect()->route('admin.catalog-variants.edit', $catalogVariant);
     }
 
-    public function edit(CatalogItemVariant $catalogVariant)
+    public function edit(Request $request, CatalogItemVariant $catalogVariant)
     {
         $catalogVariant->load('item.type');
 
@@ -156,7 +160,9 @@ class CatalogItemVariantController extends Controller
             ->ordered()
             ->get();
 
-        return view('admin.catalog.variants.edit', compact('catalogVariant', 'items'));
+        $redirectToItem = $request->boolean('redirect_to_item');
+
+        return view('admin.catalog.variants.edit', compact('catalogVariant', 'items', 'redirectToItem'));
     }
 
     public function update(Request $request, CatalogItemVariant $catalogVariant)
@@ -173,18 +179,19 @@ class CatalogItemVariantController extends Controller
         $data = $request->validate([
             'catalog_item_id' => ['required', 'integer', 'exists:catalog_items,id'],
             'name' => ['required', 'string', 'max:255'],
-            'presentation' => ['nullable', 'string', 'max:255'],
-            'specification' => ['nullable', 'string', 'max:255'],
             'sku' => ['nullable', 'string', 'max:255'],
             'price' => ['nullable', 'numeric', 'min:0'],
             'cost_price' => ['nullable', 'numeric', 'min:0'],
+            'profit_margin_percentage' => ['nullable', 'numeric', 'min:0', 'max:10000'],
             'stock' => ['nullable', 'integer', 'min:0'],
             'min_stock' => ['nullable', 'integer', 'min:0'],
             'active' => ['nullable', 'boolean'],
             'is_default' => ['nullable', 'boolean'],
+            'redirect_to_item' => ['nullable', 'boolean'],
         ]);
 
         $item = CatalogItem::query()
+            ->with('type')
             ->where('empresa_id', $empresaId)
             ->whereHas('type', function ($typeQuery) {
                 $typeQuery->where('business_model', CatalogType::BUSINESS_MODEL_PRODUCTS);
@@ -194,10 +201,8 @@ class CatalogItemVariantController extends Controller
         $catalogVariant->update([
             'catalog_item_id' => $item->id,
             'name' => trim($data['name']),
-            'presentation' => $this->cleanInput($data['presentation'] ?? null),
-            'specification' => $this->cleanInput($data['specification'] ?? null),
-            'sku' => $this->cleanInput($data['sku'] ?? null),
-            'price' => $data['price'] ?? null,
+            'sku' => $this->resolveSku($data['sku'] ?? null, $item, $data['name'], $catalogVariant->id),
+            'price' => $this->resolveSalePrice($data['cost_price'] ?? null, $data['profit_margin_percentage'] ?? null, $data['price'] ?? null),
             'cost_price' => $data['cost_price'] ?? null,
             'stock' => $data['stock'] ?? null,
             'min_stock' => (int) ($data['min_stock'] ?? 0),
@@ -207,7 +212,11 @@ class CatalogItemVariantController extends Controller
 
         $this->syncDefaultVariant($catalogVariant);
 
-        NotificationHelper::success('Presentación de producto actualizada correctamente.');
+        NotificationHelper::success('Presentacion de producto actualizada correctamente.');
+
+        if ($request->boolean('redirect_to_item')) {
+            return redirect()->route('admin.catalog-items.show', $item);
+        }
 
         return redirect()->route('admin.catalog-variants.index');
     }
@@ -237,7 +246,7 @@ class CatalogItemVariantController extends Controller
             }
         }
 
-        NotificationHelper::success('Presentación de producto eliminada correctamente.');
+        NotificationHelper::success('Presentacion de producto eliminada correctamente.');
 
         return redirect()->route('admin.catalog-variants.index');
     }
@@ -280,5 +289,42 @@ class CatalogItemVariantController extends Controller
     private function isProductVariant(CatalogItemVariant $variant): bool
     {
         return ($variant->item?->type?->business_model ?? CatalogType::BUSINESS_MODEL_SERVICES) === CatalogType::BUSINESS_MODEL_PRODUCTS;
+    }
+
+    private function resolveSalePrice(mixed $cost, mixed $margin, mixed $fallback): ?float
+    {
+        $cost = is_numeric($cost) ? (float) $cost : 0;
+        $margin = is_numeric($margin) ? (float) $margin : 0;
+
+        if ($cost > 0) {
+            return round($cost + ($cost * $margin / 100), 2);
+        }
+
+        return $fallback === null || $fallback === '' ? null : round((float) $fallback, 2);
+    }
+
+    private function resolveSku(?string $sku, CatalogItem $item, string $presentationName, ?int $ignoreVariantId = null): string
+    {
+        $cleanSku = $this->cleanInput($sku);
+
+        if ($cleanSku) {
+            $exists = CatalogItemVariant::query()
+                ->where('sku', $cleanSku)
+                ->when($ignoreVariantId, fn ($query) => $query->whereKeyNot($ignoreVariantId))
+                ->exists();
+
+            if (!$exists) {
+                return $cleanSku;
+            }
+        }
+
+        $prefixSource = $item->type?->slug ?: $item->type?->name ?: $item->name ?: $presentationName;
+        $prefix = Str::upper(Str::substr(Str::slug($prefixSource, ''), 0, 4)) ?: 'PRES';
+
+        do {
+            $candidate = $prefix . '-' . now()->format('ymd') . '-' . Str::upper(Str::random(5));
+        } while (CatalogItemVariant::query()->where('sku', $candidate)->exists());
+
+        return $candidate;
     }
 }

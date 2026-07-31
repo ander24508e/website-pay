@@ -10,8 +10,6 @@ class CatalogItemVariant extends Model
     protected $fillable = [
         'catalog_item_id',
         'name',
-        'presentation',
-        'specification',
         'sku',
         'price',
         'cost_price',

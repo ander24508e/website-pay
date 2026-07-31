@@ -5,13 +5,6 @@
     $itemSingular = $currentType ? ($isProductContext ? 'Producto' : 'Servicio') : 'Producto o Servicio';
     $returnUrl = $returnUrl ?? route('admin.catalog-items.show', $catalogItem);
     $returnContext = $returnContext ?? [];
-    $defaultVariant = $catalogItem->variants->firstWhere('is_default', true) ?? $catalogItem->variants->first();
-    $currentCost = (float) old('variant_cost_price', $defaultVariant?->cost_price ?? 0);
-    $currentSalePrice = (float) old('base_price', $catalogItem->base_price ?? 0);
-    $computedMargin = $currentCost > 0 ? round((($currentSalePrice - $currentCost) / $currentCost) * 100, 2) : 40;
-    $selectedMargin = (string) old('profit_margin_percentage', $computedMargin);
-    $presetMargins = ['20', '30', '40', '50'];
-    $isCustomMargin = !in_array($selectedMargin, $presetMargins, true);
     $inputClass = 'w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300';
     $labelClass = 'mb-1 block text-xs font-semibold text-gray-700';
 @endphp
@@ -33,7 +26,6 @@
         @csrf
         @method('PUT')
         <input type="hidden" name="slug" value="">
-        <input type="hidden" name="base_price" id="base_price" value="{{ old('base_price', $catalogItem->base_price) }}">
         <input type="hidden" name="new_category_name" id="new_category_name" value="{{ old('new_category_name') }}">
         <input type="hidden" name="new_category_description" id="new_category_description" value="{{ old('new_category_description') }}">
         <input type="hidden" name="redirect_to_inventory" value="{{ !empty($returnContext['from_inventory']) ? 1 : 0 }}">
@@ -74,7 +66,7 @@
                     <div>
                         <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Informacion basica</p>
                         <p class="text-xs text-gray-500">
-                            {{ $isProductContext ? 'Nombre, categoria, costo, margen y descripcion.' : 'Nombre, seccion, categoria, precio y descripcion.' }}
+                            {{ $isProductContext ? 'Nombre, categoria y descripcion del producto padre.' : 'Nombre, seccion, categoria, precio y descripcion.' }}
                         </p>
                     </div>
 
@@ -128,44 +120,7 @@
                         </div>
                     </div>
 
-                    @if ($isProductContext)
-                        <div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_220px]">
-                            <div>
-                                <label class="{{ $labelClass }}">Precio de compra</label>
-                                <div class="relative">
-                                    <span class="absolute left-3 top-2 text-sm font-semibold text-gray-400">$</span>
-                                    <input type="number" name="variant_cost_price" id="purchase_price"
-                                        value="{{ old('variant_cost_price', $defaultVariant?->cost_price) }}" step="0.01" min="0"
-                                        class="{{ $inputClass }} pl-8 @error('variant_cost_price') border-red-400 bg-red-50 @enderror"
-                                        placeholder="0.00">
-                                </div>
-                                @error('variant_cost_price') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
-                            </div>
-
-                            <div>
-                                <label class="{{ $labelClass }}">Ganancia</label>
-                                <select id="profit_margin_select"
-                                    class="{{ $inputClass }} @error('profit_margin_percentage') border-red-400 bg-red-50 @enderror">
-                                    @foreach ($presetMargins as $margin)
-                                        <option value="{{ $margin }}" {{ !$isCustomMargin && $selectedMargin === $margin ? 'selected' : '' }}>
-                                            {{ $margin }}%
-                                        </option>
-                                    @endforeach
-                                    <option value="custom" {{ $isCustomMargin ? 'selected' : '' }}>Personalizado</option>
-                                </select>
-                                <div id="profit_margin_custom_wrap" class="{{ $isCustomMargin ? '' : 'hidden' }} mt-2">
-                                    <div class="relative">
-                                        <input type="number" id="profit_margin_custom"
-                                            value="{{ $isCustomMargin ? $selectedMargin : '' }}" step="0.01" min="0"
-                                            class="{{ $inputClass }} pr-8" placeholder="Ingresa porcentaje">
-                                        <span class="absolute right-3 top-2 text-sm font-semibold text-gray-400">%</span>
-                                    </div>
-                                </div>
-                                <input type="hidden" name="profit_margin_percentage" id="profit_margin_percentage" value="{{ $selectedMargin }}">
-                                @error('profit_margin_percentage') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
-                            </div>
-                        </div>
-                    @else
+                    @unless ($isProductContext)
                         <div class="grid gap-3 sm:grid-cols-2">
                             <div>
                                 <label class="{{ $labelClass }}">Precio base</label>
@@ -185,7 +140,7 @@
                                 @error('duration_minutes') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                             </div>
                         </div>
-                    @endif
+                    @endunless
 
                     <div>
                         <label class="{{ $labelClass }}">Descripcion</label>
@@ -199,42 +154,6 @@
             <aside class="space-y-4">
                 @if ($isProductContext)
                     <section class="rounded-lg border border-gray-100 bg-gray-50 p-3">
-                        <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Inventario</p>
-                        <p class="mb-3 text-xs text-gray-500">El SKU y el precio de venta se mantienen sincronizados.</p>
-                        <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-                            <div>
-                                <label class="{{ $labelClass }}">SKU automatico</label>
-                                <input type="text" name="variant_sku" id="variant_sku"
-                                    value="{{ old('variant_sku', $defaultVariant?->sku) }}"
-                                    class="{{ $inputClass }} bg-white text-gray-500 @error('variant_sku') border-red-400 bg-red-50 @enderror"
-                                    readonly>
-                                @error('variant_sku') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
-                            </div>
-                            <div>
-                                <label class="{{ $labelClass }}">Precio de venta</label>
-                                <div class="relative">
-                                    <span class="absolute left-3 top-2 text-sm font-semibold text-gray-400">$</span>
-                                    <input type="number" id="sale_price_display" value="{{ old('base_price', $catalogItem->base_price) }}"
-                                        step="0.01" min="0" class="{{ $inputClass }} bg-white pl-8 text-gray-500"
-                                        placeholder="0.00" readonly>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="{{ $labelClass }}">Stock actual</label>
-                                <input type="number" value="{{ $defaultVariant?->stock ?? 0 }}"
-                                    class="{{ $inputClass }} bg-white text-gray-500" readonly>
-                            </div>
-                            <div>
-                                <label class="{{ $labelClass }}">Stock minimo</label>
-                                <input type="number" name="variant_min_stock" value="{{ old('variant_min_stock', $defaultVariant?->min_stock ?? 0) }}"
-                                    min="0"
-                                    class="{{ $inputClass }} bg-white @error('variant_min_stock') border-red-400 bg-red-50 @enderror">
-                                @error('variant_min_stock') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
-                            </div>
-                        </div>
-                    </section>
-
-                    <section class="rounded-lg border border-gray-100 bg-gray-50 p-3">
                         <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400">Estado</p>
                         <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-gray-100 bg-white p-3">
                             <input type="checkbox" name="active" value="1" {{ old('active', $catalogItem->active) ? 'checked' : '' }}
@@ -244,6 +163,35 @@
                                 <span class="block text-xs text-gray-400">Visible en catalogo</span>
                             </span>
                         </label>
+                    </section>
+
+                    <section class="rounded-lg border border-gray-100 bg-gray-50 p-3">
+                        <div class="mb-3 flex items-center justify-between gap-3">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Presentaciones</p>
+                                <p class="text-xs text-gray-500">{{ $catalogItem->variants->count() }} registradas</p>
+                            </div>
+                            <a href="{{ route('admin.catalog-variants.create', ['catalog_item_id' => $catalogItem->id, 'catalog_type_id' => $catalogItem->catalog_type_id]) }}"
+                                class="inline-flex h-8 items-center justify-center rounded-lg bg-gray-900 px-3 text-xs font-semibold text-white transition hover:bg-gray-700">
+                                + Agregar
+                            </a>
+                        </div>
+                        <div class="space-y-2">
+                            @forelse ($catalogItem->variants->take(4) as $variant)
+                                <div class="rounded-lg border border-gray-100 bg-white px-3 py-2">
+                                    <p class="text-sm font-semibold text-gray-800">{{ $variant->name }}</p>
+                                    <p class="text-xs text-gray-400">{{ $variant->sku ?: 'Sin SKU' }} / ${{ number_format((float) ($variant->price ?? 0), 2) }} / Stock {{ $variant->stock ?? 0 }}</p>
+                                </div>
+                            @empty
+                                <p class="rounded-lg border border-amber-100 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-700">
+                                    Este producto necesita al menos una presentacion para venderse e inventariarse.
+                                </p>
+                            @endforelse
+                        </div>
+                        <a href="{{ route('admin.catalog-variants.index', ['catalog_item_id' => $catalogItem->id]) }}"
+                            class="mt-3 inline-flex w-full items-center justify-center rounded-lg bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-200">
+                            Ver presentaciones
+                        </a>
                     </section>
                 @else
                     <section class="rounded-lg border border-gray-100 bg-gray-50 p-3">
@@ -368,39 +316,6 @@ function previewImage(input) {
     document.getElementById('img-name').textContent = file.name;
 }
 
-function calculateSalePrice() {
-    const costInput = document.getElementById('purchase_price');
-    const marginInput = document.getElementById('profit_margin_percentage');
-    const saleDisplay = document.getElementById('sale_price_display');
-    const basePrice = document.getElementById('base_price');
-    const cost = parseFloat(costInput?.value || '0');
-    const margin = parseFloat(marginInput?.value || '0');
-    const sale = cost > 0 ? cost + (cost * margin / 100) : 0;
-    const value = sale.toFixed(2);
-
-    if (saleDisplay) saleDisplay.value = value;
-    if (basePrice) basePrice.value = value;
-}
-
-function syncMarginValue() {
-    const select = document.getElementById('profit_margin_select');
-    const customWrap = document.getElementById('profit_margin_custom_wrap');
-    const customInput = document.getElementById('profit_margin_custom');
-    const marginInput = document.getElementById('profit_margin_percentage');
-
-    if (!select || !marginInput) return;
-
-    if (select.value === 'custom') {
-        customWrap?.classList.remove('hidden');
-        marginInput.value = customInput?.value || 0;
-    } else {
-        customWrap?.classList.add('hidden');
-        marginInput.value = select.value;
-    }
-
-    calculateSalePrice();
-}
-
 (function bootCatalogEditForm() {
     const typeSelect = document.getElementById('catalog_type_id');
     const categorySelect = document.getElementById('catalog_category_id');
@@ -431,11 +346,6 @@ function syncMarginValue() {
         typeSelect.addEventListener('change', renderOptions);
         renderOptions();
     }
-
-    document.getElementById('purchase_price')?.addEventListener('input', calculateSalePrice);
-    document.getElementById('profit_margin_select')?.addEventListener('change', syncMarginValue);
-    document.getElementById('profit_margin_custom')?.addEventListener('input', syncMarginValue);
-    syncMarginValue();
 
     const modal = document.getElementById('categoryModal');
     const nameInput = document.getElementById('modal_category_name');

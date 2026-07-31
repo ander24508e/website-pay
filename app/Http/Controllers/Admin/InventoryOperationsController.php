@@ -181,7 +181,7 @@ class InventoryOperationsController extends Controller
             ]);
 
             foreach ($items as $row) {
-                $variant = CatalogItemVariant::query()->findOrFail($row['catalog_item_variant_id']);
+                $variant = $this->findInventoryVariant($empresa, (int) $row['catalog_item_variant_id']);
                 $quantity = (int) $row['quantity'];
                 $unitCost = round((float) $row['unit_cost'], 2);
 
@@ -266,8 +266,9 @@ class InventoryOperationsController extends Controller
             }
 
             foreach ($rows as $row) {
+                $variant = $this->findInventoryVariant($empresa, (int) $row['catalog_item_variant_id']);
                 $item = $transfer->items()->create([
-                    'catalog_item_variant_id' => (int) $row['catalog_item_variant_id'],
+                    'catalog_item_variant_id' => $variant->id,
                     'quantity' => (int) $row['quantity'],
                 ]);
 
@@ -282,7 +283,7 @@ class InventoryOperationsController extends Controller
     public function kardex(Request $request, CatalogItemVariant $variant)
     {
         $empresa = $this->getOrCreateEmpresa();
-        $variant->load('item.type', 'item.category');
+        $variant = $this->findInventoryVariant($empresa, $variant->id);
         $locations = $this->activeLocations($empresa);
         $canViewCosts = $this->canInventory('inventory.view_costs');
 
@@ -318,7 +319,8 @@ class InventoryOperationsController extends Controller
     {
         abort_unless($this->canInventory('inventory.export'), 403);
 
-        $variant->load('item.type', 'item.category');
+        $empresa = $this->getOrCreateEmpresa();
+        $variant = $this->findInventoryVariant($empresa, $variant->id);
         $canViewCosts = $this->canInventory('inventory.view_costs');
 
         $movements = InventoryMovement::query()
@@ -438,7 +440,7 @@ class InventoryOperationsController extends Controller
             ]);
 
             foreach ($rows as $row) {
-                $variant = CatalogItemVariant::query()->findOrFail($row['catalog_item_variant_id']);
+                $variant = $this->findInventoryVariant($empresa, (int) $row['catalog_item_variant_id']);
                 $unitCost = isset($row['unit_cost']) && $row['unit_cost'] !== null && $row['unit_cost'] !== ''
                     ? round((float) $row['unit_cost'], 2)
                     : (float) ($variant->cost_price ?? 0);
@@ -523,7 +525,7 @@ class InventoryOperationsController extends Controller
             ]);
 
             foreach ($rows as $row) {
-                $variant = CatalogItemVariant::query()->findOrFail($row['catalog_item_variant_id']);
+                $variant = $this->findInventoryVariant($empresa, (int) $row['catalog_item_variant_id']);
                 $expected = $location
                     ? (int) InventoryStock::query()
                         ->where('inventory_location_id', $location->id)
@@ -672,13 +674,25 @@ class InventoryOperationsController extends Controller
     private function inventoryVariants(Empresa $empresa)
     {
         return CatalogItemVariant::query()
-            ->with('item')
+            ->with(['item.type', 'item.category'])
             ->whereHas('item', function ($query) use ($empresa) {
                 $query->where('empresa_id', $empresa->id)
                     ->whereHas('type', fn ($typeQuery) => $typeQuery->where('business_model', CatalogType::BUSINESS_MODEL_PRODUCTS));
             })
             ->ordered()
             ->get();
+    }
+
+    private function findInventoryVariant(Empresa $empresa, int $variantId): CatalogItemVariant
+    {
+        return CatalogItemVariant::query()
+            ->with(['item.type', 'item.category'])
+            ->whereKey($variantId)
+            ->whereHas('item', function ($query) use ($empresa) {
+                $query->where('empresa_id', $empresa->id)
+                    ->whereHas('type', fn ($typeQuery) => $typeQuery->where('business_model', CatalogType::BUSINESS_MODEL_PRODUCTS));
+            })
+            ->firstOrFail();
     }
 
     private function cleanInput(?string $value): ?string
@@ -718,8 +732,14 @@ class InventoryOperationsController extends Controller
         $alerts = $variants->filter(function ($variant) {
             $stock = (int) ($variant->stock ?? 0);
             $minStock = (int) ($variant->min_stock ?? 0);
+            $locationStock = (int) $variant->locationStocks->sum('quantity');
+            $hasMismatch = $variant->locationStocks->isNotEmpty() && $locationStock !== $stock;
 
-            return $stock <= 0 || ($minStock > 0 && $stock <= $minStock) || (float) ($variant->cost_price ?? 0) <= 0;
+            return $stock <= 0
+                || ($minStock > 0 && $stock <= $minStock)
+                || (float) ($variant->cost_price ?? 0) <= 0
+                || trim((string) ($variant->sku ?? '')) === ''
+                || $hasMismatch;
         })->values();
 
         $profitRows = InventoryMovement::query()
@@ -837,18 +857,27 @@ class InventoryOperationsController extends Controller
 
     private function alertReportRows($alerts, bool $canViewCosts): array
     {
-        $rows = [['producto', 'presentacion', 'sku', 'stock', 'minimo', 'costo_promedio', 'alerta']];
+        $rows = [['producto', 'presentacion', 'sku', 'stock', 'stock_ubicaciones', 'minimo', 'costo_promedio', 'alerta']];
 
         foreach ($alerts as $variant) {
             $stock = (int) ($variant->stock ?? 0);
             $minStock = (int) ($variant->min_stock ?? 0);
-            $alert = $stock <= 0 ? 'agotado' : (($minStock > 0 && $stock <= $minStock) ? 'bajo_stock' : 'sin_costo');
+            $locationStock = (int) $variant->locationStocks->sum('quantity');
+            $hasMismatch = $variant->locationStocks->isNotEmpty() && $locationStock !== $stock;
+            $alert = match (true) {
+                $hasMismatch => 'revisar_stock_ubicaciones',
+                trim((string) ($variant->sku ?? '')) === '' => 'sin_sku',
+                $stock <= 0 => 'agotado',
+                $minStock > 0 && $stock <= $minStock => 'bajo_stock',
+                default => 'sin_costo',
+            };
 
             $rows[] = [
                 $variant->item?->name ?? '',
                 $variant->name ?? '',
                 $variant->sku ?? '',
                 $stock,
+                $locationStock,
                 $minStock,
                 $canViewCosts ? ($variant->cost_price ?? 0) : '',
                 $alert,

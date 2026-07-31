@@ -231,17 +231,24 @@
                     .map((v) => ({
                         id: Number(v.id),
                         name: String(v.name || ''),
-                        presentation: String(v.presentation || ''),
-                        specification: String(v.specification || ''),
                         price: Number(v.price || 0),
                         stock: Number(v.stock || 0),
                         is_default: Boolean(v.is_default),
                     }));
             }
 
+            function getDefaultVariant(item) {
+                const variants = getVariants(item);
+                if (!variants.length) return null;
+
+                const availableVariants = variants.filter((variant) => !item?.inventariable || Number(variant.stock || 0) > 0);
+                return availableVariants.find((variant) => variant.is_default) || availableVariants[0] || variants.find((variant) => variant.is_default) || variants[0];
+            }
+
             function getItemAvailableStock(item) {
                 if (!item?.inventariable) return 9999;
-                return Math.max(0, Number(item.stock_disponible || 0));
+                const selected = getDefaultVariant(item);
+                return Math.max(0, Number(selected?.stock ?? item.stock_disponible ?? 0));
             }
 
             function getSelectedVariantStock() {
@@ -273,9 +280,22 @@
                     return `<button type="button" class="btn-reservar-main ${needsVehicle ? 'js-open-priced-service' : 'js-add-simple-cart'}" data-id="${Number(item.id)}" data-tipo="${tipo}">${needsVehicle ? 'Elegir vehiculo' : 'Agregar servicio'}</button>`;
                 }
 
-                const stock = getItemAvailableStock(item);
+                const variants = getVariants(item);
+                const selectedVariant = getDefaultVariant(item);
+                const stock = Math.max(0, Number(selectedVariant?.stock || 0));
+
+                if (!variants.length || stock <= 0) return '<span class="catalog-stock-empty">Agotado</span>';
+
+                const options = variants.map((variant) => {
+                    const disabled = Number(variant.stock || 0) <= 0 ? 'disabled' : '';
+                    const selected = selectedVariant && Number(selectedVariant.id) === Number(variant.id) ? 'selected' : '';
+                    return `<option value="${variant.id}" data-stock="${Number(variant.stock || 0)}" data-price="${Number(variant.price || 0)}" ${selected} ${disabled}>${escapeHtml(buildVariantLabel(variant))} - $${Number(variant.price || 0).toFixed(2)}</option>`;
+                }).join('');
 
                 return `
+            <select class="catalog-variant-select js-card-variant-select" aria-label="Seleccionar presentacion">
+                ${options}
+            </select>
             <div class="catalog-stock-counter" data-stock="${stock}" data-quantity="1">
                 <button type="button" class="catalog-stock-btn js-stock-minus" aria-label="Restar cantidad" disabled>−</button>
                 <span class="catalog-stock-value js-stock-value">1</span>
@@ -395,8 +415,7 @@
             upsertCatalogItems(initialCatalogItems);
 
             function buildVariantLabel(variant) {
-                const parts = [variant.presentation, variant.specification].filter(Boolean);
-                return parts.length ? parts.join(' ') : (variant.name || 'Presentacion');
+                return variant.name || 'Presentacion';
             }
 
             function updateDetailVariantPrice() {
@@ -664,6 +683,19 @@
                     return;
                 }
 
+                const variantSelect = event.target.closest('.js-card-variant-select');
+                if (variantSelect) {
+                    const card = variantSelect.closest('.item-catalogo');
+                    const option = variantSelect.selectedOptions?.[0];
+                    const stock = Math.max(0, Number(option?.dataset.stock || 0));
+                    const counter = card?.querySelector('.catalog-stock-counter');
+                    if (counter) {
+                        counter.dataset.stock = String(stock);
+                        setCounterValue(counter, 1, stock);
+                    }
+                    return;
+                }
+
                 const stockButton = event.target.closest('.catalog-stock-btn');
                 if (stockButton) {
                     const counter = stockButton.closest('.catalog-stock-counter');
@@ -680,10 +712,12 @@
                 if (addCounterTarget) {
                     const card = addCounterTarget.closest('.item-catalogo');
                     const counter = card?.querySelector('.catalog-stock-counter');
+                    const variantSelect = card?.querySelector('.js-card-variant-select');
+                    const variantId = Number(variantSelect?.value || 0) || null;
                     const quantity = Number(counter?.dataset.quantity || counter?.querySelector(
                         '.js-stock-value')?.textContent || 1);
                     addToCart(Number(addCounterTarget.dataset.id), addCounterTarget.dataset.tipo || 'catalog',
-                        quantity);
+                        quantity, variantId);
                     return;
                 }
 

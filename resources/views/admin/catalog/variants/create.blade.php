@@ -8,7 +8,9 @@
     $showEmptyItemOption = !($selectedItemId > 0 || $selectedTypeId > 0);
     $returnUrl = ($returnToType && $selectedTypeId > 0)
         ? route('admin.catalog-types.show', $selectedTypeId)
-        : route('admin.catalog-variants.index');
+        : ($selectedItemId > 0
+            ? route('admin.catalog-items.show', $selectedItemId)
+            : route('admin.catalog-variants.index'));
 @endphp
 
 <div class="mx-auto w-full max-w-full overflow-x-hidden px-3 pb-4 sm:px-6">
@@ -19,11 +21,11 @@
         </a>
         <div>
             <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Nueva Presentacion</h2>
-            <p class="text-gray-400 text-sm">Agrega un tamaño, version o precio diferente a un producto.</p>
+            <p class="text-gray-400 text-sm">Agrega una presentacion, precio y stock diferente a un producto.</p>
         </div>
     </div>
 
-    <div class="mx-auto w-full max-w-3xl">
+    <div class="mx-auto w-full max-w-6xl">
         <div class="bg-white rounded-xl shadow-sm p-4 sm:p-8">
             @if($items->isEmpty())
                 <div class="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800">
@@ -38,6 +40,7 @@
                 <form action="{{ route('admin.catalog-variants.store') }}" method="POST">
                     @csrf
                     <input type="hidden" name="redirect_to_type" value="{{ $returnToType ? 1 : 0 }}">
+                    <input type="hidden" name="redirect_to_item" value="{{ !$returnToType && $selectedItemId > 0 ? 1 : 0 }}">
 
                     @include('admin.catalog.variants._form')
 

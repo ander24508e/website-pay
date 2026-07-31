@@ -49,7 +49,7 @@
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Ubicación</label>
             <select name="inventory_location_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                <option value="">Solo stock global</option>
+                <option value="">Ubicación principal automática</option>
                 @foreach($locations as $location)
                     <option value="{{ $location->id }}">{{ $location->name }}</option>
                 @endforeach

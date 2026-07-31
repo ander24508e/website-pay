@@ -27,9 +27,6 @@
         $hasProductTypes = count($types ?? []) > 0;
         $inputClass = 'w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300';
         $labelClass = 'mb-1 block text-xs font-semibold text-gray-700';
-        $skuSource = $selectedProductType?->slug ?: $selectedProductType?->name ?: 'producto';
-        $skuPrefix = str_replace('-', '', \Illuminate\Support\Str::upper(\Illuminate\Support\Str::slug($skuSource)));
-        $skuPrefix = \Illuminate\Support\Str::substr($skuPrefix ?: 'PROD', 0, 4);
     @endphp
 
     <div class="mx-auto w-full max-w-[1500px] px-3 pb-4 sm:px-5 xl:h-[calc(100vh-2rem)] xl:overflow-hidden">
@@ -67,11 +64,10 @@
                 <input type="hidden" name="redirect_to_category" value="{{ $returnToCategory ? 1 : 0 }}">
                 <input type="hidden" name="redirect_to_inventory" value="{{ $fromInventory ? 1 : 0 }}">
                 <input type="hidden" name="catalog_type_id" id="catalog_type_id" value="{{ $selectedProductTypeId }}">
-                <input type="hidden" name="base_price" id="base_price" value="{{ old('base_price') }}">
                 <input type="hidden" name="new_category_name" id="new_category_name" value="{{ old('new_category_name') }}">
                 <input type="hidden" name="new_category_description" id="new_category_description" value="{{ old('new_category_description') }}">
 
-                <div class="grid gap-4 p-4 xl:grid-cols-[minmax(0,1fr)_340px] xl:overflow-y-auto">
+                <div class="grid gap-4 p-4 xl:grid-cols-[minmax(0,1fr)_300px] xl:overflow-y-auto">
                     <div class="min-w-0 space-y-4">
                         <section class="rounded-lg border border-gray-100 bg-gray-50 p-3">
                             <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400">Imagen</p>
@@ -99,7 +95,7 @@
                         <section class="space-y-3">
                             <div>
                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Informacion basica</p>
-                                <p class="text-xs text-gray-500">Nombre, categoria, costo, margen y descripcion.</p>
+                                <p class="text-xs text-gray-500">Nombre, categoria y descripcion del producto padre.</p>
                             </div>
 
                             <div>
@@ -154,54 +150,6 @@
                                 </div>
                             </div>
 
-                            <div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_220px]">
-                                <div>
-                                    <label class="{{ $labelClass }}">Precio de compra</label>
-                                    <div class="relative">
-                                        <span class="absolute left-3 top-2 text-sm font-semibold text-gray-400">$</span>
-                                        <input type="number" name="variant_cost_price" id="purchase_price"
-                                            value="{{ old('variant_cost_price') }}" step="0.01" min="0"
-                                            class="{{ $inputClass }} pl-8 @error('variant_cost_price') border-red-400 bg-red-50 @enderror"
-                                            placeholder="0.00">
-                                    </div>
-                                    @error('variant_cost_price')
-                                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                                    @enderror
-                                </div>
-
-                                <div>
-                                    <label class="{{ $labelClass }}">Ganancia</label>
-                                    @php
-                                        $selectedMargin = (string) old('profit_margin_percentage', 40);
-                                        $presetMargins = ['20', '30', '40', '50'];
-                                        $isCustomMargin = !in_array($selectedMargin, $presetMargins, true);
-                                    @endphp
-                                    <select id="profit_margin_select"
-                                        class="{{ $inputClass }} @error('profit_margin_percentage') border-red-400 bg-red-50 @enderror">
-                                        @foreach ($presetMargins as $margin)
-                                            <option value="{{ $margin }}" {{ !$isCustomMargin && $selectedMargin === $margin ? 'selected' : '' }}>
-                                                {{ $margin }}%
-                                            </option>
-                                        @endforeach
-                                        <option value="custom" {{ $isCustomMargin ? 'selected' : '' }}>Personalizado</option>
-                                    </select>
-                                    <div id="profit_margin_custom_wrap" class="{{ $isCustomMargin ? '' : 'hidden' }} mt-2">
-                                        <div class="relative">
-                                            <input type="number" id="profit_margin_custom"
-                                                value="{{ $isCustomMargin ? $selectedMargin : '' }}" step="0.01" min="0"
-                                                class="{{ $inputClass }} pr-8"
-                                                placeholder="Ingresa porcentaje">
-                                            <span class="absolute right-3 top-2 text-sm font-semibold text-gray-400">%</span>
-                                        </div>
-                                    </div>
-                                    <input type="hidden" name="profit_margin_percentage" id="profit_margin_percentage"
-                                        value="{{ $selectedMargin }}">
-                                    @error('profit_margin_percentage')
-                                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                                    @enderror
-                                </div>
-                            </div>
-
                             <div>
                                 <label class="{{ $labelClass }}">Descripcion</label>
                                 <textarea name="description" rows="3"
@@ -216,50 +164,14 @@
 
                     <aside class="space-y-4">
                         <section class="rounded-lg border border-gray-100 bg-gray-50 p-3">
-                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Inventario inicial</p>
-                            <p class="mb-3 text-xs text-gray-500">El SKU y el precio de venta se calculan automaticamente.</p>
-                            <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-                                <div>
-                                    <label class="{{ $labelClass }}">SKU automatico</label>
-                                    <input type="text" name="variant_sku" id="variant_sku"
-                                        value="{{ old('variant_sku') }}"
-                                        class="{{ $inputClass }} bg-white text-gray-500 @error('variant_sku') border-red-400 bg-red-50 @enderror"
-                                        readonly>
-                                    @error('variant_sku')
-                                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                                    @enderror
-                                </div>
-                                <div>
-                                    <label class="{{ $labelClass }}">Precio de venta</label>
-                                    <div class="relative">
-                                        <span class="absolute left-3 top-2 text-sm font-semibold text-gray-400">$</span>
-                                        <input type="number" id="sale_price_display" value="{{ old('base_price') }}"
-                                            step="0.01" min="0"
-                                            class="{{ $inputClass }} bg-white pl-8 text-gray-500"
-                                            placeholder="0.00" readonly>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="{{ $labelClass }}">Stock inicial</label>
-                                    <input type="number" name="variant_stock" value="{{ old('variant_stock', 0) }}"
-                                        min="0"
-                                        class="{{ $inputClass }} bg-white @error('variant_stock') border-red-400 bg-red-50 @enderror"
-                                        placeholder="0">
-                                    @error('variant_stock')
-                                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                                    @enderror
-                                </div>
-                                <div>
-                                    <label class="{{ $labelClass }}">Stock minimo</label>
-                                    <input type="number" name="variant_min_stock"
-                                        value="{{ old('variant_min_stock', 0) }}" min="0"
-                                        class="{{ $inputClass }} bg-white @error('variant_min_stock') border-red-400 bg-red-50 @enderror"
-                                        placeholder="0">
-                                    @error('variant_min_stock')
-                                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                                    @enderror
-                                </div>
-                            </div>
+                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Presentaciones</p>
+                            <p class="mt-1 text-xs text-gray-500">
+                                Guarda el producto padre y luego crea sus presentaciones: galon, litro, caneca o cualquier tamano.
+                            </p>
+                            <button type="submit" name="next_action" value="presentation"
+                                class="mt-4 inline-flex h-10 w-full items-center justify-center rounded-lg bg-gray-900 px-4 text-sm font-semibold text-white transition hover:bg-gray-700">
+                                Agregar presentacion
+                            </button>
                         </section>
 
                         <section class="rounded-lg border border-gray-100 bg-gray-50 p-3">
@@ -325,8 +237,6 @@
 
 @push('scripts')
     <script>
-        const skuPrefix = @json($skuPrefix);
-
         function previewImage(input) {
             if (!input.files || !input.files[0]) return;
 
@@ -346,61 +256,7 @@
             document.getElementById('img-name').textContent = file.name;
         }
 
-        function randomSku() {
-            const date = new Date();
-            const ymd = String(date.getFullYear()).slice(-2) +
-                String(date.getMonth() + 1).padStart(2, '0') +
-                String(date.getDate()).padStart(2, '0');
-            const token = Math.random().toString(36).substring(2, 7).toUpperCase();
-
-            return `${skuPrefix || 'PROD'}-${ymd}-${token}`;
-        }
-
-        function calculateSalePrice() {
-            const costInput = document.getElementById('purchase_price');
-            const marginInput = document.getElementById('profit_margin_percentage');
-            const saleDisplay = document.getElementById('sale_price_display');
-            const basePrice = document.getElementById('base_price');
-            const cost = parseFloat(costInput?.value || '0');
-            const margin = parseFloat(marginInput?.value || '0');
-            const sale = cost > 0 ? cost + (cost * margin / 100) : 0;
-            const value = sale.toFixed(2);
-
-            if (saleDisplay) saleDisplay.value = value;
-            if (basePrice) basePrice.value = value;
-        }
-
-        function syncMarginValue() {
-            const select = document.getElementById('profit_margin_select');
-            const customWrap = document.getElementById('profit_margin_custom_wrap');
-            const customInput = document.getElementById('profit_margin_custom');
-            const marginInput = document.getElementById('profit_margin_percentage');
-
-            if (!select || !marginInput) return;
-
-            if (select.value === 'custom') {
-                customWrap?.classList.remove('hidden');
-                marginInput.value = customInput?.value || 0;
-            } else {
-                customWrap?.classList.add('hidden');
-                marginInput.value = select.value;
-            }
-
-            calculateSalePrice();
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
-            const skuInput = document.getElementById('variant_sku');
-            if (skuInput && !skuInput.value) {
-                skuInput.value = randomSku();
-            }
-
-            document.getElementById('purchase_price')?.addEventListener('input', calculateSalePrice);
-            document.getElementById('profit_margin_select')?.addEventListener('change', syncMarginValue);
-            document.getElementById('profit_margin_custom')?.addEventListener('input', syncMarginValue);
-            syncMarginValue();
-            calculateSalePrice();
-
             const modal = document.getElementById('categoryModal');
             const nameInput = document.getElementById('modal_category_name');
             const descriptionInput = document.getElementById('modal_category_description');

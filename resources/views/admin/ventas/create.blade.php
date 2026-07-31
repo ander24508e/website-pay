@@ -19,10 +19,10 @@
                             fn($variant) => [
                                 'id' => $variant->id,
                                 'label' => trim(
-                                    ($variant->presentation ?: $variant->name) .
+                                    ($variant->name ?: 'Presentacion') .
                                         ($variant->sku ? ' - ' . $variant->sku : ''),
                                 ),
-                                'price' => (float) ($variant->price ?? $item->display_price),
+                                'price' => (float) ($variant->price ?? 0),
                                 'stock' => (int) ($variant->stock ?? 0),
                             ],
                         )
@@ -375,14 +375,14 @@
                     </select>
                 </div>
                 <div class="item-product-field md:col-span-2">
-                    <label class="block text-[11px] font-semibold text-gray-500 uppercase mb-1">PresentaciÃ³n</label>
+                    <label class="block text-[11px] font-semibold text-gray-500 uppercase mb-1">Presentacion</label>
                     <select data-field="catalog_item_variant_id"
                         class="variant-select w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white">
                         <option value="">General</option>
                     </select>
                 </div>
                 <div class="item-service-field md:col-span-2">
-                    <label class="block text-[11px] font-semibold text-gray-500 uppercase mb-1">VehÃ­culo</label>
+                    <label class="block text-[11px] font-semibold text-gray-500 uppercase mb-1">Vehiculo</label>
                     <select data-field="vehicle_id"
                         class="vehicle-select w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white">
                         <option value="">Sin vehÃ­culo</option>
@@ -470,7 +470,7 @@
 
         function fillVariants(row, item) {
             const variantSelect = row.querySelector('.variant-select');
-            variantSelect.innerHTML = '<option value="">General</option>';
+            variantSelect.innerHTML = '<option value="">Selecciona presentacion</option>';
             (item?.variants || []).forEach((variant) => {
                 const option = new Option(
                     `${variant.label || 'General'} (${money(variant.price)} / Stock ${variant.stock})`, variant
@@ -529,6 +529,8 @@
             if (isProduct && variantOption?.value) {
                 return Number(variantOption.dataset.price || item.price || 0);
             }
+
+            if (isProduct) return 0;
 
             const vehicleTypeId = row.querySelector('.vehicle-type-select')?.value;
             if (!isProduct && vehicleTypeId && item.vehicle_prices && item.vehicle_prices[vehicleTypeId] !== undefined) {
@@ -846,4 +848,3 @@
         });
     </script>
 @endpush
-

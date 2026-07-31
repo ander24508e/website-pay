@@ -89,6 +89,23 @@
     color: #fff;
 }
 
+#catalogo .catalog-variant-select {
+    width: 100%;
+    min-height: 2.35rem;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    padding: 0.45rem 0.6rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+#catalogo .catalog-variant-select option {
+    background: #1e1e1e;
+    color: #fff;
+}
+
 #catalogo .catalog-stock-counter-modal {
     width: 100%;
     grid-template-columns: 2.7rem 1fr 2.7rem;

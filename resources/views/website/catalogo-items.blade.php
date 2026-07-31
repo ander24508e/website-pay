@@ -1,4 +1,12 @@
 @forelse($items as $item)
+    @php
+        $presentations = collect($item['variantes'] ?? [])->values();
+        $availablePresentations = $presentations->filter(fn ($presentation) => !($item['inventariable'] ?? false) || (int) ($presentation['stock'] ?? 0) > 0);
+        $defaultPresentation = $availablePresentations->firstWhere('is_default', true)
+            ?? $availablePresentations->first()
+            ?? $presentations->first();
+        $defaultPresentationStock = (int) ($defaultPresentation['stock'] ?? ($item['stock_disponible'] ?? 0));
+    @endphp
     <div class="card item-catalogo">
         @if ($item['imagen'])
             <button
@@ -48,11 +56,23 @@
             <div class="card-top">
                 <div class="card-name-row">
                     <div class="card-name">{{ $item['nombre'] }}</div>
-                    @if(($item['comprable'] ?? false) && ($item['inventariable'] ?? false) && !($item['agotado'] ?? false))
-                        <div class="catalog-stock-counter" data-stock="{{ (int) ($item['stock_disponible'] ?? 9999) }}" data-quantity="1">
+                    @if(($item['comprable'] ?? false) && ($item['inventariable'] ?? false) && !($item['agotado'] ?? false) && $presentations->isNotEmpty())
+                        <select class="catalog-variant-select js-card-variant-select" aria-label="Seleccionar presentacion">
+                            @foreach ($presentations as $presentation)
+                                @php($presentationStock = (int) ($presentation['stock'] ?? 0))
+                                <option value="{{ $presentation['id'] }}"
+                                    data-stock="{{ $presentationStock }}"
+                                    data-price="{{ (float) ($presentation['price'] ?? 0) }}"
+                                    {{ (int) ($defaultPresentation['id'] ?? 0) === (int) ($presentation['id'] ?? 0) ? 'selected' : '' }}
+                                    {{ $presentationStock <= 0 ? 'disabled' : '' }}>
+                                    {{ $presentation['name'] ?? 'Presentacion' }} - ${{ number_format((float) ($presentation['price'] ?? 0), 2) }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <div class="catalog-stock-counter" data-stock="{{ $defaultPresentationStock }}" data-quantity="1">
                             <button type="button" class="catalog-stock-btn js-stock-minus" aria-label="Restar cantidad" disabled>−</button>
                             <span class="catalog-stock-value js-stock-value">1</span>
-                            <button type="button" class="catalog-stock-btn js-stock-plus" aria-label="Sumar cantidad" {{ (int) ($item['stock_disponible'] ?? 9999) <= 1 ? 'disabled' : '' }}>+</button>
+                            <button type="button" class="catalog-stock-btn js-stock-plus" aria-label="Sumar cantidad" {{ $defaultPresentationStock <= 1 ? 'disabled' : '' }}>+</button>
                         </div>
                     @elseif(($item['comprable'] ?? false) && ($item['inventariable'] ?? false) && ($item['agotado'] ?? false))
                         <span class="catalog-stock-empty">Agotado</span>

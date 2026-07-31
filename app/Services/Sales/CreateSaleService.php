@@ -92,9 +92,13 @@ class CreateSaleService
 
             if ($isProduct) {
                 $variant = $this->resolveVariant($catalogItem, $row['catalog_item_variant_id'] ?? null);
-                $unitPrice = (float) ($variant?->price ?? $catalogItem->display_price);
+                if (!$variant) {
+                    throw ValidationException::withMessages(["items.{$index}.catalog_item_variant_id" => 'Selecciona una presentacion activa para este producto.']);
+                }
 
-                if ($catalogItem->uses_inventory && (!$variant || (int) $variant->stock < $quantity)) {
+                $unitPrice = (float) ($variant->price ?? 0);
+
+                if ($catalogItem->uses_inventory && (int) $variant->stock < $quantity) {
                     throw ValidationException::withMessages(["items.{$index}.quantity" => 'No hay stock suficiente para este producto.']);
                 }
             } else {
@@ -120,7 +124,7 @@ class CreateSaleService
                 'tax_amount' => $taxAmount,
                 'payload' => [
                     'catalog_item_id' => $catalogItem->id,
-                    'catalog_item_variant_id' => $isProduct ? $variant?->id : null,
+                    'catalog_item_variant_id' => $isProduct ? $variant->id : null,
                     'vehicle_id' => !$isProduct && !empty($row['vehicle_id']) ? (int) $row['vehicle_id'] : null,
                     'vehicle_type_id' => !$isProduct && !empty($row['vehicle_type_id']) ? (int) $row['vehicle_type_id'] : null,
                     'name_snapshot' => $catalogItem->name,

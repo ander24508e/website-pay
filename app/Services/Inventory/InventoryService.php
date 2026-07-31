@@ -37,12 +37,18 @@ class InventoryService
                 ->whereKey($variant->id)
                 ->lockForUpdate()
                 ->firstOrFail();
+            $lockedVariant->loadMissing('item');
 
             $stockBefore = (int) ($lockedVariant->stock ?? 0);
             $previousUnitCost = round((float) ($lockedVariant->cost_price ?? 0), 2);
             $movementUnitCost = $this->resolveMovementUnitCost($type, $context, $previousUnitCost);
             $location = $context['location'] ?? null;
             $locationId = $context['inventory_location_id'] ?? $context['location_id'] ?? null;
+
+            if (!$location && !$locationId && empty($context['skip_default_location'])) {
+                $location = $this->defaultLocationForVariant($lockedVariant);
+            }
+
             $locationStockBefore = null;
             $locationStockAfter = null;
 
@@ -377,5 +383,33 @@ class InventoryService
             : $quantity;
 
         return round($costQuantity * $unitCost, 2);
+    }
+
+    private function defaultLocationForVariant(CatalogItemVariant $variant): ?InventoryLocation
+    {
+        $empresaId = $variant->item?->empresa_id;
+
+        if (!$empresaId) {
+            return null;
+        }
+
+        $location = InventoryLocation::query()
+            ->where('empresa_id', $empresaId)
+            ->where('active', true)
+            ->orderByDesc('is_default')
+            ->orderBy('name')
+            ->first();
+
+        if ($location) {
+            return $location;
+        }
+
+        return InventoryLocation::create([
+            'empresa_id' => $empresaId,
+            'name' => 'Bodega principal',
+            'type' => 'warehouse',
+            'is_default' => true,
+            'active' => true,
+        ]);
     }
 }

@@ -10,7 +10,6 @@ use App\Models\CatalogType;
 use App\Models\Empresa;
 use App\Models\VehicleBrand;
 use App\Models\VehicleType;
-use App\Services\Inventory\InventoryService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -170,7 +169,7 @@ class CatalogItemController extends Controller
         ));
     }
 
-    public function store(Request $request, InventoryService $inventoryService)
+    public function store(Request $request)
     {
         $empresa = $this->getOrCreateEmpresa();
 
@@ -183,7 +182,6 @@ class CatalogItemController extends Controller
             'slug' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'base_price' => ['nullable', 'numeric', 'min:0'],
-            'profit_margin_percentage' => ['nullable', 'numeric', 'min:0', 'max:10000'],
             'duration_minutes' => ['nullable', 'integer', 'min:1', 'max:1440'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:6144'],
             'active' => ['nullable', 'boolean'],
@@ -193,15 +191,7 @@ class CatalogItemController extends Controller
             'uses_inventory' => ['nullable', 'boolean'],
             'redirect_to_inventory' => ['nullable', 'boolean'],
             'redirect_to_category' => ['nullable', 'boolean'],
-            'create_presentation' => ['nullable', 'boolean'],
-            'variant_name' => ['nullable', 'string', 'max:255'],
-            'variant_presentation' => ['nullable', 'string', 'max:255'],
-            'variant_specification' => ['nullable', 'string', 'max:255'],
-            'variant_sku' => ['nullable', 'string', 'max:255'],
-            'variant_price' => ['nullable', 'numeric', 'min:0'],
-            'variant_cost_price' => ['nullable', 'numeric', 'min:0'],
-            'variant_stock' => ['nullable', 'integer', 'min:0'],
-            'variant_min_stock' => ['nullable', 'integer', 'min:0'],
+            'next_action' => ['nullable', 'string', 'in:presentation'],
             'vehicle_type_prices' => ['nullable', 'array'],
             'vehicle_type_prices.*' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
             'vehicle_type_durations' => ['nullable', 'array'],
@@ -233,9 +223,8 @@ class CatalogItemController extends Controller
         }
 
         if ($this->isProductBusiness($type)) {
-            $cost = (float) ($data['variant_cost_price'] ?? 0);
-            $margin = (float) ($data['profit_margin_percentage'] ?? 0);
-            $data['base_price'] = $cost > 0 ? round($cost + ($cost * $margin / 100), 2) : ($data['base_price'] ?? null);
+            $data['base_price'] = null;
+            $data['duration_minutes'] = null;
         }
 
         $slug = $this->resolveSlug($empresa->id, $data['name'], $data['slug'] ?? null);
@@ -249,8 +238,8 @@ class CatalogItemController extends Controller
             'name' => trim($data['name']),
             'slug' => $slug,
             'description' => $this->cleanInput($data['description'] ?? null),
-            'base_price' => $data['base_price'] ?? null,
-            'duration_minutes' => $data['duration_minutes'] ?? null,
+            'base_price' => $this->isProductBusiness($type) ? null : ($data['base_price'] ?? null),
+            'duration_minutes' => $this->isProductBusiness($type) ? null : ($data['duration_minutes'] ?? null),
             'active' => $request->boolean('active', true),
             'featured' => $request->boolean('featured'),
             'purchasable' => $behavior['purchasable'],
@@ -266,35 +255,16 @@ class CatalogItemController extends Controller
         $this->syncVehicleTypePrices($item, $type, $data['vehicle_type_prices'] ?? [], $data['vehicle_type_durations'] ?? []);
         $this->syncSupplies($item, $type, $data['supplies'] ?? []);
 
-        $shouldCreatePresentation = $this->isProductBusiness($type);
-
-        if ($shouldCreatePresentation) {
-            $variant = CatalogItemVariant::create([
-                'catalog_item_id' => $item->id,
-                'name' => 'General',
-                'presentation' => null,
-                'specification' => null,
-                'sku' => $this->resolveVariantSku($data['variant_sku'] ?? null, $type, $data['name']),
-                'price' => $item->base_price,
-                'cost_price' => $data['variant_cost_price'] ?? null,
-                'stock' => 0,
-                'min_stock' => (int) ($data['variant_min_stock'] ?? 0),
-                'active' => true,
-                'is_default' => true,
-            ]);
-
-            $initialStock = (int) ($data['variant_stock'] ?? 0);
-
-            if ($initialStock > 0) {
-                $inventoryService->applyMovement($variant, 'adjust', $initialStock, 'Stock inicial al crear producto', [
-                    'reason' => 'stock_inicial',
-                    'reference' => 'catalog_item:' . $item->id,
-                    'unit_cost' => $data['variant_cost_price'] ?? null,
-                ]);
-            }
-        }
-
         NotificationHelper::success($this->isProductBusiness($type) ? 'Producto creado correctamente.' : 'Servicio creado correctamente.');
+
+        if ($this->isProductBusiness($type) && ($data['next_action'] ?? null) === 'presentation') {
+            return redirect()->route('admin.catalog-variants.create', [
+                'catalog_item_id' => $item->id,
+                'catalog_type_id' => $item->catalog_type_id,
+                'return_to_type' => $request->boolean('redirect_to_type') ? 1 : null,
+                'return_to_category' => $request->boolean('redirect_to_category') ? 1 : null,
+            ]);
+        }
 
         if ($request->boolean('redirect_to_inventory')) {
             return redirect()->route('admin.inventario.index', ['catalog_type_id' => $type->id]);
@@ -357,7 +327,6 @@ class CatalogItemController extends Controller
             'slug' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'base_price' => ['nullable', 'numeric', 'min:0'],
-            'profit_margin_percentage' => ['nullable', 'numeric', 'min:0', 'max:10000'],
             'duration_minutes' => ['nullable', 'integer', 'min:1', 'max:1440'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:6144'],
             'active' => ['nullable', 'boolean'],
@@ -373,9 +342,6 @@ class CatalogItemController extends Controller
             'vehicle_type_prices.*' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
             'vehicle_type_durations' => ['nullable', 'array'],
             'vehicle_type_durations.*' => ['nullable', 'integer', 'min:1', 'max:1440'],
-            'variant_sku' => ['nullable', 'string', 'max:255'],
-            'variant_cost_price' => ['nullable', 'numeric', 'min:0'],
-            'variant_min_stock' => ['nullable', 'integer', 'min:0'],
             'supplies' => ['nullable', 'array'],
             'supplies.*.catalog_item_variant_id' => ['nullable', 'integer', 'exists:catalog_item_variants,id'],
             'supplies.*.quantity' => ['nullable', 'numeric', 'min:0.001', 'max:999999.999'],
@@ -397,15 +363,10 @@ class CatalogItemController extends Controller
             );
         }
 
-        if ($this->isProductBusiness($type)) {
-            $cost = (float) ($data['variant_cost_price'] ?? 0);
-            $margin = (float) ($data['profit_margin_percentage'] ?? 0);
-            $data['base_price'] = $cost > 0 ? round($cost + ($cost * $margin / 100), 2) : ($data['base_price'] ?? null);
-        }
-
         $slug = $this->resolveSlug($catalogItem->empresa_id, $data['name'], $data['slug'] ?? null, $catalogItem->id);
 
         $behavior = $this->resolveBehaviorForType($type, $request);
+        $isProductBusiness = $this->isProductBusiness($type);
 
         $payload = [
             'catalog_type_id' => $type->id,
@@ -413,8 +374,8 @@ class CatalogItemController extends Controller
             'name' => trim($data['name']),
             'slug' => $slug,
             'description' => $this->cleanInput($data['description'] ?? null),
-            'base_price' => $data['base_price'] ?? null,
-            'duration_minutes' => $data['duration_minutes'] ?? null,
+            'base_price' => $isProductBusiness ? null : ($data['base_price'] ?? null),
+            'duration_minutes' => $isProductBusiness ? null : ($data['duration_minutes'] ?? null),
             'active' => $request->boolean('active'),
             'featured' => $request->boolean('featured'),
             'purchasable' => $behavior['purchasable'],
@@ -433,26 +394,11 @@ class CatalogItemController extends Controller
         $this->syncVehicleTypePrices($catalogItem, $type, $data['vehicle_type_prices'] ?? [], $data['vehicle_type_durations'] ?? []);
         $this->syncSupplies($catalogItem, $type, $data['supplies'] ?? []);
 
-        if ($this->isProductBusiness($type)) {
-            $this->ensureDefaultVariant($catalogItem);
-            $defaultVariant = $catalogItem->variants()->where('is_default', true)->first()
-                ?? $catalogItem->variants()->orderBy('id')->first();
-
-            if ($defaultVariant) {
-                $defaultVariant->update([
-                    'sku' => $this->resolveVariantSku($data['variant_sku'] ?? null, $type, $data['name'], $defaultVariant->id),
-                    'price' => $catalogItem->base_price,
-                    'cost_price' => $data['variant_cost_price'] ?? null,
-                    'min_stock' => (int) ($data['variant_min_stock'] ?? 0),
-                    'active' => true,
-                    'is_default' => true,
-                ]);
-            }
-        } else {
+        if (!$isProductBusiness) {
             $catalogItem->variants()->delete();
         }
 
-        NotificationHelper::success($this->isProductBusiness($type) ? 'Producto actualizado correctamente.' : 'Servicio actualizado correctamente.');
+        NotificationHelper::success($isProductBusiness ? 'Producto actualizado correctamente.' : 'Servicio actualizado correctamente.');
 
         if ($request->boolean('redirect_to_inventory')) {
             return redirect()->route('admin.inventario.index', ['catalog_type_id' => $catalogItem->catalog_type_id]);

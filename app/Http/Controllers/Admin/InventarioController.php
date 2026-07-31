@@ -38,30 +38,32 @@ class InventarioController extends Controller
             $selectedTypeId = 0;
         }
 
-        $products = CatalogItem::query()
-            ->with(['type', 'category', 'variants'])
-            ->where('empresa_id', $empresa->id)
-            ->whereHas('type', function ($typeQuery) use ($selectedTypeId) {
-                $typeQuery->where('business_model', CatalogType::BUSINESS_MODEL_PRODUCTS)
-                    ->when($selectedTypeId > 0, function ($filteredTypeQuery) use ($selectedTypeId) {
-                        $filteredTypeQuery->whereKey($selectedTypeId);
+        $variants = CatalogItemVariant::query()
+            ->with(['item.type', 'item.category', 'locationStocks.location'])
+            ->whereHas('item', function ($itemQuery) use ($empresa, $selectedTypeId) {
+                $itemQuery->where('empresa_id', $empresa->id)
+                    ->whereHas('type', function ($typeQuery) use ($selectedTypeId) {
+                        $typeQuery->where('business_model', CatalogType::BUSINESS_MODEL_PRODUCTS)
+                            ->when($selectedTypeId > 0, function ($filteredTypeQuery) use ($selectedTypeId) {
+                                $filteredTypeQuery->whereKey($selectedTypeId);
+                            });
                     });
             })
             ->when($q !== '', function ($query) use ($q) {
                 $query->where(function ($subQuery) use ($q) {
                     $subQuery->where('name', 'like', "%{$q}%")
-                        ->orWhere('description', 'like', "%{$q}%")
-                        ->orWhereHas('type', function ($typeQuery) use ($q) {
+                        ->orWhere('presentation', 'like', "%{$q}%")
+                        ->orWhere('specification', 'like', "%{$q}%")
+                        ->orWhere('sku', 'like', "%{$q}%")
+                        ->orWhereHas('item', function ($itemQuery) use ($q) {
+                            $itemQuery->where('name', 'like', "%{$q}%")
+                                ->orWhere('description', 'like', "%{$q}%");
+                        })
+                        ->orWhereHas('item.type', function ($typeQuery) use ($q) {
                             $typeQuery->where('name', 'like', "%{$q}%");
                         })
-                        ->orWhereHas('category', function ($categoryQuery) use ($q) {
+                        ->orWhereHas('item.category', function ($categoryQuery) use ($q) {
                             $categoryQuery->where('name', 'like', "%{$q}%");
-                        })
-                        ->orWhereHas('variants', function ($variantQuery) use ($q) {
-                            $variantQuery->where('name', 'like', "%{$q}%")
-                                ->orWhere('presentation', 'like', "%{$q}%")
-                                ->orWhere('specification', 'like', "%{$q}%")
-                                ->orWhere('sku', 'like', "%{$q}%");
                         });
                 });
             })
@@ -78,10 +80,12 @@ class InventarioController extends Controller
                     });
             });
 
+        $statsVariants = (clone $inventoryStatsQuery)->with('locationStocks')->get();
+
         $inventoryStats = [
-            'variants' => (clone $inventoryStatsQuery)->count(),
-            'units' => (int) (clone $inventoryStatsQuery)->sum('stock'),
-            'value' => round((clone $inventoryStatsQuery)->get()->sum(fn ($variant) => (int) ($variant->stock ?? 0) * (float) ($variant->cost_price ?? 0)), 2),
+            'variants' => $statsVariants->count(),
+            'units' => (int) $statsVariants->sum(fn ($variant) => (int) ($variant->stock ?? 0)),
+            'value' => round($statsVariants->sum(fn ($variant) => (int) ($variant->stock ?? 0) * (float) ($variant->cost_price ?? 0)), 2),
             'out' => (clone $inventoryStatsQuery)->where(function ($query) {
                 $query->whereNull('stock')->orWhere('stock', '<=', 0);
             })->count(),
@@ -95,6 +99,15 @@ class InventarioController extends Controller
                     $query->whereNull('cost_price')->orWhere('cost_price', '<=', 0);
                 })
                 ->count(),
+            'missing_sku' => (clone $inventoryStatsQuery)
+                ->where(function ($query) {
+                    $query->whereNull('sku')->orWhere('sku', '');
+                })
+                ->count(),
+            'mismatches' => $statsVariants->filter(function ($variant) {
+                return $variant->locationStocks->isNotEmpty()
+                    && (int) $variant->locationStocks->sum('quantity') !== (int) ($variant->stock ?? 0);
+            })->count(),
         ];
 
         $recentMovements = InventoryMovement::query()
@@ -119,7 +132,7 @@ class InventarioController extends Controller
         $locations = $this->activeLocations($empresa);
 
         return view('admin.inventario.index', compact(
-            'products',
+            'variants',
             'recentMovements',
             'productTypes',
             'selectedTypeId',
@@ -157,7 +170,6 @@ class InventarioController extends Controller
             'categoria',
             'producto',
             'presentacion',
-            'especificacion',
             'sku',
             'precio',
             'costo',
@@ -171,8 +183,7 @@ class InventarioController extends Controller
                 $variant->item?->type?->name ?? '',
                 $variant->item?->category?->name ?? '',
                 $variant->item?->name ?? '',
-                $variant->presentation ?: $variant->name,
-                $variant->specification ?? '',
+                $variant->name,
                 $variant->sku ?? '',
                 $variant->price ?? '',
                 $this->canInventory('inventory.view_costs') ? ($variant->cost_price ?? '') : '',
@@ -356,6 +367,7 @@ class InventarioController extends Controller
         abort_unless($this->canInventory('inventory.move'), 403);
 
         $empresa = $this->getOrCreateEmpresa();
+        $this->ensureInventoryMovement($movement, $empresa);
 
         $variants = CatalogItemVariant::query()
             ->with('item')
@@ -374,6 +386,8 @@ class InventarioController extends Controller
     public function update(Request $request, InventoryMovement $movement)
     {
         abort_unless($this->canInventory('inventory.move'), 403);
+
+        $this->ensureInventoryMovement($movement, $this->getOrCreateEmpresa());
 
         $data = $request->validate([
             'reason' => ['nullable', 'string', 'max:255'],
@@ -394,6 +408,8 @@ class InventarioController extends Controller
     public function destroy(InventoryMovement $movement, InventoryService $inventoryService)
     {
         abort_unless($this->canInventory('inventory.void'), 403);
+
+        $this->ensureInventoryMovement($movement, $this->getOrCreateEmpresa());
 
         $inventoryService->reverseMovement($movement);
         NotificationHelper::success('Movimiento anulado y reversa registrada.');
@@ -471,6 +487,19 @@ class InventarioController extends Controller
         ])]);
     }
 
+    private function ensureInventoryMovement(InventoryMovement $movement, Empresa $empresa): void
+    {
+        $movement->loadMissing('variant.item.type');
+
+        abort_unless(
+            $movement->variant
+            && $movement->variant->item
+            && (int) $movement->variant->item->empresa_id === (int) $empresa->id
+            && $movement->variant->item->type?->business_model === CatalogType::BUSINESS_MODEL_PRODUCTS,
+            404
+        );
+    }
+
     private function buildCsv(array $rows): string
     {
         $handle = fopen('php://temp', 'r+');
@@ -518,11 +547,23 @@ class InventarioController extends Controller
 
     private function buildImportPreview(array $rows): Collection
     {
-        return collect($rows)->map(function (array $row, int $index) {
+        $empresa = $this->getOrCreateEmpresa();
+        $fileSkuCounts = collect($rows)
+            ->map(fn (array $row) => trim((string) ($row['sku'] ?? '')))
+            ->filter()
+            ->countBy();
+
+        return collect($rows)->map(function (array $row, int $index) use ($empresa, $fileSkuCounts) {
             $sku = trim((string) ($row['sku'] ?? ''));
-            $variant = $sku !== ''
-                ? CatalogItemVariant::query()->with('item')->where('sku', $sku)->first()
-                : null;
+            $variantQuery = CatalogItemVariant::query()
+                ->with('item')
+                ->where('sku', $sku)
+                ->whereHas('item', function ($itemQuery) use ($empresa) {
+                    $itemQuery->where('empresa_id', $empresa->id)
+                        ->whereHas('type', fn ($typeQuery) => $typeQuery->where('business_model', CatalogType::BUSINESS_MODEL_PRODUCTS));
+                });
+            $skuMatches = $sku !== '' ? (clone $variantQuery)->count() : 0;
+            $variant = $skuMatches === 1 ? $variantQuery->first() : null;
             $errors = [];
             $stock = $this->nullableInteger($row['stock'] ?? null, 'stock', $errors);
             $minStock = $this->nullableInteger($row['stock_minimo'] ?? null, 'stock_minimo', $errors);
@@ -531,6 +572,10 @@ class InventarioController extends Controller
 
             if ($sku === '') {
                 $errors[] = 'SKU requerido';
+            } elseif (($fileSkuCounts[$sku] ?? 0) > 1) {
+                $errors[] = 'SKU repetido en archivo';
+            } elseif ($skuMatches > 1) {
+                $errors[] = 'SKU duplicado en catalogo';
             } elseif (!$variant) {
                 $errors[] = 'SKU no encontrado';
             }

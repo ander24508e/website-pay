@@ -111,14 +111,29 @@
                     @php
                         $stock = (int) ($variant->stock ?? 0);
                         $minStock = (int) ($variant->min_stock ?? 0);
+                        $locationStock = (int) $variant->locationStocks->sum('quantity');
+                        $hasMismatch = $variant->locationStocks->isNotEmpty() && $locationStock !== $stock;
+                        $missingSku = trim((string) ($variant->sku ?? '')) === '';
+                        $alertLabel = match (true) {
+                            $hasMismatch => 'Revisar stock',
+                            $missingSku => 'Sin SKU',
+                            $stock <= 0 => 'Agotado',
+                            $minStock > 0 && $stock <= $minStock => 'Bajo stock',
+                            default => 'Sin costo',
+                        };
+                        $alertClass = match (true) {
+                            $stock <= 0 => 'bg-red-100 text-red-700',
+                            $hasMismatch || ($minStock > 0 && $stock <= $minStock) => 'bg-amber-100 text-amber-700',
+                            default => 'bg-gray-100 text-gray-700',
+                        };
                     @endphp
                     <div class="px-4 py-3 flex items-center justify-between gap-3">
                         <div>
                             <p class="font-semibold text-gray-800">{{ $variant->item?->name }}</p>
                             <p class="text-xs text-gray-400">{{ $variant->name }} {{ $variant->sku ? '(' . $variant->sku . ')' : '' }}</p>
                         </div>
-                        <span class="px-2 py-1 rounded-full text-xs font-semibold {{ $stock <= 0 ? 'bg-red-100 text-red-700' : ((float) ($variant->cost_price ?? 0) <= 0 ? 'bg-gray-100 text-gray-700' : 'bg-amber-100 text-amber-700') }}">
-                            {{ $stock <= 0 ? 'Agotado' : ((float) ($variant->cost_price ?? 0) <= 0 ? 'Sin costo' : 'Bajo stock') }}
+                        <span class="px-2 py-1 rounded-full text-xs font-semibold {{ $alertClass }}">
+                            {{ $alertLabel }}
                         </span>
                     </div>
                 @empty

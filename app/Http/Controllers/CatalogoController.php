@@ -50,6 +50,14 @@ class CatalogoController extends Controller
                 ->join('catalog_types', 'catalog_types.id', '=', 'catalog_items.catalog_type_id')
                 ->with(['type', 'category', 'activeVariants', 'vehicleTypePrices.vehicleType'])
                 ->where('catalog_items.active', true)
+                ->where('catalog_types.active', true)
+                ->where(function ($query) {
+                    $query->where('catalog_types.business_model', CatalogType::BUSINESS_MODEL_SERVICES)
+                        ->orWhere(function ($productQuery) {
+                            $productQuery->where('catalog_types.business_model', CatalogType::BUSINESS_MODEL_PRODUCTS)
+                                ->whereHas('activeVariants');
+                        });
+                })
                 ->when($universalFilterSlug, function ($query) use ($universalFilterSlug) {
                     $query->where('catalog_types.slug', $universalFilterSlug);
                 })
@@ -65,8 +73,9 @@ class CatalogoController extends Controller
                 ->orderBy('catalog_items.name');
 
             $catalogoUniversales = $universalesQuery->get()->map(function ($item) {
-                $stockDisponible = $this->resolveAvailableStock($item);
                 $isInventariable = (bool) $item->uses_inventory;
+                $defaultVariant = $this->resolveDefaultPublicVariant($item);
+                $stockDisponible = $this->resolveAvailableStock($item, $defaultVariant);
                 $vehiclePrices = $item->vehicleTypePrices
                     ->filter(fn ($vehiclePrice) => $vehiclePrice->vehicleType?->active)
                     ->map(fn ($vehiclePrice) => [
@@ -76,11 +85,11 @@ class CatalogoController extends Controller
                         'duration_minutes' => $vehiclePrice->duration_minutes,
                     ])
                     ->values();
-                $basePrice = (float) ($item->base_price ?? $item->display_price);
+                $basePrice = (float) ($item->base_price ?? 0);
                 $configuredPrices = $vehiclePrices->pluck('price')->filter(fn ($price) => $price !== null);
                 $publicPrice = $configuredPrices->isNotEmpty()
                     ? (float) $configuredPrices->min()
-                    : $item->display_price;
+                    : ($isInventariable ? (float) ($defaultVariant?->price ?? 0) : $item->display_price);
 
                 return [
                     'id' => $item->id,
@@ -95,7 +104,7 @@ class CatalogoController extends Controller
                     'tipo_label' => $item->type->name ?? 'Catalogo',
                     'tipo_descripcion' => $item->type->description ?? null,
                     'business_model' => $item->type->business_model ?? null,
-                    'comprable' => (bool) $item->purchasable,
+                    'comprable' => (bool) $item->purchasable && (!$isInventariable || $item->activeVariants->isNotEmpty()),
                     'reservable' => (bool) $item->reservable,
                     'inventariable' => $isInventariable,
                     'stock_disponible' => $stockDisponible,
@@ -113,8 +122,6 @@ class CatalogoController extends Controller
                             return [
                                 'id' => $variant->id,
                                 'name' => $variant->name,
-                                'presentation' => $variant->presentation,
-                                'specification' => $variant->specification,
                                 'price' => (float) ($variant->price ?? 0),
                                 'stock' => (int) ($variant->stock ?? 0),
                                 'is_default' => (bool) $variant->is_default,
@@ -142,10 +149,10 @@ class CatalogoController extends Controller
         ];
     }
 
-    private function resolveAvailableStock(CatalogItem $item): int
+    private function resolveDefaultPublicVariant(CatalogItem $item)
     {
         if (!$item->uses_inventory) {
-            return 9999;
+            return null;
         }
 
         $availableVariant = $item->activeVariants
@@ -157,7 +164,26 @@ class CatalogoController extends Controller
             ))
             ->first();
 
-        return max(0, (int) ($availableVariant?->stock ?? 0));
+        if ($availableVariant) {
+            return $availableVariant;
+        }
+
+        return $item->activeVariants
+            ->sortBy(fn ($itemVariant) => sprintf(
+                '%d-%s',
+                $itemVariant->is_default ? 0 : 1,
+                (string) $itemVariant->name
+            ))
+            ->first();
+    }
+
+    private function resolveAvailableStock(CatalogItem $item, $defaultVariant = null): int
+    {
+        if (!$item->uses_inventory) {
+            return 9999;
+        }
+
+        return max(0, (int) ($defaultVariant?->stock ?? 0));
     }
 
     private function getCatalogFilters(): array

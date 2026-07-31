@@ -276,7 +276,7 @@ class OrderController extends Controller
     public function show(Order $order)
     {
         $this->authorize('view', $order);
-        $order->load('items.itemable', 'items.vehicle.specification.brand', 'items.vehicle.specification.model', 'items.vehicle.specification.type', 'items.vehicleType', 'transaction', 'user', 'assignedTo', 'sale');
+        $order->load('items.itemable', 'items.variant', 'items.vehicle.specification.brand', 'items.vehicle.specification.model', 'items.vehicle.specification.type', 'items.vehicleType', 'transaction', 'user', 'assignedTo', 'sale');
         $workers = $this->adminWorkers();
 
         if (request()->routeIs('admin.orders.show')) {
@@ -288,7 +288,7 @@ class OrderController extends Controller
 
     public function confirmacion(Order $order)
     {
-        $order->load('items.itemable', 'items.vehicle.specification.brand', 'items.vehicle.specification.model', 'items.vehicle.specification.type', 'items.vehicleType', 'transaction');
+        $order->load('items.itemable', 'items.variant', 'items.vehicle.specification.brand', 'items.vehicle.specification.model', 'items.vehicle.specification.type', 'items.vehicleType', 'transaction');
         $receipt = app(CheckoutReceiptService::class)->build($order);
 
         return view('checkout.confirmacion', ['order' => $order, ...$receipt]);
@@ -296,7 +296,7 @@ class OrderController extends Controller
 
     public function comprobante(Order $order)
     {
-        $order->load('items.itemable', 'items.vehicle.specification.brand', 'items.vehicle.specification.model', 'items.vehicle.specification.type', 'items.vehicleType', 'transaction', 'user');
+        $order->load('items.itemable', 'items.variant', 'items.vehicle.specification.brand', 'items.vehicle.specification.model', 'items.vehicle.specification.type', 'items.vehicleType', 'transaction', 'user');
         $receipt = app(CheckoutReceiptService::class)->build($order);
 
         return view('checkout.comprobante', ['order' => $order, ...$receipt]);
@@ -304,7 +304,7 @@ class OrderController extends Controller
 
     public function descargarComprobante(Order $order)
     {
-        $order->load('items.itemable', 'items.vehicle.specification.brand', 'items.vehicle.specification.model', 'items.vehicle.specification.type', 'items.vehicleType', 'transaction', 'user');
+        $order->load('items.itemable', 'items.variant', 'items.vehicle.specification.brand', 'items.vehicle.specification.model', 'items.vehicle.specification.type', 'items.vehicleType', 'transaction', 'user');
         $receipt = app(CheckoutReceiptService::class)->build($order);
         $fileName = 'comprobante-' . $receipt['orderCode'] . '.png';
 
@@ -611,18 +611,23 @@ class OrderController extends Controller
                 continue;
             }
 
-            $vehicleContext = $priceResolver->resolve(
-                $model,
-                data_get($item, 'vehicle_id') ? (int) data_get($item, 'vehicle_id') : null,
-                data_get($item, 'vehicle_type_id') ? (int) data_get($item, 'vehicle_type_id') : null,
-                Auth::id()
-            );
-
             $isService = ($model->type?->business_model ?? \App\Models\CatalogType::BUSINESS_MODEL_SERVICES)
                 === \App\Models\CatalogType::BUSINESS_MODEL_SERVICES;
             $variant = null;
+            $vehicleContext = [
+                'price' => 0,
+                'vehicle_id' => null,
+                'vehicle_type_id' => null,
+            ];
 
-            if (!$isService && $model->uses_inventory) {
+            if ($isService) {
+                $vehicleContext = $priceResolver->resolve(
+                    $model,
+                    data_get($item, 'vehicle_id') ? (int) data_get($item, 'vehicle_id') : null,
+                    data_get($item, 'vehicle_type_id') ? (int) data_get($item, 'vehicle_type_id') : null,
+                    Auth::id()
+                );
+            } else {
                 $variant = CatalogItemVariant::query()
                     ->where('catalog_item_id', '=', $model->id)
                     ->where('active', '=', true)
@@ -630,29 +635,24 @@ class OrderController extends Controller
 
                 if (!$variant) {
                     throw ValidationException::withMessages([
-                        'cart' => 'Uno de los productos ya no tiene una presentacion inventariable disponible.',
+                        'cart' => 'Uno de los productos ya no tiene una presentacion activa disponible.',
                     ]);
                 }
 
                 $quantity = max(1, (int) data_get($item, 'quantity', 1));
 
-                if ((int) ($variant->stock ?? 0) < $quantity) {
+                if ($model->uses_inventory && (int) ($variant->stock ?? 0) < $quantity) {
                     throw ValidationException::withMessages([
                         'cart' => "No hay stock suficiente para {$model->name}.",
                     ]);
                 }
-            } elseif (!$isService) {
-                $variant = CatalogItemVariant::query()
-                    ->where('catalog_item_id', '=', $model->id)
-                    ->where('active', '=', true)
-                    ->find((int) data_get($item, 'variant_id'));
             }
 
             $resolved[] = [
                 'model' => $model,
                 'variant_id' => $variant?->id,
                 'quantity' => max(1, (int) data_get($item, 'quantity', 1)),
-                'price' => $isService ? $vehicleContext['price'] : (float) ($variant?->price ?? $model->display_price),
+                'price' => $isService ? $vehicleContext['price'] : (float) ($variant->price ?? 0),
                 'vehicle_id' => $vehicleContext['vehicle_id'],
                 'vehicle_type_id' => $vehicleContext['vehicle_type_id'],
             ];

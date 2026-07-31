@@ -218,8 +218,12 @@ Route::middleware(['auth', 'role:admin'])
         Route::resource('/catalogo/items', CatalogItemController::class)
             ->parameters(['items' => 'catalogItem'])
             ->names('catalog-items');
-        Route::resource('/catalogo/variantes', CatalogItemVariantController::class)
-            ->parameters(['variantes' => 'catalogVariant'])
+        Route::get('/catalogo/variantes', fn () => redirect()->route('admin.catalog-variants.index'));
+        Route::get('/catalogo/variantes/create', fn (\Illuminate\Http\Request $request) => redirect()->route('admin.catalog-variants.create', $request->query()));
+        Route::get('/catalogo/variantes/{catalogVariant}/edit', fn (\Illuminate\Http\Request $request, \App\Models\CatalogItemVariant $catalogVariant) => redirect()->route('admin.catalog-variants.edit', ['catalogVariant' => $catalogVariant] + $request->query()));
+        Route::get('/catalogo/variantes/{catalogVariant}', fn (\Illuminate\Http\Request $request, \App\Models\CatalogItemVariant $catalogVariant) => redirect()->route('admin.catalog-variants.show', ['catalogVariant' => $catalogVariant] + $request->query()));
+        Route::resource('/catalogo/presentaciones', CatalogItemVariantController::class)
+            ->parameters(['presentaciones' => 'catalogVariant'])
             ->names('catalog-variants');
 
         // Empresa

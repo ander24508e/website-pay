@@ -28,7 +28,7 @@ class CarritoController extends Controller
             'vehicle_type_id' => 'nullable|integer',
         ]);
 
-        $item = CatalogItem::with(['type', 'vehicleTypePrices.vehicleType'])
+        $item = CatalogItem::with(['type', 'vehicleTypePrices.vehicleType', 'activeVariants'])
             ->where('active', true)
             ->where('purchasable', true)
             ->findOrFail($request->id);
@@ -47,6 +47,7 @@ class CarritoController extends Controller
         ];
 
         $isService = ($item->type?->business_model ?? CatalogType::BUSINESS_MODEL_SERVICES) === CatalogType::BUSINESS_MODEL_SERVICES;
+        $isProduct = !$isService;
 
         if ($isService) {
             $vehicleContext = $priceResolver->resolve(
@@ -58,12 +59,12 @@ class CarritoController extends Controller
             $price = $vehicleContext['price'];
         }
 
-        if ($request->filled('variant_id')) {
+        if ($isProduct && $request->filled('variant_id')) {
             $variant = CatalogItemVariant::query()
                 ->where('catalog_item_id', $item->id)
                 ->where('active', true)
                 ->find($request->variant_id);
-        } else {
+        } elseif ($isProduct) {
             $variantQuery = $item->activeVariants()
                 ->when($item->uses_inventory, fn ($query) => $query->where('stock', '>', 0))
                 ->orderByDesc('is_default')
@@ -72,10 +73,14 @@ class CarritoController extends Controller
             $variant = $variantQuery->first();
         }
 
+        if ($isProduct && !$variant) {
+            return $this->cartError($request, 'Este producto no tiene una presentacion activa disponible.');
+        }
+
         if ($variant) {
             $variantId = $variant->id;
-            $variantLabel = trim(($variant->presentation ?? '') . ' ' . ($variant->specification ?? ''));
-            $price = (float) ($variant->price ?? $item->display_price);
+            $variantLabel = trim((string) ($variant->name ?? ''));
+            $price = (float) ($variant->price ?? 0);
         }
 
         $key = $request->type . '_' . $request->id . ($variantId ? ('_v' . $variantId) : '');
@@ -164,11 +169,24 @@ class CarritoController extends Controller
 
         $quantity = (int) $data['quantity'];
         $cartItem = $carrito[$id];
-        $catalogItem = CatalogItem::query()->find($cartItem['id'] ?? null);
+        $catalogItem = CatalogItem::query()
+            ->with('type')
+            ->where('active', true)
+            ->where('purchasable', true)
+            ->find($cartItem['id'] ?? null);
+
+        if (!$catalogItem) {
+            unset($carrito[$id]);
+            session()->put('carrito', $carrito);
+
+            return redirect()->route('carrito.index')
+                ->with('error', 'Uno de los items ya no esta disponible y fue retirado del carrito.');
+        }
 
         if ($catalogItem?->uses_inventory) {
             $variant = CatalogItemVariant::query()
                 ->where('catalog_item_id', $catalogItem->id)
+                ->where('active', true)
                 ->find($cartItem['variant_id'] ?? null);
 
             if (!$variant) {

@@ -269,7 +269,7 @@
                                     <div class="grid grid-cols-2 gap-3 text-sm mt-3">
                                         <div>
                                             <p class="text-xs text-gray-400 uppercase">Precio</p>
-                                            <p class="font-semibold text-gray-700">{{ $item->base_price !== null ? '$' . number_format((float) $item->base_price, 2) : '-' }}</p>
+                                            <p class="font-semibold text-gray-700">${{ number_format($item->display_price, 2) }}</p>
                                         </div>
                                         <div>
                                             <p class="text-xs text-gray-400 uppercase">Presentaciones</p>
@@ -331,7 +331,7 @@
                                             </td>
                                             <td class="px-3 py-2.5 text-gray-600 text-center truncate hidden sm:table-cell">{{ $item->category?->name ?: 'Sin categoría' }}</td>
                                             <td class="px-3 py-2.5 font-semibold text-gray-800 text-center whitespace-nowrap">
-                                                {{ $item->base_price !== null ? '$' . number_format((float) $item->base_price, 2) : '-' }}
+                                                ${{ number_format($item->display_price, 2) }}
                                             </td>
                                             <td class="px-3 py-2.5 text-gray-700 text-center hidden md:table-cell">{{ $item->variants_count }}</td>
                                             <td class="px-3 py-2.5 text-center">

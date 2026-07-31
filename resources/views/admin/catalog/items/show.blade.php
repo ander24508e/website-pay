@@ -158,7 +158,7 @@
                 <div class="flex flex-col gap-3 mb-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <p class="text-sm font-semibold text-gray-800">Presentaciones</p>
-                        <p class="text-xs text-gray-400">Gestiona tamaños, versiones y precios derivados.</p>
+                        <p class="text-xs text-gray-400">Gestiona formatos, precios y stock por presentacion.</p>
                     </div>
                     <a href="{{ route('admin.catalog-variants.create', ['catalog_item_id' => $catalogItem->id]) }}"
                        class="w-full bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition text-sm font-medium text-center sm:w-auto">
@@ -189,24 +189,17 @@
 
                                 <div class="grid grid-cols-2 gap-3 text-sm">
                                     <div>
-                                        <p class="text-xs uppercase text-gray-400 font-semibold">Presentación</p>
-                                        <p class="text-gray-700 break-words">
-                                            @php
-                                                $variantPresentation = isset($variant->presentation) ? $variant->presentation : '';
-                                                $variantSpecification = isset($variant->specification) ? $variant->specification : '';
-                                                $variantDetails = trim($variantPresentation . ' ' . $variantSpecification);
-                                            @endphp
-                                            {{ $variantDetails !== '' ? $variantDetails : '-' }}
-                                        </p>
-                                    </div>
-                                    <div>
                                         <p class="text-xs uppercase text-gray-400 font-semibold">Precio</p>
                                         <p class="font-semibold text-gray-800">{{ $variant->price !== null ? '$' . number_format((float) $variant->price, 2) : '-' }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs uppercase text-gray-400 font-semibold">Stock</p>
+                                        <p class="font-semibold text-gray-800">{{ $variant->stock ?? 0 }}</p>
                                     </div>
                                 </div>
 
                                 <div class="flex justify-end gap-2">
-                                    <a href="{{ route('admin.catalog-variants.edit', $variant) }}" class="text-yellow-600 hover:text-yellow-800 text-sm font-medium">Editar</a>
+                                    <a href="{{ route('admin.catalog-variants.edit', ['catalogVariant' => $variant, 'redirect_to_item' => 1]) }}" class="text-yellow-600 hover:text-yellow-800 text-sm font-medium">Editar</a>
                                 </div>
                             </article>
                         @empty
@@ -218,9 +211,10 @@
                         <table class="min-w-full text-sm text-left">
                             <thead class="bg-gray-50 border-b">
                                 <tr>
-                                    <th class="px-4 py-3">Nombre</th>
                                     <th class="px-4 py-3">Presentación</th>
+                                    <th class="px-4 py-3">SKU</th>
                                     <th class="px-4 py-3">Precio</th>
+                                    <th class="px-4 py-3">Stock</th>
                                     <th class="px-4 py-3">Estado</th>
                                     <th class="px-4 py-3">Acciones</th>
                                 </tr>
@@ -230,22 +224,15 @@
                                     <tr>
                                         <td class="px-4 py-3">
                                             <p class="font-medium text-gray-800">{{ $variant->name }}</p>
-                                            <p class="text-xs text-gray-400">{{ $variant->sku ?: 'Sin SKU' }}</p>
                                         </td>
-                                        <td class="px-4 py-3 text-gray-600">
-                                            @php
-                                                $variantPresentation = isset($variant->presentation) ? $variant->presentation : '';
-                                                $variantSpecification = isset($variant->specification) ? $variant->specification : '';
-                                                $variantDetails = trim($variantPresentation . ' ' . $variantSpecification);
-                                            @endphp
-                                            @if($variantDetails !== '')
-                                                {{ $variantDetails }}
-                                            @else
-                                                -
-                                            @endif
+                                        <td class="px-4 py-3 text-gray-600 font-mono text-xs">
+                                            {{ $variant->sku ?: 'Sin SKU' }}
                                         </td>
                                         <td class="px-4 py-3 font-semibold text-gray-800">
                                             {{ $variant->price !== null ? '$' . number_format((float) $variant->price, 2) : '-' }}
+                                        </td>
+                                        <td class="px-4 py-3 font-semibold text-gray-800">
+                                            {{ $variant->stock ?? 0 }}
                                         </td>
                                         <td class="px-4 py-3">
                                             <div class="flex flex-wrap gap-1">
@@ -261,13 +248,13 @@
                                         </td>
                                         <td class="px-4 py-3">
                                             <div class="flex flex-wrap gap-2">
-                                                <a href="{{ route('admin.catalog-variants.edit', $variant) }}" class="text-yellow-600 hover:text-yellow-800 text-sm font-medium">Editar</a>
+                                                <a href="{{ route('admin.catalog-variants.edit', ['catalogVariant' => $variant, 'redirect_to_item' => 1]) }}" class="text-yellow-600 hover:text-yellow-800 text-sm font-medium">Editar</a>
                                             </div>
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5" class="px-4 py-6 text-center text-gray-400">Este producto o servicio aún no tiene presentaciones.</td>
+                                        <td colspan="6" class="px-4 py-6 text-center text-gray-400">Este producto o servicio aún no tiene presentaciones.</td>
                                     </tr>
                                 @endforelse
                             </tbody>

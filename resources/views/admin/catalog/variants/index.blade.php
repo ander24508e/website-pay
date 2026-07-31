@@ -14,19 +14,22 @@
                 </a>
                 <div class="min-w-0">
                     <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Presentaciones</h2>
-                    <p class="text-gray-500 text-sm mt-1">Tamaños, versiones o precios diferentes para productos y servicios.</p>
+                    <p class="text-gray-500 text-sm mt-1">Formatos vendibles e inventariables de cada producto.</p>
                 </div>
             </div>
         </div>
 
         <form method="GET" action="{{ route('admin.catalog-variants.index') }}" class="w-full flex-1 lg:max-w-xl">
+            @if (!empty($selectedItemId))
+                <input type="hidden" name="catalog_item_id" value="{{ $selectedItemId }}">
+            @endif
             <div class="relative">
                 <x-heroicon-o-magnifying-glass class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input type="search" name="q" value="{{ request('q') }}" placeholder="Buscar por presentación, SKU, producto o sección..." class="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm text-gray-700 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none focus:ring-0">
             </div>
         </form>
 
-        <a href="{{ route('admin.catalog-variants.create') }}"
+        <a href="{{ route('admin.catalog-variants.create', array_filter(['catalog_item_id' => $selectedItemId ?? null])) }}"
             class="inline-flex h-11 w-full items-center justify-center rounded-lg bg-gray-900 text-white transition hover:bg-gray-700 sm:w-11"
             title="Nueva presentación" aria-label="Nueva presentación">
             <x-heroicon-o-plus class="w-5 h-5" />
@@ -62,18 +65,7 @@
                 <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0">
                         <p class="font-semibold text-gray-800 break-words">{{ $variant->name }}</p>
-                        <p class="text-xs text-gray-400 mt-0.5 break-words">
-                            @php
-                                $variantPresentation = isset($variant->presentation) ? $variant->presentation : '';
-                                $variantSpecification = isset($variant->specification) ? $variant->specification : '';
-                                $variantDetails = trim($variantPresentation . ' ' . $variantSpecification);
-                            @endphp
-                            @if($variantDetails !== '')
-                                {{ $variantDetails }}
-                            @else
-                                Sin presentación adicional
-                            @endif
-                        </p>
+                        <p class="text-xs text-gray-400 mt-0.5 break-words">{{ $variant->sku ?: 'Sin SKU' }}</p>
                     </div>
                     <div class="shrink-0 flex flex-col items-end gap-1">
                         @if($variant->active)
@@ -124,7 +116,7 @@
                         title="Editar presentación" aria-label="Editar presentación">
                         <x-heroicon-o-pencil-square class="w-5 h-5" />
                     </a>
-                    <form method="POST" action="{{ route('admin.catalog-variants.destroy', $variant) }}" onsubmit="return confirm('¿Eliminar esta variante universal?');">
+                    <form method="POST" action="{{ route('admin.catalog-variants.destroy', $variant) }}" onsubmit="return confirm('¿Eliminar esta presentacion?');">
                         @csrf
                         @method('DELETE')
                         <button class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition"
@@ -161,18 +153,7 @@
                         <tr class="hover:bg-gray-50">
                             <td class="px-3 py-3 text-center">
                                 <p class="font-medium text-gray-800 truncate">{{ $variant->name }}</p>
-                                <p class="text-xs text-gray-400 mt-0.5 truncate">
-                                    @php
-                                        $variantPresentation = isset($variant->presentation) ? $variant->presentation : '';
-                                        $variantSpecification = isset($variant->specification) ? $variant->specification : '';
-                                        $variantDetails = trim($variantPresentation . ' ' . $variantSpecification);
-                                    @endphp
-                                    @if($variantDetails !== '')
-                                        {{ $variantDetails }}
-                                    @else
-                                        Sin presentación adicional
-                                    @endif
-                                </p>
+                                <p class="text-xs text-gray-400 mt-0.5 truncate">{{ $variant->sku ?: 'Sin SKU' }}</p>
                             </td>
                             <td class="px-3 py-3 text-center">
                                 <p class="font-medium text-gray-700 truncate">{{ $variant->item?->name ?? 'Sin ítem' }}</p>
@@ -203,7 +184,7 @@
                                         title="Editar presentación" aria-label="Editar presentación">
                                         <x-heroicon-o-pencil-square class="w-4 h-4" />
                                     </a>
-                                    <form method="POST" action="{{ route('admin.catalog-variants.destroy', $variant) }}" onsubmit="return confirm('¿Eliminar esta variante universal?');">
+                                    <form method="POST" action="{{ route('admin.catalog-variants.destroy', $variant) }}" onsubmit="return confirm('¿Eliminar esta presentacion?');">
                                         @csrf
                                         @method('DELETE')
                                         <button class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-red-600 hover:bg-red-50 transition"
