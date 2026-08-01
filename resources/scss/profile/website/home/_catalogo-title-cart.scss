@@ -371,6 +371,7 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.7rem;
+    align-items: start;
 }
 
 #catalogo .catalogo-detail-grid label {
@@ -471,14 +472,28 @@
 }
 
 @media (max-width: 860px) {
+    #catalogo .catalogo-modal-overlay {
+        padding: 0.6rem;
+        align-items: flex-start;
+        overflow-y: auto;
+    }
+
     #catalogo .catalogo-modal {
+        width: min(100%, 430px);
+        max-height: none;
         grid-template-columns: 1fr;
+        overflow: visible;
     }
 
     #catalogo .catalogo-modal-media,
     #catalogo .catalogo-modal-image,
     #catalogo .catalogo-modal-placeholder {
-        min-height: 230px;
+        min-height: 210px;
+        height: 210px;
+    }
+
+    #catalogo .catalogo-modal-body {
+        padding: 1rem;
     }
 
     #catalogo .catalogo-detail-grid {

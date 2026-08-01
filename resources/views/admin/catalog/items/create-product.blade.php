@@ -24,12 +24,12 @@
                         : route('admin.catalog.index'))));
     @endphp
 
-    <livewire:admin.catalog.product-form
-        :selected-type-id="$selectedProductTypeId"
-        :selected-category-id="$selectedCategoryId ?: null"
-        :return-url="$returnUrl"
-        :from-inventory="$fromInventory"
-        :return-to-type="$returnToType"
-        :return-to-category="$returnToCategory"
-    />
+    @livewire('admin.catalog.product-form', [
+        'selectedTypeId' => $selectedProductTypeId,
+        'selectedCategoryId' => $selectedCategoryId ?: null,
+        'returnUrl' => $returnUrl,
+        'fromInventory' => $fromInventory,
+        'returnToType' => $returnToType,
+        'returnToCategory' => $returnToCategory,
+    ])
 @endsection

@@ -289,7 +289,7 @@
                 const options = variants.map((variant) => {
                     const disabled = Number(variant.stock || 0) <= 0 ? 'disabled' : '';
                     const selected = selectedVariant && Number(selectedVariant.id) === Number(variant.id) ? 'selected' : '';
-                    return `<option value="${variant.id}" data-stock="${Number(variant.stock || 0)}" data-price="${Number(variant.price || 0)}" ${selected} ${disabled}>${escapeHtml(buildVariantLabel(variant))} - $${Number(variant.price || 0).toFixed(2)}</option>`;
+                    return `<option value="${variant.id}" data-stock="${Number(variant.stock || 0)}" data-price="${Number(variant.price || 0)}" ${selected} ${disabled}>${escapeHtml(buildVariantLabel(variant))}</option>`;
                 }).join('');
 
                 return `
@@ -432,7 +432,6 @@
                     detailAddToCartBtn.textContent = detailAddToCartBtn.disabled ? 'Agotado' : 'Agregar al carrito';
                 }
             }
-
             function setDetailQuantity(value, max = null) {
                 const maxStock = max === null ? getSelectedVariantStock() : Number(max || 0);
                 const safeMax = Math.max(1, maxStock || 1);
@@ -545,10 +544,11 @@
                 detailCategory.textContent =
                     `${currentDetailItem.tipo_label || 'Catalogo'} · ${currentDetailItem.categoria || ''}`;
                 detailTitle.textContent = currentDetailItem.nombre || '';
-                detailPrice.textContent = `Desde $${Number(currentDetailItem.precio || 0).toFixed(2)}`;
-                detailDescription.textContent = currentDetailItem.descripcion || 'Sin descripcion adicional.';
                 const isProductDetail = currentDetailItem.tipo === 'catalog' && currentDetailItem.comprable && currentDetailItem.inventariable;
                 const isServiceDetail = currentDetailItem.tipo === 'catalog' && !currentDetailItem.inventariable;
+                detailPrice.textContent = isProductDetail ? '' : `Desde $${Number(currentDetailItem.precio || 0).toFixed(2)}`;
+                detailDescription.textContent = currentDetailItem.descripcion || (isProductDetail ? '' : 'Sin descripcion adicional.');
+                detailDescription.hidden = isProductDetail && !Boolean(currentDetailItem.descripcion);
                 renderServiceVehicleOptions(currentDetailItem);
 
                 if (detailServiceActions) {
@@ -568,8 +568,7 @@
                         variants.forEach((variant) => {
                             const option = document.createElement('option');
                             option.value = String(variant.id);
-                            option.textContent =
-                                `${buildVariantLabel(variant)} - $${variant.price.toFixed(2)}${currentDetailItem.inventariable ? ` · Stock ${variant.stock}` : ''}`;
+                            option.textContent = buildVariantLabel(variant);
                             option.disabled = Boolean(currentDetailItem.inventariable) && Number(variant
                                 .stock || 0) <= 0;
                             detailVariantSelect.appendChild(option);
