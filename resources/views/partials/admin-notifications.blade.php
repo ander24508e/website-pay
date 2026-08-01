@@ -2,10 +2,10 @@
     <div id="admin-toast-container" class="fixed top-5 right-5 z-50 space-y-3" style="min-width:280px;max-width:400px;">
         @php
             $map = [
-                'success' => ['title' => 'Éxito', 'box' => 'bg-green-50 border-green-500', 'text' => 'text-green-800', 'sub' => 'text-green-700'],
+                'success' => ['title' => 'Exito', 'box' => 'bg-green-50 border-green-500', 'text' => 'text-green-800', 'sub' => 'text-green-700'],
                 'error' => ['title' => 'Error', 'box' => 'bg-red-50 border-red-500', 'text' => 'text-red-800', 'sub' => 'text-red-700'],
-                'warning' => ['title' => 'Atención', 'box' => 'bg-yellow-50 border-yellow-500', 'text' => 'text-yellow-800', 'sub' => 'text-yellow-700'],
-                'info' => ['title' => 'Información', 'box' => 'bg-blue-50 border-blue-500', 'text' => 'text-blue-800', 'sub' => 'text-blue-700'],
+                'warning' => ['title' => 'Atencion', 'box' => 'bg-yellow-50 border-yellow-500', 'text' => 'text-yellow-800', 'sub' => 'text-yellow-700'],
+                'info' => ['title' => 'Informacion', 'box' => 'bg-blue-50 border-blue-500', 'text' => 'text-blue-800', 'sub' => 'text-blue-700'],
             ];
         @endphp
 
@@ -17,7 +17,7 @@
                             <p class="text-sm font-semibold {{ $map[$type]['text'] }}">{{ $map[$type]['title'] }}</p>
                             <p class="text-sm {{ $map[$type]['sub'] }}">{{ session($type) }}</p>
                         </div>
-                        <button class="close-toast text-gray-500 hover:text-gray-700" type="button" aria-label="Cerrar">✕</button>
+                        <button class="close-toast text-gray-500 hover:text-gray-700" type="button" aria-label="Cerrar">x</button>
                     </div>
                 </div>
             @endif

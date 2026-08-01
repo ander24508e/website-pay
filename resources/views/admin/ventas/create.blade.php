@@ -19,8 +19,7 @@
                             fn($variant) => [
                                 'id' => $variant->id,
                                 'label' => trim(
-                                    ($variant->name ?: 'Presentacion') .
-                                        ($variant->sku ? ' - ' . $variant->sku : ''),
+                                    ($variant->name ?: 'Presentacion') . ($variant->sku ? ' - ' . $variant->sku : ''),
                                 ),
                                 'price' => (float) ($variant->price ?? 0),
                                 'stock' => (int) ($variant->stock ?? 0),
@@ -49,99 +48,161 @@
             @csrf
 
             <div class="xl:col-span-8 space-y-4">
-                <section class="bg-white rounded-xl border border-gray-100 p-4 sm:p-5 shadow-sm space-y-4">
-                    <h3 class="font-bold text-gray-800">Datos de la venta</h3>
+                <section class="space-y-5 rounded-xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5">
+                    <div>
+                        <h3 class="font-bold text-gray-800">
+                            Datos de la venta
+                        </h3>
 
-                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
-                        <div class="md:col-span-6">
-                            <div class="flex items-center justify-between gap-3 mb-1">
-                                <label class="block text-sm font-medium text-gray-700">Cliente</label>
+                        <p class="mt-1 text-xs text-gray-400">
+                            Selecciona el cliente, vehículo, tipo de venta y trabajador responsable.
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+
+                        {{-- Cliente --}}
+                        <div class="flex min-w-0 flex-col">
+                            <div class="mb-1 flex min-h-8 items-center justify-between gap-2">
+                                <label for="clientSelect" class="block text-sm font-medium text-gray-700">
+                                    Cliente
+                                </label>
+
                                 <button type="button" id="openQuickClientModal"
-                                    class="inline-flex items-center gap-1 rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-gray-700 transition">
-                                    <x-heroicon-o-plus class="w-4 h-4" />
-                                    Nuevo Cliente
+                                    class="inline-flex h-8 items-center justify-center gap-1 rounded-lg bg-gray-900 px-3 text-xs font-semibold text-white transition hover:bg-gray-700">
+                                    <x-heroicon-o-plus class="h-4 w-4" />
+                                    Nuevo cliente
                                 </button>
                             </div>
+
                             <select name="user_id" id="clientSelect"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                                <option value="">Invitado</option>
+                                class="h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-200">
+                                <option value="">
+                                    Invitado
+                                </option>
+
                                 @foreach ($clientes as $cliente)
-                                    <option value="{{ $cliente->id }}" @selected(old('user_id') == $cliente->id)>{{ $cliente->name }}
-                                        ({{ $cliente->email }})</option>
+                                    <option value="{{ $cliente->id }}" @selected(old('user_id') == $cliente->id)>
+                                        {{ $cliente->name }} ({{ $cliente->email }})
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
 
-                        <div class="md:col-span-3">
-                            <div class="flex items-center justify-between gap-2 mb-1">
-                                <label class="block text-sm font-medium text-gray-700">Vehiculo</label>
+                        {{-- Vehículo --}}
+                        <div class="flex min-w-0 flex-col">
+                            <div class="mb-1 flex min-h-8 items-center justify-between gap-2">
+                                <label for="mainVehicleSelect" class="block text-sm font-medium text-gray-700">
+                                    Vehículo
+                                </label>
+
                                 <button type="button" id="openQuickVehicleModal"
-                                    class="inline-flex items-center gap-1 rounded-lg bg-gray-900 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-gray-700 transition">
-                                    <x-heroicon-o-plus class="w-4 h-4" />
-                                    Nuevo
+                                    class="inline-flex h-8 items-center justify-center gap-1 rounded-lg bg-gray-900 px-3 text-xs font-semibold text-white transition hover:bg-gray-700">
+                                    <x-heroicon-o-plus class="h-4 w-4" />
+                                    Nuevo vehículo
                                 </button>
                             </div>
+
                             <select name="vehicle_id" id="mainVehicleSelect"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                                <option value="">Buscar</option>
+                                class="h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-200">
+                                <option value="">
+                                    Sin vehículo
+                                </option>
+
                                 @foreach ($vehicles as $vehicle)
                                     <option value="{{ $vehicle->id }}" data-client="{{ $vehicle->user_id }}"
                                         data-type="{{ $vehicle->resolvedType()?->id }}">
-                                        {{ $vehicle->plate }} - {{ $vehicle->resolvedBrand()?->name }}
+                                        {{ $vehicle->plate }}
+                                        -
+                                        {{ $vehicle->resolvedBrand()?->name }}
                                         {{ $vehicle->resolvedModel()?->name }}
                                     </option>
                                 @endforeach
                             </select>
                         </div>
 
-                        <div>
-                            <label class="block text-[11px] font-semibold text-gray-500 uppercase mb-1">Tipo de
-                                venta</label>
+                        {{-- Tipo de venta --}}
+                        <div class="flex min-w-0 flex-col">
+                            <div class="mb-1 flex min-h-8 items-center">
+                                <label for="saleKindSelect" class="block text-sm font-medium text-gray-700">
+                                    Tipo de venta
+                                </label>
+                            </div>
+
                             <select id="saleKindSelect"
-                                class="w-full sm:w-40 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white">
-                                <option value="{{ \App\Models\CatalogType::BUSINESS_MODEL_SERVICES }}">Servicios</option>
-                                <option value="{{ \App\Models\CatalogType::BUSINESS_MODEL_PRODUCTS }}">Productos</option>
+                                class="h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-200">
+                                <option value="{{ \App\Models\CatalogType::BUSINESS_MODEL_SERVICES }}">
+                                    Servicios
+                                </option>
+
+                                <option value="{{ \App\Models\CatalogType::BUSINESS_MODEL_PRODUCTS }}">
+                                    Productos
+                                </option>
                             </select>
                         </div>
 
-                        <div class="md:col-span-3">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Trabajador</label>
-                            <select name="attended_by" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                                <option value="">Usuario actual</option>
+                        {{-- Trabajador --}}
+                        <div class="flex min-w-0 flex-col">
+                            <div class="mb-1 flex min-h-8 items-center">
+                                <label for="attendedBySelect" class="block text-sm font-medium text-gray-700">
+                                    Trabajador
+                                </label>
+                            </div>
+
+                            <select name="attended_by" id="attendedBySelect"
+                                class="h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-200">
+                                <option value="">
+                                    Usuario actual
+                                </option>
+
                                 @foreach ($usuarios as $usuario)
-                                    <option value="{{ $usuario->id }}" @selected(old('attended_by', auth()->id()) == $usuario->id)>{{ $usuario->name }}
+                                    <option value="{{ $usuario->id }}" @selected(old('attended_by', auth()->id()) == $usuario->id)>
+                                        {{ $usuario->name }}
                                     </option>
                                 @endforeach
                             </select>
                         </div>
 
-                        <div class="md:col-span-12">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Notas</label>
-                            <textarea name="notes" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">{{ old('notes') }}</textarea>
+                        {{-- Notas --}}
+                        <div class="md:col-span-2 xl:col-span-2">
+                            <div class="mb-1 flex min-h-8 items-center">
+                                <label for="saleNotes" class="block text-sm font-medium text-gray-700">
+                                    Notas
+                                </label>
+                            </div>
+
+                            <textarea name="notes" id="saleNotes" rows="3" placeholder="Observaciones internas de la venta"
+                                class="min-h-24 w-full resize-y rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-200">{{ old('notes') }}</textarea>
                         </div>
+
                     </div>
                 </section>
 
-                <section class="bg-white rounded-xl border border-gray-100 p-4 sm:p-5 shadow-sm space-y-4">
-                    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <section class="space-y-4 rounded-xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5">
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                            <h3 class="font-bold text-gray-800">Items de venta</h3>
-                            <p class="text-xs text-gray-400">Agrega productos o servicios del catÃ¡logo.</p>
-                        </div>
-                        <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
+                            <h3 class="font-bold text-gray-800">
+                                Ítems de venta
+                            </h3>
 
-                            <button type="button" id="addSaleItem"
-                                class="inline-flex items-center justify-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700">
-                                <x-heroicon-o-plus class="w-4 h-4" />
-                                Agregar item
-                            </button>
+                            <p class="text-xs text-gray-400">
+                                Agrega productos o servicios del catálogo.
+                            </p>
                         </div>
+
+                        <button type="button" id="addSaleItem"
+                            class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-gray-900 px-4 text-sm font-semibold text-white transition hover:bg-gray-700">
+                            <x-heroicon-o-plus class="h-4 w-4" />
+                            Agregar ítem
+                        </button>
                     </div>
 
-                    <div id="saleItems" class="space-y-2"></div>
+                    <div id="saleItems" class="space-y-3"></div>
 
                     @error('items')
-                        <p class="text-sm text-red-600">{{ $message }}</p>
+                        <p class="text-sm text-red-600">
+                            {{ $message }}
+                        </p>
                     @enderror
                 </section>
             </div>
@@ -165,11 +226,11 @@
                 <section class="bg-white rounded-xl border border-gray-100 p-4 sm:p-5 shadow-sm space-y-4">
                     <div>
                         <h3 class="font-bold text-gray-800">Pago</h3>
-                        <p class="text-xs text-gray-400">El sistema asigna estados automÃ¡ticamente segÃºn el mÃ©todo.</p>
+                        <p class="text-xs text-gray-400">El sistema asigna estados automáticamente segÃºn el método.</p>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">MÃ©todo de pago</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Método de pago</label>
                         <select name="payment[method]" id="paymentMethod"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                             @foreach (['cash' => 'Efectivo', 'payphone' => 'PayPhone', 'transfer' => 'Transferencia', 'card' => 'Tarjeta', 'credit' => 'CrÃ©dito'] as $key => $label)
@@ -188,7 +249,7 @@
                     </div>
 
                     <div class="payment-fields hidden space-y-3" data-payment-fields="payphone">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">ID de transacciÃ³n PayPhone</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ID de transacción PayPhone</label>
                         <input type="text" name="payment[transaction_id]" value="{{ old('payment.transaction_id') }}"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                     </div>
@@ -203,7 +264,7 @@
                     </div>
 
                     <div class="payment-fields hidden space-y-3" data-payment-fields="card">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">CÃ³digo de autorizaciÃ³n</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Código de autorización</label>
                         <input type="text" name="payment[authorization_code]"
                             value="{{ old('payment.authorization_code') }}"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
@@ -254,19 +315,19 @@
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" required>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Tel&eacute;fono</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
                             <input type="text" name="telefono"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Direcci&oacute;n</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
                             <input type="text" name="direccion"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Contrase&ntilde;a</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
                         <input type="password" name="password"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" required>
                     </div>
@@ -287,7 +348,8 @@
                 <div class="flex items-center justify-between border-b border-gray-100 px-6 py-4">
                     <div>
                         <h3 class="text-lg font-bold text-gray-800">Nuevo Vehiculo</h3>
-                        <p class="text-sm text-gray-400">Crea un vehiculo para el cliente seleccionado sin salir de la venta.</p>
+                        <p class="text-sm text-gray-400">Crea un vehiculo para el cliente seleccionado sin salir de la
+                            venta.</p>
                     </div>
                     <button type="button" id="closeQuickVehicleModal"
                         class="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-700">
@@ -298,16 +360,20 @@
                 <form id="quickVehicleForm" class="space-y-4 px-6 py-5">
                     @csrf
                     <input type="hidden" name="user_id" id="quickVehicleUserId">
-                    <div id="quickVehicleErrors" class="hidden rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"></div>
+                    <div id="quickVehicleErrors"
+                        class="hidden rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"></div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Especificacion del vehiculo *</label>
-                            <select name="vehicle_specification_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" required>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Especificacion del vehículo
+                                *</label>
+                            <select name="vehicle_specification_id"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" required>
                                 <option value="">Selecciona marca / modelo / tipo</option>
                                 @foreach ($vehicleSpecifications as $specification)
                                     <option value="{{ $specification->id }}">
-                                        {{ $specification->brand?->name }} / {{ $specification->model?->name }} / {{ $specification->type?->name }}
+                                        {{ $specification->brand?->name }} / {{ $specification->model?->name }} /
+                                        {{ $specification->type?->name }}
                                     </option>
                                 @endforeach
                             </select>
@@ -318,23 +384,30 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Placa *</label>
-                            <input type="text" name="plate" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase" placeholder="Ej: ABC-1234" required>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Placa </label>
+                            <input type="text" name="plate"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase"
+                                placeholder="Ej: ABC-1234" required>
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Color</label>
-                            <input type="text" name="color" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="Ej: Blanco, negro, rojo">
+                            <input type="text" name="color"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                                placeholder="Ej: Blanco, negro, rojo">
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Year</label>
-                            <input type="number" name="year" min="1900" max="{{ now()->year + 1 }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="{{ now()->year }}">
+                            <input type="number" name="year" min="1900" max="{{ now()->year + 1 }}"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                                placeholder="{{ now()->year }}">
                         </div>
 
                         <label class="flex items-center gap-3 rounded-lg border border-gray-100 bg-gray-50 px-3 py-2">
                             <input type="hidden" name="active" value="0">
-                            <input type="checkbox" name="active" value="1" class="rounded border-gray-300 text-gray-900" checked>
+                            <input type="checkbox" name="active" value="1"
+                                class="rounded border-gray-300 text-gray-900" checked>
                             <span>
                                 <span class="block text-sm font-medium text-gray-700">Vehiculo activo</span>
                                 <span class="block text-xs text-gray-400">Disponible para ventas y servicios.</span>
@@ -343,7 +416,8 @@
 
                         <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Observaciones</label>
-                            <textarea name="observations" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="Notas internas o informacion relevante del vehiculo"></textarea>
+                            <textarea name="observations" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                                placeholder="Notas internas o informacion relevante del vehiculo"></textarea>
                         </div>
                     </div>
 
@@ -351,7 +425,8 @@
                         <button type="button" id="cancelQuickVehicle"
                             class="rounded-lg bg-gray-100 px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-200">Cancelar</button>
                         <button type="submit" id="saveQuickVehicle"
-                            class="rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-gray-700">Guardar Vehiculo</button>
+                            class="rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-gray-700">Guardar
+                            Vehiculo</button>
                     </div>
                 </form>
             </div>
@@ -359,33 +434,57 @@
     </div>
 
     <template id="saleItemTemplate">
-        <div class="sale-item-row rounded-lg border border-gray-100 bg-gray-50 p-3">
-            <div class="grid grid-cols-1 md:grid-cols-12 gap-2 items-end">
-                <div class="md:col-span-3">
-                    <label class="block text-[11px] font-semibold text-gray-500 uppercase mb-1">Producto/Servicio</label>
+        <div class="sale-item-row rounded-xl border border-gray-100 bg-gray-50 p-3 sm:p-4">
+            <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-12 xl:items-end">
+
+                {{-- Producto o servicio --}}
+                <div class="min-w-0 xl:col-span-3">
+                    <label class="mb-1 flex min-h-8 items-end text-[11px] font-semibold uppercase text-gray-500">
+                        Producto/Servicio
+                    </label>
+
                     <select data-field="catalog_item_id"
-                        class="catalog-select w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white"
+                        class="catalog-select h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-200"
                         required>
-                        <option value="">Selecciona un item</option>
+                        <option value="">
+                            Selecciona un ítem
+                        </option>
+
                         @foreach ($catalogItems as $item)
                             <option value="{{ $item->id }}"
                                 data-business-model="{{ $item->type?->business_model ?? \App\Models\CatalogType::BUSINESS_MODEL_SERVICES }}">
-                                {{ $item->name }} - {{ $item->type?->name }}</option>
+                                {{ $item->name }} - {{ $item->type?->name }}
+                            </option>
                         @endforeach
                     </select>
                 </div>
-                <div class="item-product-field md:col-span-2">
-                    <label class="block text-[11px] font-semibold text-gray-500 uppercase mb-1">Presentacion</label>
+
+                {{-- Presentación --}}
+                <div class="item-product-field min-w-0 xl:col-span-2">
+                    <label class="mb-1 flex min-h-8 items-end text-[11px] font-semibold uppercase text-gray-500">
+                        Presentación
+                    </label>
+
                     <select data-field="catalog_item_variant_id"
-                        class="variant-select w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white">
-                        <option value="">General</option>
+                        class="variant-select h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-200">
+                        <option value="">
+                            General
+                        </option>
                     </select>
                 </div>
-                <div class="item-service-field md:col-span-2">
-                    <label class="block text-[11px] font-semibold text-gray-500 uppercase mb-1">Vehiculo</label>
+
+                {{-- Vehículo --}}
+                <div class="item-service-field min-w-0 xl:col-span-2">
+                    <label class="mb-1 flex min-h-8 items-end text-[11px] font-semibold uppercase text-gray-500">
+                        Vehículo
+                    </label>
+
                     <select data-field="vehicle_id"
-                        class="vehicle-select w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white">
-                        <option value="">Sin vehÃ­culo</option>
+                        class="vehicle-select h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-200">
+                        <option value="">
+                            Sin vehículo
+                        </option>
+
                         @foreach ($vehicles as $vehicle)
                             <option value="{{ $vehicle->id }}" data-client="{{ $vehicle->user_id }}"
                                 data-type="{{ $vehicle->resolvedType()?->id }}">
@@ -394,35 +493,66 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="item-service-field md:col-span-2">
-                    <label class="block text-[11px] font-semibold text-gray-500 uppercase mb-1">Tipo vehÃ­culo</label>
+
+                {{-- Tipo de vehículo --}}
+                <div class="item-service-field min-w-0 xl:col-span-2">
+                    <label class="mb-1 flex min-h-8 items-end text-[11px] font-semibold uppercase text-gray-500">
+                        Tipo de vehículo
+                    </label>
+
                     <select data-field="vehicle_type_id"
-                        class="vehicle-type-select w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white">
-                        <option value="">Sin tipo</option>
+                        class="vehicle-type-select h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-200">
+                        <option value="">
+                            Sin tipo
+                        </option>
+
                         @foreach ($vehicleTypes as $type)
-                            <option value="{{ $type->id }}">{{ $type->name }}</option>
+                            <option value="{{ $type->id }}">
+                                {{ $type->name }}
+                            </option>
                         @endforeach
                     </select>
                 </div>
-                <div class="md:col-span-1">
-                    <label class="block text-[11px] font-semibold text-gray-500 uppercase mb-1">Cant.</label>
+
+                {{-- Cantidad --}}
+                <div class="min-w-0 xl:col-span-1">
+                    <label class="mb-1 flex min-h-8 items-end text-[11px] font-semibold uppercase text-gray-500">
+                        Cantidad
+                    </label>
+
                     <input type="number" data-field="quantity" value="1" min="1"
-                        class="quantity-input w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white">
+                        class="quantity-input h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-center text-sm text-gray-700 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-200">
                 </div>
-                <div class="md:col-span-1">
-                    <label class="block text-[11px] font-semibold text-gray-500 uppercase mb-1">P. unit.</label>
+
+                {{-- Precio unitario --}}
+                <div class="min-w-0 xl:col-span-1">
+                    <label class="mb-1 flex min-h-8 items-end text-[11px] font-semibold uppercase text-gray-500">
+                        Precio unitario
+                    </label>
+
                     <div
-                        class="unit-price w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-800 text-center">
-                        $0.00</div>
+                        class="unit-price flex h-11 w-full items-center justify-center rounded-lg border border-gray-300 bg-white px-3 text-sm font-semibold text-gray-800">
+                        $0.00
+                    </div>
                 </div>
-                <div class="md:col-span-1 flex items-end justify-end">
-                    <button type="button"
-                        class="remove-sale-item inline-flex items-center justify-center w-10 h-10 rounded-lg bg-white border border-red-100 text-red-600 hover:bg-red-50">
-                        <x-heroicon-o-trash class="w-4 h-4" />
-                    </button>
+
+                {{-- Eliminar --}}
+                <div class="flex xl:col-span-1 xl:justify-end">
+                    <div class="w-full">
+                        <span class="mb-1 hidden min-h-8 xl:block"></span>
+
+                        <button type="button"
+                            class="remove-sale-item inline-flex h-11 w-full items-center justify-center rounded-lg border border-red-200 bg-white text-red-600 transition hover:bg-red-50 xl:w-11"
+                            title="Eliminar ítem" aria-label="Eliminar ítem">
+                            <x-heroicon-o-trash class="h-4 w-4" />
+                        </button>
+                    </div>
                 </div>
             </div>
-            <span class="line-subtotal sr-only">$0.00</span>
+
+            <span class="line-subtotal sr-only">
+                $0.00
+            </span>
         </div>
     </template>
 @endsection
