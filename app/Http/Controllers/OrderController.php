@@ -603,7 +603,7 @@ class OrderController extends Controller
             }
 
             $model = CatalogItem::query()
-                ->with(['type', 'vehicleTypePrices.vehicleSpecification.brand', 'vehicleTypePrices.vehicleSpecification.model', 'vehicleTypePrices.vehicleSpecification.type'])
+                ->with(['type', 'vehicleTypePrices.vehicleType'])
                 ->where('active', '=', true)
                 ->where('purchasable', '=', true)
                 ->find((int) data_get($item, 'id'));

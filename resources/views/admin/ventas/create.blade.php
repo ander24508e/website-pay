@@ -27,7 +27,8 @@
                         )
                         ->values(),
                     'vehicle_prices' => $item->vehicleTypePrices
-                        ->pluck('price', 'vehicle_specification_id')
+                        ->where('active', true)
+                        ->pluck('price', 'vehicle_type_id')
                         ->map(fn($price) => (float) $price),
                 ],
             )
@@ -111,7 +112,8 @@
 
                                 @foreach ($vehicles as $vehicle)
                                     <option value="{{ $vehicle->id }}" data-client="{{ $vehicle->user_id }}"
-                                        data-type="{{ $vehicle->resolvedType()?->id }}">
+                                        data-type="{{ $vehicle->resolvedType()?->id }}"
+                                        data-specification="{{ $vehicle->vehicle_specification_id }}">
                                         {{ $vehicle->plate }}
                                         -
                                         {{ $vehicle->resolvedBrand()?->name }}
@@ -663,9 +665,12 @@
 
             if (isProduct) return 0;
 
-            const vehicleSpecificationId = row.querySelector('.vehicle-specification-select')?.value;
-            if (!isProduct && vehicleSpecificationId && item.vehicle_prices && item.vehicle_prices[vehicleSpecificationId] !== undefined) {
-                return Number(item.vehicle_prices[vehicleSpecificationId]);
+            const vehicleSelect = row.querySelector('.vehicle-select');
+            const selectedVehicleTypeId = vehicleSelect?.selectedOptions?.[0]?.dataset?.type;
+            const fallbackTypeId = row.querySelector('.vehicle-specification-select')?.selectedOptions?.[0]?.dataset?.type;
+            const vehicleTypeId = selectedVehicleTypeId || fallbackTypeId;
+            if (!isProduct && vehicleTypeId && item.vehicle_prices && item.vehicle_prices[vehicleTypeId] !== undefined) {
+                return Number(item.vehicle_prices[vehicleTypeId]);
             }
 
             return Number(item.price || 0);

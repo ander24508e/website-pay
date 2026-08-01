@@ -85,7 +85,7 @@
                         class="btn-reservar-main {{ ($item['inventariable'] ?? false) ? 'js-add-counter-cart' : (($item['requiere_tipo_vehiculo'] ?? false) ? 'js-open-priced-service' : 'js-add-simple-cart') }}"
                         data-id="{{ $item['id'] }}"
                         data-tipo="{{ $item['tipo'] }}">
-                        {{ ($item['inventariable'] ?? false) ? 'Comprar' : (($item['requiere_tipo_vehiculo'] ?? false) ? 'Elegir vehiculo' : 'Agregar servicio') }}
+                        {{ ($item['inventariable'] ?? false) ? 'Comprar' : (($item['requiere_tipo_vehiculo'] ?? false) ? 'Buscar vehiculo' : 'Agregar servicio') }}
                     </button>
                 @endif
                 @if($item['reservable'] ?? false)

@@ -52,9 +52,7 @@ class CatalogoController extends Controller
                     'type',
                     'category',
                     'activeVariants',
-                    'vehicleTypePrices.vehicleSpecification.brand',
-                    'vehicleTypePrices.vehicleSpecification.model',
-                    'vehicleTypePrices.vehicleSpecification.type',
+                    'vehicleTypePrices.vehicleType',
                 ])
                 ->where('catalog_items.active', true)
                 ->where('catalog_types.active', true)
@@ -84,14 +82,13 @@ class CatalogoController extends Controller
                 $defaultVariant = $this->resolveDefaultPublicVariant($item);
                 $stockDisponible = $this->resolveAvailableStock($item, $defaultVariant);
                 $vehiclePrices = $item->vehicleTypePrices
-                    ->filter(fn ($vehiclePrice) => $vehiclePrice->vehicleSpecification?->active && $vehiclePrice->vehicleSpecification?->type?->active)
+                    ->filter(fn ($vehiclePrice) => $vehiclePrice->active && $vehiclePrice->vehicleType?->active)
                     ->map(fn ($vehiclePrice) => [
-                        'vehicle_specification_id' => (int) $vehiclePrice->vehicle_specification_id,
-                        'vehicle_type_id' => (int) $vehiclePrice->vehicleSpecification?->type?->id,
-                        'vehicle_type_name' => $vehiclePrice->vehicleSpecification?->type?->name,
-                        'vehicle_specification_name' => $vehiclePrice->vehicleSpecification?->label,
+                        'vehicle_type_id' => (int) $vehiclePrice->vehicle_type_id,
+                        'vehicle_type_name' => $vehiclePrice->vehicleType?->name,
                         'price' => $vehiclePrice->price === null ? null : (float) $vehiclePrice->price,
                         'duration_minutes' => $vehiclePrice->duration_minutes,
+                        'description' => $vehiclePrice->description,
                     ])
                     ->values();
                 $basePrice = (float) ($item->base_price ?? 0);

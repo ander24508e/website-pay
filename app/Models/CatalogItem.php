@@ -66,7 +66,7 @@ class CatalogItem extends Model
 
     public function vehicleTypePrices()
     {
-        return $this->hasMany(ServiceVehicleTypePrice::class)->orderBy('vehicle_specification_id');
+        return $this->hasMany(ServiceVehicleTypePrice::class)->orderBy('vehicle_type_id');
     }
 
     public function supplies()
@@ -96,6 +96,14 @@ class CatalogItem extends Model
 
     public function getDisplayPriceAttribute(): float
     {
+        if (!$this->uses_inventory) {
+            $servicePrice = $this->relationLoaded('vehicleTypePrices')
+                ? $this->vehicleTypePrices->where('active', true)->pluck('price')->filter(fn ($price) => $price !== null)->min()
+                : $this->vehicleTypePrices()->where('active', true)->whereNotNull('price')->min('price');
+
+            return (float) ($servicePrice ?? $this->base_price ?? 0);
+        }
+
         $variantPrice = $this->relationLoaded('activeVariants')
             ? $this->activeVariants->min('price')
             : $this->activeVariants()->min('price');

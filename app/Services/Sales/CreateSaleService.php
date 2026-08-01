@@ -76,7 +76,7 @@ class CreateSaleService
 
         foreach ($data->items as $index => $row) {
             $catalogItem = CatalogItem::query()
-                ->with(['type', 'activeVariants', 'vehicleTypePrices.vehicleSpecification.brand', 'vehicleTypePrices.vehicleSpecification.model', 'vehicleTypePrices.vehicleSpecification.type'])
+                ->with(['type', 'activeVariants', 'vehicleTypePrices.vehicleType'])
                 ->where('active', true)
                 ->where('purchasable', true)
                 ->find((int) ($row['catalog_item_id'] ?? 0));

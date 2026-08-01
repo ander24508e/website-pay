@@ -6,6 +6,7 @@
 @php
     $returnUrl = $returnUrl ?? route('admin.catalog-items.index', ['catalog_type_id' => $catalogItem->catalog_type_id]);
     $returnContext = $returnContext ?? [];
+    $isServiceContext = ($catalogItem->type?->business_model ?? 'services') === \App\Models\CatalogType::BUSINESS_MODEL_SERVICES;
 @endphp
 
 <div class="mx-auto w-full max-w-full overflow-x-hidden px-3 pb-4 sm:px-6">
@@ -45,10 +46,10 @@
             <p class="text-lg font-bold text-gray-800 mt-2">{{ $catalogItem->category?->name ?? 'Sin categoría' }}</p>
             <p class="text-xs text-gray-400 mt-1">Ver contexto del producto o servicio</p>
         </a>
-        <a href="{{ route('admin.catalog-variants.index', ['catalog_item_id' => $catalogItem->id]) }}" class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:border-gray-300 transition">
-            <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Presentaciones</p>
-            <p class="text-lg font-bold text-gray-800 mt-2">{{ $catalogItem->variants->count() }}</p>
-            <p class="text-xs text-gray-400 mt-1">Gestionar presentaciones</p>
+        <a href="{{ route('admin.catalog-items.edit', ['catalogItem' => $catalogItem, ...$returnContext]) }}" class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:border-gray-300 transition">
+            <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">{{ $isServiceContext ? 'Precios' : 'Presentaciones' }}</p>
+            <p class="text-lg font-bold text-gray-800 mt-2">{{ $isServiceContext ? $catalogItem->vehicleTypePrices->count() : $catalogItem->variants->count() }}</p>
+            <p class="text-xs text-gray-400 mt-1">{{ $isServiceContext ? 'Gestionar precios por vehiculo' : 'Gestionar presentaciones' }}</p>
         </a>
     </div>
 
@@ -112,52 +113,117 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
                 <div>
-                    <p class="text-xs text-gray-400 uppercase tracking-wide">Presentaciones</p>
-                    <p class="text-gray-700 font-semibold">{{ $catalogItem->variants->count() }}</p>
+                    <p class="text-xs text-gray-400 uppercase tracking-wide">{{ $isServiceContext ? 'Precios' : 'Presentaciones' }}</p>
+                    <p class="text-gray-700 font-semibold">{{ $isServiceContext ? $catalogItem->vehicleTypePrices->count() : $catalogItem->variants->count() }}</p>
                 </div>
                 <div>
                     <p class="text-xs text-gray-400 uppercase tracking-wide">Origen anterior</p>
                     <p class="text-gray-700">{{ $catalogItem->legacy_source_type && $catalogItem->legacy_source_id ? $catalogItem->legacy_source_type . ' #' . $catalogItem->legacy_source_id : 'Aún no migrado' }}</p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-400 uppercase tracking-wide">Control de inventario</p>
-                    <p class="text-gray-700 font-semibold">{{ $catalogItem->uses_inventory ? 'Activo' : 'No aplica' }}</p>
+                    <p class="text-xs text-gray-400 uppercase tracking-wide">{{ $isServiceContext ? 'Reserva' : 'Control de inventario' }}</p>
+                    <p class="text-gray-700 font-semibold">{{ $isServiceContext ? ($catalogItem->reservable ? 'Activa' : 'No aplica') : ($catalogItem->uses_inventory ? 'Activo' : 'No aplica') }}</p>
                 </div>
             </div>
 
-            @if (($catalogItem->type?->business_model ?? 'services') === \App\Models\CatalogType::BUSINESS_MODEL_SERVICES)
+            @if ($isServiceContext)
                 <div class="mb-8">
-                    <div class="mb-3">
-                        <p class="text-sm font-semibold text-gray-800">Precios por especificación de vehículo</p>
-                        <p class="text-xs text-gray-400">El precio base se usa cuando no existe una tarifa específica.</p>
+                    <div class="flex flex-col gap-3 mb-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <p class="text-sm font-semibold text-gray-800">Precios por vehiculo</p>
+                            <p class="text-xs text-gray-400">Gestiona precios, duracion e insumos por tipo de vehiculo.</p>
+                        </div>
+                        <a href="{{ route('admin.catalog-items.edit', ['catalogItem' => $catalogItem, ...$returnContext]) }}"
+                           class="w-full bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition text-sm font-medium text-center sm:w-auto">
+                            + Precio por vehiculo
+                        </a>
                     </div>
                     <div class="rounded-xl border border-gray-200 overflow-hidden">
-                        <table class="w-full table-fixed text-sm">
-                            <thead class="bg-gray-50 text-xs uppercase text-gray-500">
-                                <tr>
-                                    <th class="w-[70%] px-4 py-3 text-center">Especificación</th>
-                                    <th class="w-[30%] px-4 py-3 text-center">Precio</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse ($catalogItem->vehicleTypePrices as $vehiclePrice)
-                                    <tr class="border-t border-gray-100">
-                                        <td class="px-4 py-3 text-center text-gray-700">
-                                            {{ $vehiclePrice->vehicleSpecification?->brand?->name ?? 'Marca eliminada' }} /
-                                            {{ $vehiclePrice->vehicleSpecification?->model?->name ?? 'Modelo eliminado' }} /
-                                            {{ $vehiclePrice->vehicleSpecification?->type?->name ?? 'Tipo eliminado' }}
-                                        </td>
-                                        <td class="px-4 py-3 text-center font-semibold text-gray-800">${{ number_format((float) $vehiclePrice->price, 2) }}</td>
+                        <div class="md:hidden divide-y divide-gray-100">
+                            @forelse ($catalogItem->vehicleTypePrices as $vehiclePrice)
+                                <article class="p-4 space-y-3">
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div class="min-w-0">
+                                            <p class="font-medium text-gray-800 break-words">{{ $vehiclePrice->vehicleType?->name ?? 'Tipo eliminado' }}</p>
+                                            <p class="text-xs text-gray-400">{{ $vehiclePrice->duration_minutes ? $vehiclePrice->duration_minutes . ' min' : 'Sin duracion' }}</p>
+                                        </div>
+                                        @if ($vehiclePrice->active)
+                                            <span class="shrink-0 bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-medium">Activo</span>
+                                        @else
+                                            <span class="shrink-0 bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs font-medium">Oculto</span>
+                                        @endif
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-3 text-sm">
+                                        <div>
+                                            <p class="text-xs uppercase text-gray-400 font-semibold">Precio</p>
+                                            <p class="font-semibold text-gray-800">${{ number_format((float) $vehiclePrice->price, 2) }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs uppercase text-gray-400 font-semibold">Insumos</p>
+                                            <p class="font-semibold text-gray-800">{{ $vehiclePrice->supplies->count() }}</p>
+                                        </div>
+                                    </div>
+
+                                    @if ($vehiclePrice->description)
+                                        <p class="text-sm text-gray-500">{{ $vehiclePrice->description }}</p>
+                                    @endif
+                                </article>
+                            @empty
+                                <div class="px-4 py-8 text-center text-gray-400">Este servicio aun no tiene precios por vehiculo.</div>
+                            @endforelse
+                        </div>
+
+                        <div class="hidden md:block">
+                            <table class="min-w-full text-sm text-left">
+                                <thead class="bg-gray-50 border-b">
+                                    <tr>
+                                        <th class="px-4 py-3">Tipo de vehiculo</th>
+                                        <th class="px-4 py-3">Precio</th>
+                                        <th class="px-4 py-3">Duracion</th>
+                                        <th class="px-4 py-3">Insumos</th>
+                                        <th class="px-4 py-3">Estado</th>
                                     </tr>
-                                @empty
-                                    <tr><td colspan="2" class="px-4 py-6 text-center text-gray-400">Este servicio utiliza únicamente su precio base.</td></tr>
-                                @endforelse
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody class="divide-y">
+                                    @forelse ($catalogItem->vehicleTypePrices as $vehiclePrice)
+                                        <tr>
+                                            <td class="px-4 py-3">
+                                                <p class="font-medium text-gray-800">{{ $vehiclePrice->vehicleType?->name ?? 'Tipo eliminado' }}</p>
+                                                @if ($vehiclePrice->description)
+                                                    <p class="text-xs text-gray-400">{{ $vehiclePrice->description }}</p>
+                                                @endif
+                                            </td>
+                                            <td class="px-4 py-3 font-semibold text-gray-800">
+                                                ${{ number_format((float) $vehiclePrice->price, 2) }}
+                                            </td>
+                                            <td class="px-4 py-3 text-gray-700">
+                                                {{ $vehiclePrice->duration_minutes ? $vehiclePrice->duration_minutes . ' min' : '-' }}
+                                            </td>
+                                            <td class="px-4 py-3 text-gray-700">
+                                                {{ $vehiclePrice->supplies->count() }}
+                                            </td>
+                                            <td class="px-4 py-3">
+                                                @if ($vehiclePrice->active)
+                                                    <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-medium">Activo</span>
+                                                @else
+                                                    <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs font-medium">Oculto</span>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="5" class="px-4 py-6 text-center text-gray-400">Este servicio aun no tiene precios por vehiculo.</td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             @endif
 
+            @unless ($isServiceContext)
             <div class="mb-8">
                 <div class="flex flex-col gap-3 mb-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
@@ -266,16 +332,19 @@
                     </div>
                 </div>
             </div>
+            @endunless
 
             <div class="flex flex-col gap-3 pt-2 border-t border-gray-100 sm:flex-row">
                 <a href="{{ route('admin.catalog-items.edit', ['catalogItem' => $catalogItem, ...$returnContext]) }}"
                    class="w-full bg-gray-900 text-white px-5 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-sm text-center sm:w-auto">
                     Editar
                 </a>
-                <a href="{{ route('admin.catalog-variants.create', ['catalog_item_id' => $catalogItem->id]) }}"
-                   class="w-full bg-gray-100 text-gray-700 px-5 py-2.5 rounded-lg hover:bg-gray-200 transition font-medium text-sm text-center sm:w-auto">
-                    + Presentación
-                </a>
+                @unless ($isServiceContext)
+                    <a href="{{ route('admin.catalog-variants.create', ['catalog_item_id' => $catalogItem->id]) }}"
+                       class="w-full bg-gray-100 text-gray-700 px-5 py-2.5 rounded-lg hover:bg-gray-200 transition font-medium text-sm text-center sm:w-auto">
+                        + Presentación
+                    </a>
+                @endunless
                 <form action="{{ route('admin.catalog-items.destroy', $catalogItem) }}" method="POST"
                       onsubmit="return confirm('¿Eliminar este producto o servicio?')">
                     @csrf

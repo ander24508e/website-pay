@@ -29,7 +29,7 @@ class CarritoController extends Controller
             'vehicle_specification_id' => 'nullable|integer',
         ]);
 
-        $item = CatalogItem::with(['type', 'vehicleTypePrices.vehicleSpecification.type', 'activeVariants'])
+        $item = CatalogItem::with(['type', 'vehicleTypePrices.vehicleType', 'activeVariants'])
             ->where('active', true)
             ->where('purchasable', true)
             ->findOrFail($request->id);

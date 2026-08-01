@@ -9,6 +9,7 @@ class CatalogItemSupply extends Model
 {
     protected $fillable = [
         'catalog_item_id',
+        'service_vehicle_type_price_id',
         'catalog_item_variant_id',
         'quantity',
         'unit',
@@ -26,5 +27,10 @@ class CatalogItemSupply extends Model
     public function variant(): BelongsTo
     {
         return $this->belongsTo(CatalogItemVariant::class, 'catalog_item_variant_id');
+    }
+
+    public function serviceVehiclePrice(): BelongsTo
+    {
+        return $this->belongsTo(ServiceVehicleTypePrice::class, 'service_vehicle_type_price_id');
     }
 }

@@ -3,5 +3,8 @@
 @section('title', 'Editar Servicio')
 
 @section('content')
-    @include('admin.catalog.items._edit-form')
+    @livewire('admin.catalog.service-form', [
+        'catalogItemId' => $catalogItem->id,
+        'returnUrl' => $returnUrl ?? route('admin.catalog-items.show', $catalogItem),
+    ])
 @endsection
