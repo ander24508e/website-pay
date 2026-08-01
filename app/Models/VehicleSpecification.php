@@ -43,6 +43,11 @@ class VehicleSpecification extends Model
         return $this->hasMany(Vehicle::class);
     }
 
+    public function servicePrices(): HasMany
+    {
+        return $this->hasMany(ServiceVehicleTypePrice::class, 'vehicle_specification_id');
+    }
+
     public function scopeOrdered(Builder $query): Builder
     {
         return $query

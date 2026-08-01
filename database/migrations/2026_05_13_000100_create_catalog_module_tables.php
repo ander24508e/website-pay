@@ -84,12 +84,12 @@ return new class extends Migration
         Schema::create('service_vehicle_type_prices', function (Blueprint $table) {
             $table->id();
             $table->foreignId('catalog_item_id')->constrained('catalog_items')->cascadeOnDelete();
-            $table->foreignId('vehicle_type_id')->constrained()->restrictOnDelete();
+            $table->foreignId('vehicle_specification_id')->constrained('vehicle_specifications')->restrictOnDelete();
             $table->decimal('price', 10, 2)->nullable();
             $table->unsignedInteger('duration_minutes')->nullable();
             $table->timestamps();
 
-            $table->unique(['catalog_item_id', 'vehicle_type_id'], 'service_vehicle_type_unique');
+            $table->unique(['catalog_item_id', 'vehicle_specification_id'], 'service_vehicle_spec_unique');
         });
 
         Schema::create('catalog_item_supplies', function (Blueprint $table) {

@@ -66,7 +66,7 @@ class CatalogItem extends Model
 
     public function vehicleTypePrices()
     {
-        return $this->hasMany(ServiceVehicleTypePrice::class)->orderBy('vehicle_type_id');
+        return $this->hasMany(ServiceVehicleTypePrice::class)->orderBy('vehicle_specification_id');
     }
 
     public function supplies()

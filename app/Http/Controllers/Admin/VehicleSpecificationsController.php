@@ -133,7 +133,7 @@ class VehicleSpecificationsController extends Controller
 
     public function destroyType(VehicleType $vehicleType)
     {
-        if ($vehicleType->vehicles()->exists() || $vehicleType->servicePrices()->exists() || $vehicleType->specifications()->exists()) {
+        if ($vehicleType->vehicles()->exists() || $vehicleType->specifications()->exists()) {
             return back()->with('error', 'No se puede eliminar un tipo de vehículo que está en uso.');
         }
 

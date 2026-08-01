@@ -228,7 +228,7 @@
                     </section>
 
                     <details class="rounded-lg border border-gray-100 bg-gray-50 p-3">
-                        <summary class="cursor-pointer text-sm font-semibold text-gray-700">Precios por vehiculo</summary>
+                        <summary class="cursor-pointer text-sm font-semibold text-gray-700">Precios por especificación</summary>
                         <div class="mt-3">
                             @include('admin.catalog.items._vehicle-type-prices', [
                                 'quickVehicleModalAvailable' => true,
@@ -290,8 +290,6 @@
                 </div>
             </div>
         </div>
-    @else
-        @include('admin.vehiculos.partials.specifications-modal-types-only', ['modalId' => 'serviceVehicleTypesModal'])
     @endif
 </div>
 

@@ -47,7 +47,7 @@
                         <option value="">Selecciona una opcion</option>
                     </select>
                     <p class="catalogo-detail-hint" id="detailVehicleHint">
-                        El precio se calcula según el tipo del vehículo seleccionado.
+                        El precio se calcula segÃºn el tipo del vehÃ­culo seleccionado.
                     </p>
                 </div>
                 <div class="catalogo-detail-service-actions" id="catalogoDetailServiceActions" hidden>
@@ -62,7 +62,7 @@
                         <label>Cantidad
                             <div class="catalog-stock-counter catalog-stock-counter-modal" id="detailQtyCounter">
                                 <button type="button" class="catalog-stock-btn" id="detailQtyMinus"
-                                    aria-label="Restar cantidad">−</button>
+                                    aria-label="Restar cantidad">âˆ’</button>
                                 <span class="catalog-stock-value" id="detailQtyValue">1</span>
                                 <button type="button" class="catalog-stock-btn" id="detailQtyPlus"
                                     aria-label="Sumar cantidad">+</button>
@@ -92,6 +92,7 @@
                     <input type="hidden" id="reserveItemName">
                     <input type="hidden" id="reserveVehicleId">
                     <input type="hidden" id="reserveVehicleTypeId">
+                    <input type="hidden" id="reserveVehicleSpecificationId">
                     <input type="hidden" id="reserveVehicleLabel">
 
                     <label>Item seleccionado
@@ -173,7 +174,7 @@
             const csrfToken = @json(csrf_token());
             const initialCatalogItems = @json(($catalogo ?? collect())->values());
             const customerVehicles = @json(($customerVehicles ?? collect())->values());
-            const vehicleTypes = @json(($vehicleTypes ?? collect())->values());
+            const vehicleSpecifications = @json(($vehicleSpecifications ?? collect())->values());
             const catalogItemsByKey = new Map();
             let currentDetailItem = null;
 
@@ -297,7 +298,7 @@
                 ${options}
             </select>
             <div class="catalog-stock-counter" data-stock="${stock}" data-quantity="1">
-                <button type="button" class="catalog-stock-btn js-stock-minus" aria-label="Restar cantidad" disabled>−</button>
+                <button type="button" class="catalog-stock-btn js-stock-minus" aria-label="Restar cantidad" disabled>âˆ’</button>
                 <span class="catalog-stock-value js-stock-value">1</span>
                 <button type="button" class="catalog-stock-btn js-stock-plus" aria-label="Sumar cantidad" ${stock <= 1 ? 'disabled' : ''}>+</button>
             </div>
@@ -325,7 +326,7 @@
                 card.innerHTML = `
             ${imageHtml}
             <div class="card-body">
-                <div class="card-category">${escapeHtml(item.tipo_label || 'Catalogo')} · ${escapeHtml(item.categoria)}</div>
+                <div class="card-category">${escapeHtml(item.tipo_label || 'Catalogo')} Â· ${escapeHtml(item.categoria)}</div>
                 <div class="card-top">
                     <div class="card-name-row">
                         <div class="card-name">${escapeHtml(item.nombre)}</div>
@@ -449,12 +450,13 @@
             function getSelectedVehicleContext() {
                 const option = detailVehicleSelect?.selectedOptions?.[0];
                 if (!option || !option.value) {
-                    return { vehicleId: null, vehicleTypeId: null };
+                    return { vehicleId: null, vehicleTypeId: null, vehicleSpecificationId: null };
                 }
 
                 return {
                     vehicleId: option.dataset.vehicleId ? Number(option.dataset.vehicleId) : null,
                     vehicleTypeId: option.dataset.vehicleTypeId ? Number(option.dataset.vehicleTypeId) : null,
+                    vehicleSpecificationId: option.dataset.vehicleSpecificationId ? Number(option.dataset.vehicleSpecificationId) : null,
                     vehicleLabel: option.textContent?.trim() || null,
                 };
             }
@@ -467,36 +469,37 @@
                     : Number(currentDetailItem.precio_base ?? currentDetailItem.precio ?? 0);
 
                 detailPrice.textContent = option?.value
-                    ? `Precio: $${price.toFixed(2)}`
-                    : `Desde $${Number(currentDetailItem.precio || 0).toFixed(2)}`;
+                    ? `Precio: ${price.toFixed(2)}`
+                    : `Desde ${Number(currentDetailItem.precio || 0).toFixed(2)}`;
             }
 
             function renderServiceVehicleOptions(item) {
                 if (!detailVehicle || !detailVehicleSelect) return;
                 const prices = getVehiclePrices(item);
-                const priceByType = new Map(prices.map((price) => [Number(price.vehicle_type_id), Number(price.price)]));
+                const priceBySpecification = new Map(prices.map((price) => [Number(price.vehicle_specification_id), Number(price.price)]));
                 const requiresVehicle = Boolean(item.requiere_tipo_vehiculo) && prices.length > 0;
                 const basePrice = Number(item.precio_base ?? item.precio ?? 0);
-                const priceForType = (vehicleTypeId) => priceByType.has(Number(vehicleTypeId))
-                    ? priceByType.get(Number(vehicleTypeId))
+                const priceForSpecification = (vehicleSpecificationId) => priceBySpecification.has(Number(vehicleSpecificationId))
+                    ? priceBySpecification.get(Number(vehicleSpecificationId))
                     : basePrice;
 
                 detailVehicle.hidden = !requiresVehicle;
-                detailVehicleSelect.innerHTML = '<option value="">Selecciona una opcion</option>';
+                detailVehicleSelect.innerHTML = '<option value="">Selecciona una opción</option>';
 
                 if (!requiresVehicle) return;
 
-                const pricedTypeIds = new Set(prices.map((price) => Number(price.vehicle_type_id)));
-                const compatibleVehicles = customerVehicles.filter((vehicle) => pricedTypeIds.has(Number(vehicle.vehicle_type_id)));
+                const pricedSpecificationIds = new Set(prices.map((price) => Number(price.vehicle_specification_id)));
+                const compatibleVehicles = customerVehicles.filter((vehicle) => pricedSpecificationIds.has(Number(vehicle.vehicle_specification_id)));
                 if (compatibleVehicles.length) {
                     const group = document.createElement('optgroup');
-                    group.label = 'Mis vehiculos';
+                    group.label = 'Mis vehículos';
                     compatibleVehicles.forEach((vehicle) => {
                         const option = document.createElement('option');
                         option.value = `vehicle:${vehicle.id}`;
                         option.dataset.vehicleId = String(vehicle.id);
-                        option.dataset.vehicleTypeId = String(vehicle.vehicle_type_id);
-                        option.dataset.price = String(priceForType(vehicle.vehicle_type_id));
+                        option.dataset.vehicleSpecificationId = String(vehicle.vehicle_specification_id);
+                        option.dataset.vehicleTypeId = String(vehicle.vehicle_type_id || '');
+                        option.dataset.price = String(priceForSpecification(vehicle.vehicle_specification_id));
                         option.textContent = `${vehicle.label} · ${vehicle.type_name}`;
                         group.appendChild(option);
                     });
@@ -504,28 +507,30 @@
                 }
 
                 const genericGroup = document.createElement('optgroup');
-                genericGroup.label = compatibleVehicles.length ? 'Otro vehiculo por tipo' : 'Seleccionar por tipo';
-                const pricedVehicleTypes = prices
-                    .filter((price) => Number(price.vehicle_type_id) > 0)
+                genericGroup.label = compatibleVehicles.length ? 'Otra especificación' : 'Seleccionar especificación';
+                const pricedVehicleSpecifications = prices
+                    .filter((price) => Number(price.vehicle_specification_id) > 0)
                     .map((price) => ({
-                        id: Number(price.vehicle_type_id),
-                        name: price.vehicle_type_name || 'Tipo de vehiculo',
+                        id: Number(price.vehicle_specification_id),
+                        typeId: Number(price.vehicle_type_id),
+                        name: price.vehicle_specification_name || price.vehicle_type_name || 'Especificación de vehículo',
                     }));
 
-                pricedVehicleTypes.forEach((vehicleType) => {
-                        const option = document.createElement('option');
-                        option.value = `type:${vehicleType.id}`;
-                        option.dataset.vehicleTypeId = String(vehicleType.id);
-                        option.dataset.price = String(priceForType(vehicleType.id));
-                        option.textContent = `${vehicleType.name} · $${priceForType(vehicleType.id).toFixed(2)}`;
-                        genericGroup.appendChild(option);
-                    });
+                pricedVehicleSpecifications.forEach((vehicleSpecification) => {
+                    const option = document.createElement('option');
+                    option.value = `spec:${vehicleSpecification.id}`;
+                    option.dataset.vehicleSpecificationId = String(vehicleSpecification.id);
+                    option.dataset.vehicleTypeId = String(vehicleSpecification.typeId || '');
+                    option.dataset.price = String(priceForSpecification(vehicleSpecification.id));
+                    option.textContent = `${vehicleSpecification.name} · ${priceForSpecification(vehicleSpecification.id).toFixed(2)}`;
+                    genericGroup.appendChild(option);
+                });
                 detailVehicleSelect.appendChild(genericGroup);
 
                 if (detailVehicleHint) {
                     detailVehicleHint.textContent = compatibleVehicles.length
-                        ? 'Selecciona uno de tus vehículos o usa un tipo temporal.'
-                        : 'Selecciona temporalmente el tipo de vehículo para calcular el precio.';
+                        ? 'Selecciona uno de tus vehículos o usa una especificación temporal.'
+                        : 'Selecciona temporalmente la especificación del vehículo para calcular el precio.';
                 }
             }
 
@@ -542,7 +547,7 @@
                     `<img src="${data.imagen}" alt="${data.nombre}" class="catalogo-modal-image">` :
                     `<div class="catalogo-modal-placeholder">ITM</div>`;
                 detailCategory.textContent =
-                    `${currentDetailItem.tipo_label || 'Catalogo'} · ${currentDetailItem.categoria || ''}`;
+                    `${currentDetailItem.tipo_label || 'Catalogo'} Â· ${currentDetailItem.categoria || ''}`;
                 detailTitle.textContent = currentDetailItem.nombre || '';
                 const isProductDetail = currentDetailItem.tipo === 'catalog' && currentDetailItem.comprable && currentDetailItem.inventariable;
                 const isServiceDetail = currentDetailItem.tipo === 'catalog' && !currentDetailItem.inventariable;
@@ -624,6 +629,7 @@
                 reserveItemName.value = data.nombre || '';
                 document.getElementById('reserveVehicleId').value = data.vehicleId || '';
                 document.getElementById('reserveVehicleTypeId').value = data.vehicleTypeId || '';
+                document.getElementById('reserveVehicleSpecificationId').value = data.vehicleSpecificationId || '';
                 document.getElementById('reserveVehicleLabel').value = data.vehicleLabel || '';
                 reserveSelectedItem.value = data.nombre || '';
                 reserveSubtitle.textContent = `Completa la reserva para: ${data.nombre || ''}`;
@@ -741,10 +747,10 @@
             detailServiceAddBtn?.addEventListener('click', () => {
                 if (!currentDetailItem || currentDetailItem.tipo !== 'catalog') return;
                 const vehicleContext = getSelectedVehicleContext();
-                if (currentDetailItem.requiere_tipo_vehiculo && !vehicleContext.vehicleId && !vehicleContext.vehicleTypeId) {
+                if (currentDetailItem.requiere_tipo_vehiculo && !vehicleContext.vehicleId && !vehicleContext.vehicleSpecificationId) {
                     return window.websiteNotify?.('error', 'Selecciona tu vehiculo o un tipo de vehiculo.');
                 }
-                addToCart(Number(currentDetailItem.id), currentDetailItem.tipo, 1, null, vehicleContext.vehicleId, vehicleContext.vehicleTypeId);
+                addToCart(Number(currentDetailItem.id), currentDetailItem.tipo, 1, null, vehicleContext.vehicleId, vehicleContext.vehicleTypeId, vehicleContext.vehicleSpecificationId);
                 closeDetailModal();
             });
             detailServiceReserveBtn?.addEventListener('click', () => {
@@ -755,7 +761,7 @@
                     nombre: currentDetailItem.nombre,
                     ...getSelectedVehicleContext(),
                 };
-                if (currentDetailItem.requiere_tipo_vehiculo && !itemForReserve.vehicleId && !itemForReserve.vehicleTypeId) {
+                if (currentDetailItem.requiere_tipo_vehiculo && !itemForReserve.vehicleId && !itemForReserve.vehicleSpecificationId) {
                     return window.websiteNotify?.('error', 'Selecciona tu vehiculo o un tipo de vehiculo.');
                 }
                 closeDetailModal();
@@ -786,9 +792,11 @@
                 const reserveItemType = document.getElementById('reserveItemType');
                 const reserveVehicleId = document.getElementById('reserveVehicleId');
                 const reserveVehicleTypeId = document.getElementById('reserveVehicleTypeId');
+                const reserveVehicleSpecificationId = document.getElementById('reserveVehicleSpecificationId');
                 const reserveVehicleLabel = document.getElementById('reserveVehicleLabel');
                 if (!reserveName || !reservePhone || !reserveDate || !reserveTime || !reserveItemName || !
                     reserveItemId || !reserveItemType || !reserveVehicleId || !reserveVehicleTypeId ||
+                    !reserveVehicleSpecificationId ||
                     !reserveVehicleLabel) return;
 
                 const name = reserveName.value.trim();
@@ -829,6 +837,7 @@
                             item_type: itemType,
                             vehicle_id: reserveVehicleId.value ? Number(reserveVehicleId.value) : null,
                             vehicle_type_id: reserveVehicleTypeId.value ? Number(reserveVehicleTypeId.value) : null,
+                            vehicle_specification_id: reserveVehicleSpecificationId.value ? Number(reserveVehicleSpecificationId.value) : null,
                         }),
                     });
 

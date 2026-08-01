@@ -6,7 +6,7 @@ use App\Models\CatalogItem;
 use App\Models\CatalogType;
 use App\Models\Empresa;
 use App\Models\Vehicle;
-use App\Models\VehicleType;
+use App\Models\VehicleSpecification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 
@@ -48,7 +48,14 @@ class CatalogoController extends Controller
             $universalesQuery = CatalogItem::query()
                 ->select('catalog_items.*')
                 ->join('catalog_types', 'catalog_types.id', '=', 'catalog_items.catalog_type_id')
-                ->with(['type', 'category', 'activeVariants', 'vehicleTypePrices.vehicleType'])
+                ->with([
+                    'type',
+                    'category',
+                    'activeVariants',
+                    'vehicleTypePrices.vehicleSpecification.brand',
+                    'vehicleTypePrices.vehicleSpecification.model',
+                    'vehicleTypePrices.vehicleSpecification.type',
+                ])
                 ->where('catalog_items.active', true)
                 ->where('catalog_types.active', true)
                 ->where(function ($query) {
@@ -77,10 +84,12 @@ class CatalogoController extends Controller
                 $defaultVariant = $this->resolveDefaultPublicVariant($item);
                 $stockDisponible = $this->resolveAvailableStock($item, $defaultVariant);
                 $vehiclePrices = $item->vehicleTypePrices
-                    ->filter(fn ($vehiclePrice) => $vehiclePrice->vehicleType?->active)
+                    ->filter(fn ($vehiclePrice) => $vehiclePrice->vehicleSpecification?->active && $vehiclePrice->vehicleSpecification?->type?->active)
                     ->map(fn ($vehiclePrice) => [
-                        'vehicle_type_id' => (int) $vehiclePrice->vehicle_type_id,
-                        'vehicle_type_name' => $vehiclePrice->vehicleType?->name,
+                        'vehicle_specification_id' => (int) $vehiclePrice->vehicle_specification_id,
+                        'vehicle_type_id' => (int) $vehiclePrice->vehicleSpecification?->type?->id,
+                        'vehicle_type_name' => $vehiclePrice->vehicleSpecification?->type?->name,
+                        'vehicle_specification_name' => $vehiclePrice->vehicleSpecification?->label,
                         'price' => $vehiclePrice->price === null ? null : (float) $vehiclePrice->price,
                         'duration_minutes' => $vehiclePrice->duration_minutes,
                     ])
@@ -247,7 +256,7 @@ class CatalogoController extends Controller
             'tipo'       => $tipo,
             'search'     => $search,
             'customerVehicles' => $this->getCustomerVehicles(),
-            'vehicleTypes' => $this->getActiveVehicleTypes(),
+            'vehicleSpecifications' => $this->getActiveVehicleSpecifications(),
         ]);
     }
 
@@ -292,6 +301,7 @@ class CatalogoController extends Controller
             ->get()
             ->map(fn ($vehicle) => [
                 'id' => (int) $vehicle->id,
+                'vehicle_specification_id' => (int) $vehicle->vehicle_specification_id,
                 'vehicle_type_id' => (int) $vehicle->resolvedType()?->id,
                 'label' => trim(sprintf(
                     '%s - %s %s',
@@ -305,15 +315,21 @@ class CatalogoController extends Controller
             ->values();
     }
 
-    private function getActiveVehicleTypes()
+    private function getActiveVehicleSpecifications()
     {
-        return VehicleType::query()
+        return VehicleSpecification::query()
             ->where('active', true)
+            ->whereHas('brand', fn ($query) => $query->where('active', true))
+            ->whereHas('model', fn ($query) => $query->where('active', true))
+            ->whereHas('type', fn ($query) => $query->where('active', true))
+            ->with(['brand:id,name', 'model:id,name', 'type:id,name'])
             ->ordered()
-            ->get(['id', 'name'])
-            ->map(fn ($vehicleType) => [
-                'id' => (int) $vehicleType->id,
-                'name' => $vehicleType->name,
+            ->get()
+            ->map(fn ($specification) => [
+                'id' => (int) $specification->id,
+                'vehicle_type_id' => (int) $specification->type?->id,
+                'name' => $specification->label,
+                'type_name' => $specification->type?->name,
             ]);
     }
 }

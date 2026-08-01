@@ -26,9 +26,10 @@ class CarritoController extends Controller
             'variant_id' => 'nullable|integer',
             'vehicle_id' => 'nullable|integer',
             'vehicle_type_id' => 'nullable|integer',
+            'vehicle_specification_id' => 'nullable|integer',
         ]);
 
-        $item = CatalogItem::with(['type', 'vehicleTypePrices.vehicleType', 'activeVariants'])
+        $item = CatalogItem::with(['type', 'vehicleTypePrices.vehicleSpecification.type', 'activeVariants'])
             ->where('active', true)
             ->where('purchasable', true)
             ->findOrFail($request->id);
@@ -42,8 +43,10 @@ class CarritoController extends Controller
         $vehicleContext = [
             'vehicle_id' => null,
             'vehicle_type_id' => null,
+            'vehicle_specification_id' => null,
             'vehicle_label' => null,
             'vehicle_type_label' => null,
+            'vehicle_specification_label' => null,
         ];
 
         $isService = ($item->type?->business_model ?? CatalogType::BUSINESS_MODEL_SERVICES) === CatalogType::BUSINESS_MODEL_SERVICES;
@@ -53,7 +56,7 @@ class CarritoController extends Controller
             $vehicleContext = $priceResolver->resolve(
                 $item,
                 $request->integer('vehicle_id') ?: null,
-                $request->integer('vehicle_type_id') ?: null,
+                $request->integer('vehicle_specification_id') ?: ($request->integer('vehicle_type_id') ?: null),
                 auth()->id()
             );
             $price = $vehicleContext['price'];
@@ -86,6 +89,8 @@ class CarritoController extends Controller
         $key = $request->type . '_' . $request->id . ($variantId ? ('_v' . $variantId) : '');
         if ($vehicleContext['vehicle_id']) {
             $key .= '_vehicle' . $vehicleContext['vehicle_id'];
+        } elseif ($vehicleContext['vehicle_specification_id']) {
+            $key .= '_spec' . $vehicleContext['vehicle_specification_id'];
         } elseif ($vehicleContext['vehicle_type_id']) {
             $key .= '_type' . $vehicleContext['vehicle_type_id'];
         }
@@ -132,8 +137,10 @@ class CarritoController extends Controller
                 'quantity' => $requestedQuantity,
                 'vehicle_id' => $vehicleContext['vehicle_id'],
                 'vehicle_type_id' => $vehicleContext['vehicle_type_id'],
+                'vehicle_specification_id' => $vehicleContext['vehicle_specification_id'],
                 'vehicle_label' => $vehicleContext['vehicle_label'],
                 'vehicle_type_label' => $vehicleContext['vehicle_type_label'],
+                'vehicle_specification_label' => $vehicleContext['vehicle_specification_label'],
             ];
         }
 

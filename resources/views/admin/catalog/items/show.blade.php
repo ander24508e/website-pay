@@ -128,21 +128,25 @@
             @if (($catalogItem->type?->business_model ?? 'services') === \App\Models\CatalogType::BUSINESS_MODEL_SERVICES)
                 <div class="mb-8">
                     <div class="mb-3">
-                        <p class="text-sm font-semibold text-gray-800">Precios por tipo de vehiculo</p>
+                        <p class="text-sm font-semibold text-gray-800">Precios por especificación de vehículo</p>
                         <p class="text-xs text-gray-400">El precio base se usa cuando no existe una tarifa específica.</p>
                     </div>
                     <div class="rounded-xl border border-gray-200 overflow-hidden">
                         <table class="w-full table-fixed text-sm">
                             <thead class="bg-gray-50 text-xs uppercase text-gray-500">
                                 <tr>
-                                    <th class="w-[70%] px-4 py-3 text-center">Tipo</th>
+                                    <th class="w-[70%] px-4 py-3 text-center">Especificación</th>
                                     <th class="w-[30%] px-4 py-3 text-center">Precio</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse ($catalogItem->vehicleTypePrices as $vehiclePrice)
                                     <tr class="border-t border-gray-100">
-                                        <td class="px-4 py-3 text-center text-gray-700">{{ $vehiclePrice->vehicleType?->name ?? 'Tipo eliminado' }}</td>
+                                        <td class="px-4 py-3 text-center text-gray-700">
+                                            {{ $vehiclePrice->vehicleSpecification?->brand?->name ?? 'Marca eliminada' }} /
+                                            {{ $vehiclePrice->vehicleSpecification?->model?->name ?? 'Modelo eliminado' }} /
+                                            {{ $vehiclePrice->vehicleSpecification?->type?->name ?? 'Tipo eliminado' }}
+                                        </td>
                                         <td class="px-4 py-3 text-center font-semibold text-gray-800">${{ number_format((float) $vehiclePrice->price, 2) }}</td>
                                     </tr>
                                 @empty

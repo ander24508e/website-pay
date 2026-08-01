@@ -12,7 +12,7 @@ class ServiceVehicleTypePrice extends Model
 
     protected $fillable = [
         'catalog_item_id',
-        'vehicle_type_id',
+        'vehicle_specification_id',
         'price',
         'duration_minutes',
     ];
@@ -27,8 +27,8 @@ class ServiceVehicleTypePrice extends Model
         return $this->belongsTo(CatalogItem::class, 'catalog_item_id');
     }
 
-    public function vehicleType(): BelongsTo
+    public function vehicleSpecification(): BelongsTo
     {
-        return $this->belongsTo(VehicleType::class);
+        return $this->belongsTo(VehicleSpecification::class, 'vehicle_specification_id');
     }
 }

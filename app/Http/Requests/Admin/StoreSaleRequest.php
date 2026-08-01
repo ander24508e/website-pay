@@ -28,6 +28,7 @@ class StoreSaleRequest extends FormRequest
             'items.*.catalog_item_variant_id' => ['nullable', 'integer', 'exists:catalog_item_variants,id'],
             'items.*.vehicle_id' => ['nullable', 'integer', 'exists:vehicles,id'],
             'items.*.vehicle_type_id' => ['nullable', 'integer', 'exists:vehicle_types,id'],
+            'items.*.vehicle_specification_id' => ['nullable', 'integer', 'exists:vehicle_specifications,id'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
 
             'payment.method' => ['required', Rule::in(['cash', 'payphone', 'transfer', 'card', 'credit'])],

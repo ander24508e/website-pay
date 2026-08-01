@@ -247,7 +247,7 @@ class VentasController extends Controller
                 ->with([
                     'type:id,name,business_model',
                     'activeVariants:id,catalog_item_id,name,sku,price,stock,active,is_default',
-                    'vehicleTypePrices:id,catalog_item_id,vehicle_type_id,price',
+                    'vehicleTypePrices:id,catalog_item_id,vehicle_specification_id,price',
                 ])
                 ->where('active', true)
                 ->where('purchasable', true)

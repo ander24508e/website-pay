@@ -90,6 +90,7 @@ class VehiculosController extends Controller
             'vehicle' => [
                 'id' => $vehicle->id,
                 'user_id' => $vehicle->user_id,
+                'vehicle_specification_id' => $vehicle->vehicle_specification_id,
                 'vehicle_type_id' => $vehicle->resolvedType()?->id,
                 'plate' => $vehicle->plate,
                 'label' => trim($vehicle->plate . ' - ' . $vehicle->resolvedBrand()?->name . ' ' . $vehicle->resolvedModel()?->name),

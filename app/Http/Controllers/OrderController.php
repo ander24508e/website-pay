@@ -553,6 +553,7 @@ class OrderController extends Controller
             'item_type' => ['required', Rule::in(['catalog'])],
             'vehicle_id' => ['nullable', 'integer'],
             'vehicle_type_id' => ['nullable', 'integer'],
+            'vehicle_specification_id' => ['nullable', 'integer'],
         ]);
 
         /** @var CatalogItem|null $model */
@@ -569,7 +570,7 @@ class OrderController extends Controller
         $vehicleContext = $priceResolver->resolve(
             $model,
             $request->integer('vehicle_id') ?: null,
-            $request->integer('vehicle_type_id') ?: null,
+            $request->integer('vehicle_specification_id') ?: ($request->integer('vehicle_type_id') ?: null),
             Auth::id()
         );
         $reservationPrice = $vehicleContext['price'];
@@ -602,7 +603,7 @@ class OrderController extends Controller
             }
 
             $model = CatalogItem::query()
-                ->with(['type', 'vehicleTypePrices.vehicleType'])
+                ->with(['type', 'vehicleTypePrices.vehicleSpecification.brand', 'vehicleTypePrices.vehicleSpecification.model', 'vehicleTypePrices.vehicleSpecification.type'])
                 ->where('active', '=', true)
                 ->where('purchasable', '=', true)
                 ->find((int) data_get($item, 'id'));
@@ -618,13 +619,14 @@ class OrderController extends Controller
                 'price' => 0,
                 'vehicle_id' => null,
                 'vehicle_type_id' => null,
+                'vehicle_specification_id' => null,
             ];
 
             if ($isService) {
                 $vehicleContext = $priceResolver->resolve(
                     $model,
                     data_get($item, 'vehicle_id') ? (int) data_get($item, 'vehicle_id') : null,
-                    data_get($item, 'vehicle_type_id') ? (int) data_get($item, 'vehicle_type_id') : null,
+                    data_get($item, 'vehicle_specification_id') ? (int) data_get($item, 'vehicle_specification_id') : (data_get($item, 'vehicle_type_id') ? (int) data_get($item, 'vehicle_type_id') : null),
                     Auth::id()
                 );
             } else {

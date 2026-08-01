@@ -197,18 +197,6 @@
                             </div>
                         </details>
 
-                        <details class="rounded-lg border border-gray-100 bg-gray-50 p-3">
-                            <summary class="cursor-pointer text-sm font-semibold text-gray-700">Opciones avanzadas</summary>
-                            <div class="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-                                <div>
-                                    <label class="{{ $labelClass }}">Slug</label>
-                                    <input type="text" name="slug" id="service_slug" value="{{ old('slug') }}" readonly
-                                        class="{{ $inputClass }} bg-white text-gray-500 @error('slug') border-red-400 bg-red-50 @enderror"
-                                        placeholder="Se genera automáticamente">
-                                    @error('slug') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
-                                </div>
-                            </div>
-                        </details>
                     </aside>
                 </div>
 
@@ -224,7 +212,6 @@
                 </div>
             </form>
 
-            @include('admin.vehiculos.partials.specifications-modal-types-only', ['modalId' => 'serviceVehicleTypesModal'])
         @endif
     </section>
 </div>
@@ -249,24 +236,6 @@ function previewImage(input) {
     document.getElementById('img-name').textContent = file.name;
 }
 
-function slugifyCatalogValue(value) {
-    return value.toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-        .toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '')
-        .replace(/\s+/g, '-').replace(/-+/g, '-');
-}
-
-(function syncServiceSlug() {
-    const nameInput = document.getElementById('service_name');
-    const slugInput = document.getElementById('service_slug');
-    if (!nameInput || !slugInput) return;
-
-    function syncSlug() {
-        slugInput.value = slugifyCatalogValue(nameInput.value || '');
-    }
-
-    nameInput.addEventListener('input', syncSlug);
-    if (nameInput.value && !slugInput.value) syncSlug();
-})();
 
 (function filterCategoriesByType() {
     const typeSelect = document.getElementById('catalog_type_id');

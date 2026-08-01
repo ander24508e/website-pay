@@ -65,7 +65,7 @@
             track.style.transform = `translateX(-${newOffset * cardWidth}px)`;
         }
 
-        function addToCart(id, type, quantity = 1, variantId = null, vehicleId = null, vehicleTypeId = null) {
+        function addToCart(id, type, quantity = 1, variantId = null, vehicleId = null, vehicleTypeId = null, vehicleSpecificationId = null) {
             fetch('{{ route('carrito.agregar') }}', {
                 method: 'POST',
                 headers: {
@@ -80,7 +80,8 @@
                     quantity,
                     variant_id: variantId,
                     vehicle_id: vehicleId,
-                    vehicle_type_id: vehicleTypeId
+                    vehicle_type_id: vehicleTypeId,
+                    vehicle_specification_id: vehicleSpecificationId
                 })
             })
                 .then(async (response) => {

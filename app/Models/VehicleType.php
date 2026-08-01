@@ -34,11 +34,6 @@ class VehicleType extends Model
         );
     }
 
-    public function servicePrices(): HasMany
-    {
-        return $this->hasMany(ServiceVehicleTypePrice::class);
-    }
-
     public function specifications(): HasMany
     {
         return $this->hasMany(VehicleSpecification::class);

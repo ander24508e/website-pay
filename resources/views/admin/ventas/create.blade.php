@@ -27,7 +27,7 @@
                         )
                         ->values(),
                     'vehicle_prices' => $item->vehicleTypePrices
-                        ->pluck('price', 'vehicle_type_id')
+                        ->pluck('price', 'vehicle_specification_id')
                         ->map(fn($price) => (float) $price),
                 ],
             )
@@ -487,7 +487,8 @@
 
                         @foreach ($vehicles as $vehicle)
                             <option value="{{ $vehicle->id }}" data-client="{{ $vehicle->user_id }}"
-                                data-type="{{ $vehicle->resolvedType()?->id }}">
+                                data-type="{{ $vehicle->resolvedType()?->id }}"
+                                data-specification="{{ $vehicle->vehicle_specification_id }}">
                                 {{ $vehicle->plate }}
                             </option>
                         @endforeach
@@ -500,15 +501,15 @@
                         Tipo de vehículo
                     </label>
 
-                    <select data-field="vehicle_type_id"
-                        class="vehicle-type-select h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-200">
+                    <select data-field="vehicle_specification_id"
+                        class="vehicle-type-select vehicle-specification-select h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-200">
                         <option value="">
-                            Sin tipo
+                            Sin especificación
                         </option>
 
-                        @foreach ($vehicleTypes as $type)
-                            <option value="{{ $type->id }}">
-                                {{ $type->name }}
+                        @foreach ($vehicleSpecifications as $specification)
+                            <option value="{{ $specification->id }}" data-type="{{ $specification->type?->id }}">
+                                {{ $specification->brand?->name }} / {{ $specification->model?->name }} / {{ $specification->type?->name }}
                             </option>
                         @endforeach
                     </select>
@@ -662,9 +663,9 @@
 
             if (isProduct) return 0;
 
-            const vehicleTypeId = row.querySelector('.vehicle-type-select')?.value;
-            if (!isProduct && vehicleTypeId && item.vehicle_prices && item.vehicle_prices[vehicleTypeId] !== undefined) {
-                return Number(item.vehicle_prices[vehicleTypeId]);
+            const vehicleSpecificationId = row.querySelector('.vehicle-specification-select')?.value;
+            if (!isProduct && vehicleSpecificationId && item.vehicle_prices && item.vehicle_prices[vehicleSpecificationId] !== undefined) {
+                return Number(item.vehicle_prices[vehicleSpecificationId]);
             }
 
             return Number(item.price || 0);
@@ -766,8 +767,9 @@
 
             if (event.target.classList.contains('vehicle-select')) {
                 const typeId = event.target.selectedOptions?.[0]?.dataset?.type;
-                if (typeId) {
-                    row.querySelector('.vehicle-type-select').value = typeId;
+                const specificationId = event.target.selectedOptions?.[0]?.dataset?.specification;
+                if (specificationId) {
+                    row.querySelector('.vehicle-specification-select').value = specificationId;
                 }
             }
 
@@ -792,11 +794,12 @@
         });
         document.getElementById('mainVehicleSelect')?.addEventListener('change', (event) => {
             const typeId = event.target.selectedOptions?.[0]?.dataset?.type;
-            if (!typeId) return;
+            const specificationId = event.target.selectedOptions?.[0]?.dataset?.specification;
+            if (!specificationId) return;
 
             saleItems.querySelectorAll('.sale-item-row').forEach((row) => {
                 if (!row.querySelector('.vehicle-select')?.value) {
-                    row.querySelector('.vehicle-type-select').value = typeId;
+                    row.querySelector('.vehicle-specification-select').value = specificationId;
                 }
             });
             recalculate();
@@ -914,6 +917,7 @@
             const option = new Option(vehicle.label, vehicle.id, selected, selected);
             option.dataset.client = vehicle.user_id;
             option.dataset.type = vehicle.vehicle_type_id || '';
+            option.dataset.specification = vehicle.vehicle_specification_id || '';
             select.add(option);
         }
 
@@ -962,7 +966,7 @@
                     const vehicleSelect = row.querySelector('.vehicle-select');
                     if (vehicleSelect && !vehicleSelect.value && !vehicleSelect.disabled) {
                         vehicleSelect.value = vehicle.id;
-                        row.querySelector('.vehicle-type-select').value = vehicle.vehicle_type_id || '';
+                        row.querySelector('.vehicle-specification-select').value = vehicle.vehicle_specification_id || '';
                     }
                 });
 
