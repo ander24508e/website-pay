@@ -259,20 +259,18 @@
     @endif
 
     @if ($showPricePanel)
-        <div class="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto px-3 py-5" role="dialog" aria-modal="true">
-            <button type="button" class="fixed inset-0 cursor-default bg-gray-900/50 backdrop-blur-[1px]" wire:click="closePricePanel" aria-label="Cerrar precios"></button>
-            <div class="relative z-10 flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl">
-                <div class="flex flex-col gap-3 border-b border-gray-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <h3 class="font-bold text-gray-900">Precios por vehiculo</h3>
-                        <p class="mt-1 text-sm text-gray-500">Agrega tipos internos, precios, duracion e insumos usados.</p>
-                    </div>
-                    <button type="button" wire:click="closePricePanel" class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700">
-                        <x-heroicon-o-x-mark class="h-5 w-5" />
-                    </button>
+        <section id="servicePricePanel" class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
+            <div class="flex flex-col gap-3 border-b border-gray-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+                <div>
+                    <h3 class="font-bold text-gray-900">Precios por vehiculo</h3>
+                    <p class="mt-1 text-sm text-gray-500">Agrega tipos internos, precios, duracion e insumos usados.</p>
                 </div>
+                <button type="button" wire:click="closePricePanel" class="inline-flex h-9 items-center justify-center rounded-lg bg-gray-100 px-4 text-sm font-semibold text-gray-600 transition hover:bg-gray-200">
+                    Ocultar
+                </button>
+            </div>
 
-                <div class="min-h-0 flex-1 overflow-y-auto p-4">
+            <div class="p-4 sm:p-5">
                     <div class="mb-4 grid gap-3 rounded-lg border border-gray-100 bg-gray-50 p-3 sm:grid-cols-[minmax(0,1fr)_auto]">
                         <input type="text" wire:model="newVehicleTypeName"
                             class="{{ $inputClass }} @error('newVehicleTypeName') border-red-400 bg-red-50 @enderror"
@@ -369,19 +367,18 @@
                     </button>
                 </div>
 
-                <div class="flex flex-col-reverse gap-2 border-t border-gray-100 p-4 sm:flex-row sm:justify-end">
-                    <button type="button" wire:click="closePricePanel"
-                        class="inline-flex h-10 items-center justify-center rounded-lg bg-gray-100 px-5 text-sm font-semibold text-gray-600 transition hover:bg-gray-200">
-                        Cancelar
-                    </button>
-                    <button type="button" wire:click="savePriceRows"
-                        class="inline-flex h-10 items-center justify-center rounded-lg bg-gray-900 px-5 text-sm font-semibold text-white transition hover:bg-gray-700 disabled:cursor-wait disabled:opacity-70"
-                        wire:loading.attr="disabled" wire:target="savePriceRows">
-                        <span wire:loading.remove wire:target="savePriceRows">Guardar precios</span>
-                        <span wire:loading wire:target="savePriceRows">Guardando...</span>
-                    </button>
-                </div>
+            <div class="flex flex-col-reverse gap-2 border-t border-gray-100 p-4 sm:flex-row sm:justify-end sm:p-5">
+                <button type="button" wire:click="closePricePanel"
+                    class="inline-flex h-10 items-center justify-center rounded-lg bg-gray-100 px-5 text-sm font-semibold text-gray-600 transition hover:bg-gray-200">
+                    Cancelar
+                </button>
+                <button type="button" wire:click="savePriceRows"
+                    class="inline-flex h-10 items-center justify-center rounded-lg bg-gray-900 px-5 text-sm font-semibold text-white transition hover:bg-gray-700 disabled:cursor-wait disabled:opacity-70"
+                    wire:loading.attr="disabled" wire:target="savePriceRows">
+                    <span wire:loading.remove wire:target="savePriceRows">Guardar precios</span>
+                    <span wire:loading wire:target="savePriceRows">Guardando...</span>
+                </button>
             </div>
-        </div>
+        </section>
     @endif
 </div>
