@@ -46,7 +46,7 @@
             <p class="text-lg font-bold text-gray-800 mt-2">{{ $catalogItem->category?->name ?? 'Sin categoría' }}</p>
             <p class="text-xs text-gray-400 mt-1">Ver contexto del producto o servicio</p>
         </a>
-        <a href="{{ route('admin.catalog-items.edit', ['catalogItem' => $catalogItem, ...$returnContext]) }}" class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:border-gray-300 transition">
+        <a href="{{ $isServiceContext ? route('admin.catalog-service-prices.create', ['catalogItem' => $catalogItem, ...$returnContext]) : route('admin.catalog-variants.index', ['catalog_item_id' => $catalogItem->id]) }}" class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:border-gray-300 transition">
             <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">{{ $isServiceContext ? 'Precios' : 'Presentaciones' }}</p>
             <p class="text-lg font-bold text-gray-800 mt-2">{{ $isServiceContext ? $catalogItem->vehicleTypePrices->count() : $catalogItem->variants->count() }}</p>
             <p class="text-xs text-gray-400 mt-1">{{ $isServiceContext ? 'Gestionar precios por vehiculo' : 'Gestionar presentaciones' }}</p>
@@ -133,7 +133,7 @@
                             <p class="text-sm font-semibold text-gray-800">Precios por vehiculo</p>
                             <p class="text-xs text-gray-400">Gestiona precios, duracion e insumos por tipo de vehiculo.</p>
                         </div>
-                        <a href="{{ route('admin.catalog-items.edit', ['catalogItem' => $catalogItem, ...$returnContext]) }}"
+                        <a href="{{ route('admin.catalog-service-prices.create', ['catalogItem' => $catalogItem, ...$returnContext]) }}"
                            class="w-full bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition text-sm font-medium text-center sm:w-auto">
                             + Precio por vehiculo
                         </a>
@@ -168,6 +168,15 @@
                                     @if ($vehiclePrice->description)
                                         <p class="text-sm text-gray-500">{{ $vehiclePrice->description }}</p>
                                     @endif
+
+                                    <div class="flex justify-end gap-2">
+                                        <a href="{{ route('admin.catalog-service-prices.edit', $vehiclePrice) }}" class="text-sm font-medium text-yellow-600 hover:text-yellow-800">Editar</a>
+                                        <form method="POST" action="{{ route('admin.catalog-service-prices.destroy', $vehiclePrice) }}" onsubmit="return confirm('¿Eliminar este precio por vehiculo?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button class="text-sm font-medium text-red-600 hover:text-red-800">Eliminar</button>
+                                        </form>
+                                    </div>
                                 </article>
                             @empty
                                 <div class="px-4 py-8 text-center text-gray-400">Este servicio aun no tiene precios por vehiculo.</div>
@@ -183,6 +192,7 @@
                                         <th class="px-4 py-3">Duracion</th>
                                         <th class="px-4 py-3">Insumos</th>
                                         <th class="px-4 py-3">Estado</th>
+                                        <th class="px-4 py-3">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y">
@@ -210,10 +220,20 @@
                                                     <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs font-medium">Oculto</span>
                                                 @endif
                                             </td>
+                                            <td class="px-4 py-3">
+                                                <div class="flex flex-wrap gap-2">
+                                                    <a href="{{ route('admin.catalog-service-prices.edit', $vehiclePrice) }}" class="text-yellow-600 hover:text-yellow-800 text-sm font-medium">Editar</a>
+                                                    <form method="POST" action="{{ route('admin.catalog-service-prices.destroy', $vehiclePrice) }}" onsubmit="return confirm('¿Eliminar este precio por vehiculo?');">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button class="text-red-600 hover:text-red-800 text-sm font-medium">Eliminar</button>
+                                                    </form>
+                                                </div>
+                                            </td>
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="5" class="px-4 py-6 text-center text-gray-400">Este servicio aun no tiene precios por vehiculo.</td>
+                                            <td colspan="6" class="px-4 py-6 text-center text-gray-400">Este servicio aun no tiene precios por vehiculo.</td>
                                         </tr>
                                     @endforelse
                                 </tbody>

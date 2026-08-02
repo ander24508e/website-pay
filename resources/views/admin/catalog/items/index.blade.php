@@ -211,6 +211,14 @@
                                         aria-label="Editar {{ strtolower($sectionSingular) }}">
                                         <x-heroicon-o-pencil-square class="w-5 h-5" />
                                     </a>
+                                    @unless ($isProductContext)
+                                        <a href="{{ route('admin.catalog-service-prices.create', ['catalogItem' => $item, ...$showEditContext]) }}"
+                                            class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition"
+                                            title="Precios por vehiculo"
+                                            aria-label="Precios por vehiculo">
+                                            <x-heroicon-o-banknotes class="w-5 h-5" />
+                                        </a>
+                                    @endunless
                                     <form method="POST" action="{{ route('admin.catalog-items.destroy', $item) }}"
                                         onsubmit="return confirm('¿Eliminar este item?');">
                                         @csrf
@@ -239,7 +247,7 @@
                                     <th class="px-3 py-3 text-center w-[12%]">Categoría</th>
                                     <th class="px-3 py-3 text-center w-[9%]">Precio</th>
                                     <th class="px-3 py-3 text-center w-[16%]">Flags</th>
-                                    <th class="px-3 py-3 text-center w-[7%]">Pres.</th>
+                                    <th class="px-3 py-3 text-center w-[7%]">{{ $isProductContext ? 'Pres.' : 'Precios' }}</th>
                                     <th class="px-3 py-3 text-center w-[8%]">Estado</th>
                                     <th class="px-3 py-3 text-center w-[10%]">Acc.</th>
                                 </tr>
@@ -286,7 +294,7 @@
                                             </div>
                                         </td>
                                         <td class="px-3 py-3 font-semibold text-gray-800 text-center">
-                                            {{ $item->variants_count }}</td>
+                                            {{ $isProductContext ? $item->variants_count : $item->vehicle_type_prices_count }}</td>
                                         <td class="px-3 py-3 text-center">
                                             @if ($item->active)
                                                 <span
@@ -310,6 +318,14 @@
                                                     aria-label="Editar {{ strtolower($sectionSingular) }}">
                                                     <x-heroicon-o-pencil-square class="w-4 h-4" />
                                                 </a>
+                                                @unless ($isProductContext)
+                                                    <a href="{{ route('admin.catalog-service-prices.create', ['catalogItem' => $item, ...$showEditContext]) }}"
+                                                        class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-emerald-700 hover:bg-emerald-50 transition"
+                                                        title="Precios por vehiculo"
+                                                        aria-label="Precios por vehiculo">
+                                                        <x-heroicon-o-banknotes class="w-4 h-4" />
+                                                    </a>
+                                                @endunless
                                                 <form method="POST"
                                                     action="{{ route('admin.catalog-items.destroy', $item) }}"
                                                     onsubmit="return confirm('¿Eliminar este item?');">

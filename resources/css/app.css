@@ -1,3 +1,46 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+    .select2-container {
+        @apply w-full text-sm;
+    }
+
+    .select2-container--default .select2-selection--single {
+        @apply h-11 rounded-lg border border-gray-200 bg-gray-50;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        @apply h-11 px-3 leading-[2.75rem] text-gray-700;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__placeholder {
+        @apply text-gray-500;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        @apply h-11;
+    }
+
+    .select2-container--default.select2-container--focus .select2-selection--single,
+    .select2-container--default.select2-container--open .select2-selection--single {
+        @apply border-gray-400 ring-2 ring-gray-200;
+    }
+
+    .select2-dropdown {
+        @apply overflow-hidden rounded-lg border border-gray-200 text-sm shadow-lg;
+    }
+
+    .select2-container--default .select2-search--dropdown .select2-search__field {
+        @apply rounded-md border border-gray-200 px-3 py-2 text-sm outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-200;
+    }
+
+    .select2-results__option {
+        @apply px-3 py-2 text-sm;
+    }
+
+    .select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
+        @apply bg-gray-900 text-white;
+    }
+}

@@ -72,7 +72,7 @@
                 Operacionales</p>
 
             <a href="{{ route('admin.catalog.index') }}"
-                class="{{ request()->routeIs('admin.catalog.*') || request()->routeIs('admin.catalog-types.*') || request()->routeIs('admin.catalog-categories.*') || request()->routeIs('admin.catalog-items.*') || request()->routeIs('admin.catalog-variants.*') || request()->routeIs('admin.catalog.*') ? 'active' : '' }}">
+                class="{{ request()->routeIs('admin.catalog.*') || request()->routeIs('admin.catalog-types.*') || request()->routeIs('admin.catalog-categories.*') || request()->routeIs('admin.catalog-items.*') || request()->routeIs('admin.catalog-variants.*') || request()->routeIs('admin.catalog-service-prices.*') || request()->routeIs('admin.catalog.*') ? 'active' : '' }}">
                 <span><x-heroicon-o-squares-2x2 class="w-5 h-5" /></span>
                 <span>Catálogo</span>
             </a>
@@ -203,7 +203,7 @@
                 Operacionales</p>
 
             <a href="{{ route('admin.catalog.index') }}"
-                class="{{ request()->routeIs('admin.catalog.*') || request()->routeIs('admin.catalog-types.*') || request()->routeIs('admin.catalog-categories.*') || request()->routeIs('admin.catalog-items.*') || request()->routeIs('admin.catalog-variants.*') || request()->routeIs('admin.catalog.*') ? 'active' : '' }}">
+                class="{{ request()->routeIs('admin.catalog.*') || request()->routeIs('admin.catalog-types.*') || request()->routeIs('admin.catalog-categories.*') || request()->routeIs('admin.catalog-items.*') || request()->routeIs('admin.catalog-variants.*') || request()->routeIs('admin.catalog-service-prices.*') || request()->routeIs('admin.catalog.*') ? 'active' : '' }}">
                 <span><x-heroicon-o-squares-2x2 class="w-5 h-5" /></span>
                 <span>Catálogo</span>
             </a>

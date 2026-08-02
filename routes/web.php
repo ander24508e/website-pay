@@ -19,6 +19,7 @@ use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\EmpresaController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ServiceVehicleTypePriceController;
 use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -215,6 +216,16 @@ Route::middleware(['auth', 'role:admin'])
         Route::resource('/catalogo/categorias', CatalogCategoryController::class)
             ->parameters(['categorias' => 'catalogCategory'])
             ->names('catalog-categories');
+        Route::get('/catalogo/items/{catalogItem}/precios-vehiculo/create', [ServiceVehicleTypePriceController::class, 'create'])
+            ->name('catalog-service-prices.create');
+        Route::post('/catalogo/items/{catalogItem}/precios-vehiculo', [ServiceVehicleTypePriceController::class, 'store'])
+            ->name('catalog-service-prices.store');
+        Route::get('/catalogo/precios-vehiculo/{serviceVehicleTypePrice}/edit', [ServiceVehicleTypePriceController::class, 'edit'])
+            ->name('catalog-service-prices.edit');
+        Route::put('/catalogo/precios-vehiculo/{serviceVehicleTypePrice}', [ServiceVehicleTypePriceController::class, 'update'])
+            ->name('catalog-service-prices.update');
+        Route::delete('/catalogo/precios-vehiculo/{serviceVehicleTypePrice}', [ServiceVehicleTypePriceController::class, 'destroy'])
+            ->name('catalog-service-prices.destroy');
         Route::resource('/catalogo/items', CatalogItemController::class)
             ->parameters(['items' => 'catalogItem'])
             ->names('catalog-items');

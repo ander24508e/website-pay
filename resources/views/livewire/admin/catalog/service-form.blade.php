@@ -158,10 +158,10 @@
                         </p>
 
                         @if ($catalogItemId)
-                            <button type="button" wire:click="openPricePanel" wire:key="service-price-action-{{ $highlightKey }}"
+                            <a href="{{ $priceManagementUrl }}" wire:key="service-price-action-{{ $highlightKey }}"
                                 class="{{ $highlightPrices ? 'service-price-highlight' : '' }} mt-4 inline-flex h-10 w-full items-center justify-center rounded-lg bg-gray-900 px-4 text-sm font-semibold text-white transition hover:bg-gray-700">
                                 Precios por vehiculo
-                            </button>
+                            </a>
                             <p class="mt-2 text-center text-xs text-gray-500">
                                 {{ $priceCount }} {{ $priceCount === 1 ? 'precio agregado' : 'precios agregados' }}
                             </p>
@@ -258,127 +258,4 @@
         </div>
     @endif
 
-    @if ($showPricePanel)
-        <section id="servicePricePanel" class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
-            <div class="flex flex-col gap-3 border-b border-gray-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-                <div>
-                    <h3 class="font-bold text-gray-900">Precios por vehiculo</h3>
-                    <p class="mt-1 text-sm text-gray-500">Agrega tipos internos, precios, duracion e insumos usados.</p>
-                </div>
-                <button type="button" wire:click="closePricePanel" class="inline-flex h-9 items-center justify-center rounded-lg bg-gray-100 px-4 text-sm font-semibold text-gray-600 transition hover:bg-gray-200">
-                    Ocultar
-                </button>
-            </div>
-
-            <div class="p-4 sm:p-5">
-                    <div class="mb-4 grid gap-3 rounded-lg border border-gray-100 bg-gray-50 p-3 sm:grid-cols-[minmax(0,1fr)_auto]">
-                        <input type="text" wire:model="newVehicleTypeName"
-                            class="{{ $inputClass }} @error('newVehicleTypeName') border-red-400 bg-red-50 @enderror"
-                            placeholder="Nuevo tipo de vehiculo, ej.: Auto pequeno, SUV, Camioneta">
-                        <button type="button" wire:click="addVehicleType"
-                            class="inline-flex h-10 items-center justify-center rounded-lg bg-gray-900 px-4 text-sm font-semibold text-white transition hover:bg-gray-700">
-                            Crear tipo
-                        </button>
-                        @error('newVehicleTypeName') <p class="text-xs text-red-500 sm:col-span-2">{{ $message }}</p> @enderror
-                    </div>
-
-                    <div class="space-y-4">
-                        @foreach ($priceRows as $index => $row)
-                            <section class="rounded-xl border border-gray-100 bg-gray-50 p-3" wire:key="price-row-{{ $index }}">
-                                <div class="mb-3 flex items-center justify-between gap-3">
-                                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Precio {{ $index + 1 }}</p>
-                                    <button type="button" wire:click="removePriceRow({{ $index }})" class="text-xs font-semibold text-red-500 hover:text-red-700">
-                                        Eliminar
-                                    </button>
-                                </div>
-
-                                <div class="grid gap-3 md:grid-cols-4">
-                                    <div class="md:col-span-1">
-                                        <label class="{{ $labelClass }}">Tipo de vehiculo *</label>
-                                        <select wire:model="priceRows.{{ $index }}.vehicle_type_id"
-                                            class="{{ $inputClass }} @error('priceRows.' . $index . '.vehicle_type_id') border-red-400 bg-red-50 @enderror">
-                                            <option value="">Selecciona tipo</option>
-                                            @foreach ($vehicleTypes as $vehicleType)
-                                                <option value="{{ $vehicleType->id }}">{{ $vehicleType->name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="{{ $labelClass }}">Precio *</label>
-                                        <input type="number" wire:model="priceRows.{{ $index }}.price" step="0.01" min="0"
-                                            class="{{ $inputClass }} @error('priceRows.' . $index . '.price') border-red-400 bg-red-50 @enderror"
-                                            placeholder="0.00">
-                                    </div>
-                                    <div>
-                                        <label class="{{ $labelClass }}">Duracion</label>
-                                        <input type="number" wire:model="priceRows.{{ $index }}.duration_minutes" min="1" step="1"
-                                            class="{{ $inputClass }}" placeholder="Minutos">
-                                    </div>
-                                    <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-100 bg-white px-3 py-2">
-                                        <input type="checkbox" wire:model="priceRows.{{ $index }}.active" class="rounded border-gray-300 text-gray-900 focus:ring-gray-400">
-                                        <span class="text-sm font-semibold text-gray-700">Activo</span>
-                                    </label>
-                                </div>
-
-                                <div class="mt-3">
-                                    <label class="{{ $labelClass }}">Descripcion</label>
-                                    <textarea wire:model="priceRows.{{ $index }}.description" rows="2"
-                                        class="{{ $inputClass }} resize-none" placeholder="Notas para este tipo de vehiculo"></textarea>
-                                </div>
-
-                                <div class="mt-4">
-                                    <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">Insumos usados</p>
-                                    @if ($supplyVariants->isEmpty())
-                                        <p class="rounded-lg border border-gray-100 bg-white p-3 text-xs text-gray-500">
-                                            No hay productos inventariables para usar como insumos.
-                                        </p>
-                                    @else
-                                        <div class="space-y-2">
-                                            @foreach (($row['supplies'] ?? []) as $supplyIndex => $supply)
-                                                <div class="grid gap-2 sm:grid-cols-[minmax(0,1fr)_120px_120px]" wire:key="price-row-{{ $index }}-supply-{{ $supplyIndex }}">
-                                                    <select wire:model="priceRows.{{ $index }}.supplies.{{ $supplyIndex }}.catalog_item_variant_id"
-                                                        class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
-                                                        <option value="">Selecciona insumo</option>
-                                                        @foreach ($supplyVariants as $variant)
-                                                            <option value="{{ $variant->id }}">
-                                                                {{ $variant->item?->name }} / {{ $variant->name }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                    <input type="number" wire:model="priceRows.{{ $index }}.supplies.{{ $supplyIndex }}.quantity"
-                                                        step="0.001" min="0.001"
-                                                        class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-center text-sm"
-                                                        placeholder="Cantidad">
-                                                    <input type="text" wire:model="priceRows.{{ $index }}.supplies.{{ $supplyIndex }}.unit"
-                                                        class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-center text-sm"
-                                                        placeholder="Unidad">
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    @endif
-                                </div>
-                            </section>
-                        @endforeach
-                    </div>
-
-                    <button type="button" wire:click="addPriceRow"
-                        class="mt-4 inline-flex h-10 w-full items-center justify-center rounded-lg bg-gray-100 px-4 text-sm font-semibold text-gray-700 transition hover:bg-gray-200">
-                        Agregar otro precio
-                    </button>
-                </div>
-
-            <div class="flex flex-col-reverse gap-2 border-t border-gray-100 p-4 sm:flex-row sm:justify-end sm:p-5">
-                <button type="button" wire:click="closePricePanel"
-                    class="inline-flex h-10 items-center justify-center rounded-lg bg-gray-100 px-5 text-sm font-semibold text-gray-600 transition hover:bg-gray-200">
-                    Cancelar
-                </button>
-                <button type="button" wire:click="savePriceRows"
-                    class="inline-flex h-10 items-center justify-center rounded-lg bg-gray-900 px-5 text-sm font-semibold text-white transition hover:bg-gray-700 disabled:cursor-wait disabled:opacity-70"
-                    wire:loading.attr="disabled" wire:target="savePriceRows">
-                    <span wire:loading.remove wire:target="savePriceRows">Guardar precios</span>
-                    <span wire:loading wire:target="savePriceRows">Guardando...</span>
-                </button>
-            </div>
-        </section>
-    @endif
 </div>

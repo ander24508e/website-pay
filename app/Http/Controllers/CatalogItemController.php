@@ -55,7 +55,7 @@ class CatalogItemController extends Controller
 
         $items = (clone $baseQuery)
             ->with(['type', 'category'])
-            ->withCount(['variants'])
+            ->withCount(['variants', 'vehicleTypePrices'])
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($subQuery) use ($search) {
                     $subQuery->where('name', 'like', "%{$search}%")
