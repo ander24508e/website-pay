@@ -37,10 +37,10 @@
             <p class="mb-3 text-xs text-gray-500">Define cuanto cuesta este servicio para un grupo de vehiculos.</p>
 
             <div class="grid gap-3 sm:grid-cols-2">
-                <div>
+                <div class="min-w-0">
                     <label class="{{ $labelClass }}">Tipo de vehiculo *</label>
                     <select name="vehicle_type_id" data-placeholder="Selecciona tipo"
-                        class="select2 {{ $inputClass }} bg-white @error('vehicle_type_id') border-red-400 bg-red-50 @enderror">
+                        class="select2 w-full @error('vehicle_type_id') border-red-400 @enderror">
                         <option value="">Selecciona tipo</option>
                         @foreach ($vehicleTypes as $vehicleType)
                             <option value="{{ $vehicleType->id }}" @selected((string) $selectedVehicleTypeId === (string) $vehicleType->id)>
@@ -52,21 +52,11 @@
                         <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
-
-                <select class="js-example-basic-multiple" multiple="multiple" name="states[]">
-                    <option value="AL">
-                        Alabama
-                    </option>
-                    ...
-                    <option value="WY">
-                        Wyoming
-                    </option>
-                </select>
-
-                <div>
+                
+                <div class="min-w-0">
                     <label class="{{ $labelClass }}">Crear tipo nuevo</label>
                     <input type="text" name="new_vehicle_type_name" value="{{ old('new_vehicle_type_name') }}"
-                        class="{{ $inputClass }} bg-white @error('new_vehicle_type_name') border-red-400 bg-red-50 @enderror"
+                        class="h-11 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 shadow-sm outline-none transition placeholder:text-gray-400 focus:border-gray-400 focus:ring-2 focus:ring-gray-200 @error('new_vehicle_type_name') border-red-400 bg-red-50 @enderror"
                         placeholder="Ej: Auto pequeno, SUV">
                     @error('new_vehicle_type_name')
                         <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
