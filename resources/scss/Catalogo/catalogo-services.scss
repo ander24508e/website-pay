@@ -66,3 +66,262 @@
     color: #6b7280;
     line-height: 2.75rem;
 }
+
+.catalog-business-show {
+    > .grid {
+        align-items: stretch;
+    }
+
+    > .grid > aside > div,
+    > .grid > section,
+    .catalog-business-list-shell {
+        height: 100%;
+    }
+
+    .catalog-business-list-shell {
+        border: 1px solid rgba(229, 231, 235, 0.72);
+        min-height: 448px;
+    }
+
+    .catalog-business-list-header {
+        border-bottom: 0;
+        background: rgba(255, 255, 255, 0.72);
+    }
+
+    .catalog-business-search {
+        display: grid;
+        gap: 0.45rem;
+        max-width: 24rem;
+    }
+
+    .catalog-business-search label {
+        color: #6b7280;
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    .catalog-business-search .select2-container {
+        display: block;
+        width: 100% !important;
+    }
+
+    .catalog-business-search .select2-container--default .select2-selection--single {
+        height: 2.75rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        background-color: #ffffff;
+        box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+    }
+
+    .catalog-business-search .select2-container--default.select2-container--focus .select2-selection--single,
+    .catalog-business-search .select2-container--default.select2-container--open .select2-selection--single {
+        border-color: #9ca3af;
+        box-shadow: 0 0 0 2px #e5e7eb;
+    }
+
+    .catalog-business-search .select2-selection__rendered {
+        height: 2.75rem;
+        padding-right: 2.25rem;
+        padding-left: 0.75rem;
+        color: #374151;
+        font-size: 0.875rem;
+        line-height: 2.75rem;
+    }
+
+    .catalog-business-search .select2-selection__arrow {
+        height: 2.75rem;
+        right: 0.55rem;
+    }
+
+    .catalog-business-items-scroll {
+        flex: 1;
+        min-height: 0;
+        max-height: 380px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 1rem;
+        background:
+            linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(249, 250, 251, 0.92));
+    }
+
+    .catalog-business-card-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(220px, 1fr));
+        gap: 0.75rem;
+    }
+
+    .catalog-business-item-card {
+        min-width: 0;
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        background: #ffffff;
+        box-shadow: 0 10px 22px rgba(15, 23, 42, 0.06);
+    }
+
+    .catalog-business-item-main {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 0.75rem;
+        min-height: 5rem;
+        padding: 0.95rem 1rem 0.75rem;
+        border-bottom: 1px solid #eef2f7;
+    }
+
+    .catalog-business-item-main h4 {
+        margin: 0;
+        overflow-wrap: anywhere;
+        color: #111827;
+        font-size: 1rem;
+        font-weight: 800;
+        line-height: 1.25;
+    }
+
+    .catalog-business-item-main p {
+        margin-top: 0.2rem;
+        color: #9ca3af;
+        font-size: 0.68rem;
+        line-height: 1.2;
+    }
+
+    .catalog-business-item-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        flex-shrink: 0;
+    }
+
+    .catalog-business-item-actions a,
+    .catalog-business-item-actions button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.65rem;
+        height: 1.65rem;
+        border: 0;
+        border-radius: 0.45rem;
+        background: transparent;
+        color: #6b7280;
+        transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    .catalog-business-item-actions a:first-child {
+        color: #d97706;
+    }
+
+    .catalog-business-item-actions form:last-child button {
+        color: #ef4444;
+    }
+
+    .catalog-business-item-actions a:hover,
+    .catalog-business-item-actions button:hover {
+        background: #f3f4f6;
+        color: #111827;
+    }
+
+    .catalog-business-item-meta,
+    .catalog-business-item-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 0.7rem 1rem;
+    }
+
+    .catalog-business-item-meta {
+        border-bottom: 1px solid #eef2f7;
+    }
+
+    .catalog-business-item-meta strong {
+        color: #111827;
+        font-size: 1rem;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .catalog-business-chip {
+        max-width: 70%;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #f3f4f6;
+        padding: 0.3rem 0.55rem;
+        color: #6b7280;
+        font-size: 0.78rem;
+        line-height: 1;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .catalog-business-item-footer {
+        color: #6b7280;
+        font-size: 0.78rem;
+    }
+
+    .catalog-business-item-footer strong {
+        margin-left: 0.35rem;
+        color: #111827;
+        font-weight: 800;
+    }
+
+    .catalog-business-status {
+        border-radius: 999px;
+        background: #f3f4f6;
+        padding: 0.24rem 0.55rem;
+        color: #6b7280;
+        font-size: 0.68rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .catalog-business-status.is-active {
+        background: #dcfce7;
+        color: #16a34a;
+    }
+}
+
+@media (max-width: 1024px) {
+    .catalog-business-show {
+        .catalog-business-card-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+}
+
+@media (max-width: 640px) {
+    .catalog-business-show {
+        .catalog-business-items-scroll {
+            max-height: none;
+            min-height: 0;
+            padding: 0.75rem;
+        }
+
+        .catalog-business-list-shell {
+            min-height: 0;
+        }
+
+        .catalog-business-search {
+            max-width: none;
+        }
+
+        .catalog-business-item-main,
+        .catalog-business-item-meta,
+        .catalog-business-item-footer {
+            padding-right: 0.85rem;
+            padding-left: 0.85rem;
+        }
+
+        .catalog-business-item-meta,
+        .catalog-business-item-footer {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 0.55rem;
+        }
+
+        .catalog-business-chip {
+            max-width: 100%;
+        }
+    }
+}

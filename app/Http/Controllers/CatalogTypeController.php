@@ -56,11 +56,7 @@ class CatalogTypeController extends Controller
 
     public function show(CatalogType $catalogType)
     {
-        $catalogType->loadCount(['categories', 'items']);
-        $catalogType->load([
-            'categories' => fn ($query) => $query->withCount('items')->ordered(),
-            'items' => fn ($query) => $query->with(['category'])->withCount('variants')->ordered()->limit(12),
-        ]);
+        $catalogType->loadCount('items');
 
         return view('admin.catalog.types.show', compact('catalogType'));
     }
