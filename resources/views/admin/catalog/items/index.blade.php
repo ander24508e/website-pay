@@ -138,6 +138,11 @@
 
                     <div class="md:hidden divide-y divide-gray-100">
                         @forelse($sectionItems as $item)
+                            @php
+                                $rowIsProduct =
+                                    ($item->type?->business_model ?? \App\Models\CatalogType::BUSINESS_MODEL_SERVICES) ===
+                                    \App\Models\CatalogType::BUSINESS_MODEL_PRODUCTS;
+                            @endphp
                             <article class="p-4 space-y-4">
                                 <div class="flex items-start gap-3">
                                     <img src="{{ $item->image_url }}" alt="{{ $item->name }}"
@@ -199,26 +204,27 @@
                                 </div>
 
                                 <div class="flex items-center justify-end gap-2 pt-1">
-                                    <a href="{{ route('admin.catalog-items.show', ['catalogItem' => $item, ...$showEditContext]) }}"
-                                        class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition"
-                                        title="Ver {{ strtolower($sectionSingular) }}"
-                                        aria-label="Ver {{ strtolower($sectionSingular) }}">
-                                        <x-heroicon-o-eye class="w-5 h-5" />
-                                    </a>
                                     <a href="{{ route('admin.catalog-items.edit', ['catalogItem' => $item, ...$showEditContext]) }}"
                                         class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gray-50 text-gray-700 hover:bg-gray-100 transition"
                                         title="Editar {{ strtolower($sectionSingular) }}"
                                         aria-label="Editar {{ strtolower($sectionSingular) }}">
                                         <x-heroicon-o-pencil-square class="w-5 h-5" />
                                     </a>
-                                    @unless ($isProductContext)
+                                    @if ($rowIsProduct)
+                                        <a href="{{ route('admin.catalog-variants.create', ['catalog_item_id' => $item->id, ...$showEditContext]) }}"
+                                            class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-purple-50 text-purple-700 hover:bg-purple-100 transition"
+                                            title="Agregar presentación"
+                                            aria-label="Agregar presentación">
+                                            <x-heroicon-o-rectangle-stack class="w-5 h-5" />
+                                        </a>
+                                    @else
                                         <a href="{{ route('admin.catalog-service-prices.create', ['catalogItem' => $item, ...$showEditContext]) }}"
                                             class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition"
                                             title="Precios por vehiculo"
                                             aria-label="Precios por vehiculo">
                                             <x-heroicon-o-banknotes class="w-5 h-5" />
                                         </a>
-                                    @endunless
+                                    @endif
                                     <form method="POST" action="{{ route('admin.catalog-items.destroy', $item) }}"
                                         onsubmit="return confirm('¿Eliminar este item?');">
                                         @csrf
@@ -254,6 +260,12 @@
                             </thead>
                             <tbody class="divide-y">
                                 @forelse($sectionItems as $item)
+                                    @php
+                                        $rowIsProduct =
+                                            ($item->type?->business_model ??
+                                                \App\Models\CatalogType::BUSINESS_MODEL_SERVICES) ===
+                                            \App\Models\CatalogType::BUSINESS_MODEL_PRODUCTS;
+                                    @endphp
                                     <tr class="hover:bg-gray-50">
                                         <td class="px-3 py-3 text-center">
                                             <img src="{{ $item->image_url }}" alt="{{ $item->name }}"
@@ -306,26 +318,27 @@
                                         </td>
                                         <td class="px-3 py-3 text-center">
                                             <div class="flex items-center justify-center gap-1">
-                                                <a href="{{ route('admin.catalog-items.show', ['catalogItem' => $item, ...$showEditContext]) }}"
-                                                    class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-blue-600 hover:bg-blue-50 transition"
-                                                    title="Ver {{ strtolower($sectionSingular) }}"
-                                                    aria-label="Ver {{ strtolower($sectionSingular) }}">
-                                                    <x-heroicon-o-eye class="w-4 h-4" />
-                                                </a>
                                                 <a href="{{ route('admin.catalog-items.edit', ['catalogItem' => $item, ...$showEditContext]) }}"
                                                     class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-gray-700 hover:bg-gray-100 transition"
                                                     title="Editar {{ strtolower($sectionSingular) }}"
                                                     aria-label="Editar {{ strtolower($sectionSingular) }}">
                                                     <x-heroicon-o-pencil-square class="w-4 h-4" />
                                                 </a>
-                                                @unless ($isProductContext)
+                                                @if ($rowIsProduct)
+                                                    <a href="{{ route('admin.catalog-variants.create', ['catalog_item_id' => $item->id, ...$showEditContext]) }}"
+                                                        class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-purple-700 hover:bg-purple-50 transition"
+                                                        title="Agregar presentación"
+                                                        aria-label="Agregar presentación">
+                                                        <x-heroicon-o-rectangle-stack class="w-4 h-4" />
+                                                    </a>
+                                                @else
                                                     <a href="{{ route('admin.catalog-service-prices.create', ['catalogItem' => $item, ...$showEditContext]) }}"
                                                         class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-emerald-700 hover:bg-emerald-50 transition"
                                                         title="Precios por vehiculo"
                                                         aria-label="Precios por vehiculo">
                                                         <x-heroicon-o-banknotes class="w-4 h-4" />
                                                     </a>
-                                                @endunless
+                                                @endif
                                                 <form method="POST"
                                                     action="{{ route('admin.catalog-items.destroy', $item) }}"
                                                     onsubmit="return confirm('¿Eliminar este item?');">
