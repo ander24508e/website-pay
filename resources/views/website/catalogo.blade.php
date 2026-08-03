@@ -56,13 +56,13 @@
                 </div>
                 <div class="catalogo-detail-product-controls" id="catalogoDetailProductControls" hidden>
                     <div class="catalogo-detail-grid">
-                        <label>Presentacion
+                        <label>Presentaci&oacute;n
                             <select id="detailVariantSelect"></select>
                         </label>
                         <label>Cantidad
                             <div class="catalog-stock-counter catalog-stock-counter-modal" id="detailQtyCounter">
                                 <button type="button" class="catalog-stock-btn" id="detailQtyMinus"
-                                    aria-label="Restar cantidad">âˆ’</button>
+                                    aria-label="Restar cantidad">-</button>
                                 <span class="catalog-stock-value" id="detailQtyValue">1</span>
                                 <button type="button" class="catalog-stock-btn" id="detailQtyPlus"
                                     aria-label="Sumar cantidad">+</button>
@@ -298,7 +298,7 @@
                 ${options}
             </select>
             <div class="catalog-stock-counter" data-stock="${stock}" data-quantity="1">
-                <button type="button" class="catalog-stock-btn js-stock-minus" aria-label="Restar cantidad" disabled>âˆ’</button>
+                <button type="button" class="catalog-stock-btn js-stock-minus" aria-label="Restar cantidad" disabled>-</button>
                 <span class="catalog-stock-value js-stock-value">1</span>
                 <button type="button" class="catalog-stock-btn js-stock-plus" aria-label="Sumar cantidad" ${stock <= 1 ? 'disabled' : ''}>+</button>
             </div>
@@ -326,7 +326,7 @@
                 card.innerHTML = `
             ${imageHtml}
             <div class="card-body">
-                <div class="card-category">${escapeHtml(item.tipo_label || 'Catalogo')} Â· ${escapeHtml(item.categoria)}</div>
+                <div class="card-category">${escapeHtml(item.tipo_label || 'Catalogo')} &middot; ${escapeHtml(item.categoria)}</div>
                 <div class="card-top">
                     <div class="card-name-row">
                         <div class="card-name">${escapeHtml(item.nombre)}</div>
@@ -547,7 +547,7 @@
                     `<img src="${data.imagen}" alt="${data.nombre}" class="catalogo-modal-image">` :
                     `<div class="catalogo-modal-placeholder">ITM</div>`;
                 detailCategory.textContent =
-                    `${currentDetailItem.tipo_label || 'Catalogo'} Â· ${currentDetailItem.categoria || ''}`;
+                    `${currentDetailItem.tipo_label || 'Catalogo'} - ${currentDetailItem.categoria || ''}`;
                 detailTitle.textContent = currentDetailItem.nombre || '';
                 const isProductDetail = currentDetailItem.tipo === 'catalog' && currentDetailItem.comprable && currentDetailItem.inventariable;
                 const isServiceDetail = currentDetailItem.tipo === 'catalog' && !currentDetailItem.inventariable;

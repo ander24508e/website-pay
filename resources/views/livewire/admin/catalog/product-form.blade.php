@@ -9,30 +9,6 @@
 
     @include('partials.admin-notifications')
 
-    <style>
-        @keyframes catalogPresentationPulse {
-            0%,
-            100% {
-                box-shadow: 0 0 0 0 rgba(17, 24, 39, 0);
-                transform: translateY(0);
-            }
-
-            35% {
-                box-shadow: 0 0 0 6px rgba(17, 24, 39, 0.12);
-                transform: translateY(-1px);
-            }
-
-            70% {
-                box-shadow: 0 0 0 12px rgba(17, 24, 39, 0);
-                transform: translateY(0);
-            }
-        }
-
-        .catalog-presentation-highlight {
-            animation: catalogPresentationPulse 1.25s ease-in-out 3;
-        }
-    </style>
-
     {{-- Encabezado --}}
     <div class="mb-3 flex items-center gap-3">
         <a

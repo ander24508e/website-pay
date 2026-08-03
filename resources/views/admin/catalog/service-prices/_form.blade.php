@@ -23,20 +23,25 @@
     }
 @endphp
 
-<div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
+<div class="catalog-service-price-form grid gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
     <div class="space-y-4">
         <section class="rounded-lg border border-gray-100 bg-gray-50 p-4">
-            <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400">Servicio padre</p>
             <label class="{{ $labelClass }}">Servicio</label>
             <input type="text" value="{{ $service->type?->name ?? 'Servicio' }} / {{ $service->name }}"
                 class="{{ $inputClass }} bg-white text-gray-600" readonly>
-        </section>
 
-        <section class="rounded-lg border border-gray-100 bg-gray-50 p-4">
-            <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Precio por vehiculo</p>
-            <p class="mb-3 text-xs text-gray-500">Define cuanto cuesta este servicio para un grupo de vehiculos.</p>
+            <div class="mt-5 grid gap-3 sm:grid-cols-2">
 
-            <div class="grid gap-3 sm:grid-cols-2">
+                <div class="min-w-0">
+                    <label class="{{ $labelClass }}">Crear tipo nuevo</label>
+                    <input type="text" name="new_vehicle_type_name" value="{{ old('new_vehicle_type_name') }}"
+                        class="h-11 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 shadow-sm outline-none transition placeholder:text-gray-400 focus:border-gray-400 focus:ring-2 focus:ring-gray-200 @error('new_vehicle_type_name') border-red-400 bg-red-50 @enderror"
+                        placeholder="Ej: Auto pequeño, SUV">
+                    @error('new_vehicle_type_name')
+                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 <div class="min-w-0">
                     <label class="{{ $labelClass }}">Tipo de vehiculo *</label>
                     <select name="vehicle_type_id" data-placeholder="Selecciona tipo"
@@ -49,16 +54,6 @@
                         @endforeach
                     </select>
                     @error('vehicle_type_id')
-                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                    @enderror
-                </div>
-                
-                <div class="min-w-0">
-                    <label class="{{ $labelClass }}">Crear tipo nuevo</label>
-                    <input type="text" name="new_vehicle_type_name" value="{{ old('new_vehicle_type_name') }}"
-                        class="h-11 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 shadow-sm outline-none transition placeholder:text-gray-400 focus:border-gray-400 focus:ring-2 focus:ring-gray-200 @error('new_vehicle_type_name') border-red-400 bg-red-50 @enderror"
-                        placeholder="Ej: Auto pequeno, SUV">
-                    @error('new_vehicle_type_name')
                         <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
@@ -101,43 +96,43 @@
                     <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                 @enderror
             </div>
-        </section>
 
-        <section class="rounded-lg border border-gray-100 bg-gray-50 p-4">
-            <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Insumos usados</p>
-            <p class="mb-3 text-xs text-gray-500">Opcional. Registra productos que se consumen al realizar este
-                servicio.</p>
+            <div class="mt-5 border-t border-gray-200 pt-4">
+                <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Insumos usados</p>
+                <p class="mb-3 text-xs text-gray-500">Opcional. Registra productos que se consumen al realizar este
+                    servicio.</p>
 
-            @if ($supplyVariants->isEmpty())
-                <p class="rounded-lg border border-gray-100 bg-white p-3 text-xs text-gray-500">
-                    No hay productos inventariables para usar como insumos.
-                </p>
-            @else
-                <div class="space-y-2">
-                    @foreach ($supplyRows as $index => $supply)
-                        <div
-                            class="grid gap-2 rounded-lg border border-gray-100 bg-white p-3 sm:grid-cols-[minmax(0,1fr)_120px_120px]">
-                            <select name="supplies[{{ $index }}][catalog_item_variant_id]"
-                                class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
-                                <option value="">Selecciona insumo</option>
-                                @foreach ($supplyVariants as $variant)
-                                    <option value="{{ $variant->id }}" @selected((string) ($supply['catalog_item_variant_id'] ?? '') === (string) $variant->id)>
-                                        {{ $variant->item?->name }} / {{ $variant->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            <input type="number" name="supplies[{{ $index }}][quantity]"
-                                value="{{ $supply['quantity'] ?? '' }}" step="0.001" min="0.001"
-                                class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-center text-sm"
-                                placeholder="Cantidad">
-                            <input type="text" name="supplies[{{ $index }}][unit]"
-                                value="{{ $supply['unit'] ?? '' }}"
-                                class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-center text-sm"
-                                placeholder="Unidad">
-                        </div>
-                    @endforeach
-                </div>
-            @endif
+                @if ($supplyVariants->isEmpty())
+                    <p class="rounded-lg border border-gray-100 bg-white p-3 text-xs text-gray-500">
+                        No hay productos inventariables para usar como insumos.
+                    </p>
+                @else
+                    <div class="space-y-2">
+                        @foreach ($supplyRows as $index => $supply)
+                            <div
+                                class="grid gap-2 rounded-lg border border-gray-100 bg-white p-3 sm:grid-cols-[minmax(0,1fr)_120px_120px]">
+                                <select name="supplies[{{ $index }}][catalog_item_variant_id]"
+                                    class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                                    <option value="">Selecciona insumo</option>
+                                    @foreach ($supplyVariants as $variant)
+                                        <option value="{{ $variant->id }}" @selected((string) ($supply['catalog_item_variant_id'] ?? '') === (string) $variant->id)>
+                                            {{ $variant->item?->name }} / {{ $variant->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <input type="number" name="supplies[{{ $index }}][quantity]"
+                                    value="{{ $supply['quantity'] ?? '' }}" step="0.001" min="0.001"
+                                    class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-center text-sm"
+                                    placeholder="Cantidad">
+                                <input type="text" name="supplies[{{ $index }}][unit]"
+                                    value="{{ $supply['unit'] ?? '' }}"
+                                    class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-center text-sm"
+                                    placeholder="Unidad">
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
         </section>
     </div>
 

@@ -59,8 +59,7 @@ class CatalogoController extends Controller
                 ->where(function ($query) {
                     $query->where('catalog_types.business_model', CatalogType::BUSINESS_MODEL_SERVICES)
                         ->orWhere(function ($productQuery) {
-                            $productQuery->where('catalog_types.business_model', CatalogType::BUSINESS_MODEL_PRODUCTS)
-                                ->whereHas('activeVariants');
+                            $productQuery->where('catalog_types.business_model', CatalogType::BUSINESS_MODEL_PRODUCTS);
                         });
                 })
                 ->when($universalFilterSlug, function ($query) use ($universalFilterSlug) {
@@ -110,7 +109,7 @@ class CatalogoController extends Controller
                     'tipo_label' => $item->type->name ?? 'Catalogo',
                     'tipo_descripcion' => $item->type->description ?? null,
                     'business_model' => $item->type->business_model ?? null,
-                    'comprable' => (bool) $item->purchasable && (!$isInventariable || $item->activeVariants->isNotEmpty()),
+                    'comprable' => (bool) $item->purchasable,
                     'reservable' => (bool) $item->reservable,
                     'inventariable' => $isInventariable,
                     'stock_disponible' => $stockDisponible,

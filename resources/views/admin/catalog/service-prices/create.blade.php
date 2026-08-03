@@ -2,6 +2,10 @@
 
 @section('title', 'Nuevo Precio por Vehiculo')
 
+@push('styles')
+    @vite('resources/scss/Catalogo/catalogo-services.scss')
+@endpush
+
 @section('content')
 <div class="mx-auto w-full max-w-full overflow-x-hidden px-3 pb-4 sm:px-6">
     <div class="mb-6 flex flex-wrap items-center gap-3">

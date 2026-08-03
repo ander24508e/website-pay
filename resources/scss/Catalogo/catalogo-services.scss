@@ -1,0 +1,68 @@
+﻿@keyframes servicePricePulse {
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(17, 24, 39, 0);
+        transform: translateY(0);
+    }
+
+    35% {
+        box-shadow: 0 0 0 6px rgba(17, 24, 39, 0.12);
+        transform: translateY(-1px);
+    }
+
+    70% {
+        box-shadow: 0 0 0 12px rgba(17, 24, 39, 0);
+        transform: translateY(0);
+    }
+}
+
+.service-price-highlight {
+    animation: servicePricePulse 1.25s ease-in-out 3;
+}
+
+.catalog-service-price-form .select2-container {
+    display: block;
+    width: 100% !important;
+}
+
+.catalog-service-price-form .select2-container--default .select2-selection--single {
+    height: 2.75rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    background-color: #ffffff;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.catalog-service-price-form .select2-container--default.select2-container--focus .select2-selection--single,
+.catalog-service-price-form .select2-container--default.select2-container--open .select2-selection--single {
+    border-color: #9ca3af;
+    box-shadow: 0 0 0 2px #e5e7eb;
+    outline: none;
+}
+
+.catalog-service-price-form .select2-container--default .select2-selection--single .select2-selection__rendered {
+    height: 2.75rem;
+    padding-right: 2.25rem;
+    padding-left: 0.75rem;
+    color: #374151;
+    font-size: 0.875rem;
+    line-height: 2.75rem;
+}
+
+.catalog-service-price-form .select2-container--default .select2-selection--single .select2-selection__placeholder {
+    color: #9ca3af;
+}
+
+.catalog-service-price-form .select2-container--default .select2-selection--single .select2-selection__arrow {
+    top: 0;
+    right: 0.55rem;
+    height: 2.75rem;
+}
+
+.catalog-service-price-form .select2-container--default .select2-selection--single .select2-selection__clear {
+    height: 2.75rem;
+    margin-right: 1.75rem;
+    color: #6b7280;
+    line-height: 2.75rem;
+}

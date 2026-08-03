@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\Catalog;
 use App\Helpers\NotificationHelper;
 use App\Models\CatalogCategory;
 use App\Models\CatalogItem;
+use App\Models\CatalogItemVariant;
 use App\Models\CatalogType;
 use App\Models\Empresa;
 use Illuminate\Support\Collection;
@@ -133,7 +134,8 @@ class ProductForm extends Component
         } else {
             $item = CatalogItem::create($payload);
             $this->catalogItemId = $item->id;
-            NotificationHelper::success('Producto guardado correctamente. Ahora puedes agregar sus presentaciones.');
+            $this->ensureDefaultVariant($item);
+            NotificationHelper::success('Producto guardado correctamente.');
         }
 
         $this->currentImage = $item->fresh()->image;
@@ -321,5 +323,22 @@ class ProductForm extends Component
         $value = trim((string) $value);
 
         return $value === '' ? null : $value;
+    }
+
+    private function ensureDefaultVariant(CatalogItem $item): void
+    {
+        if ($item->variants()->exists()) {
+            return;
+        }
+
+        CatalogItemVariant::create([
+            'catalog_item_id' => $item->id,
+            'name' => 'General',
+            'price' => $item->base_price ?? 0,
+            'stock' => 0,
+            'min_stock' => 0,
+            'active' => true,
+            'is_default' => true,
+        ]);
     }
 }

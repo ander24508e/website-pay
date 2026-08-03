@@ -52,7 +52,7 @@
             </button>
         @endif
         <div class="card-body">
-            <div class="card-category">{{ $item['tipo_label'] ?? 'Catalogo' }} · {{ $item['categoria'] }}</div>
+            <div class="card-category">{{ $item['tipo_label'] ?? 'Catalogo' }} &middot; {{ $item['categoria'] }}</div>
             <div class="card-top">
                 <div class="card-name-row">
                     <div class="card-name">{{ $item['nombre'] }}</div>
@@ -70,7 +70,7 @@
                             @endforeach
                         </select>
                         <div class="catalog-stock-counter" data-stock="{{ $defaultPresentationStock }}" data-quantity="1">
-                            <button type="button" class="catalog-stock-btn js-stock-minus" aria-label="Restar cantidad" disabled>−</button>
+                            <button type="button" class="catalog-stock-btn js-stock-minus" aria-label="Restar cantidad" disabled>-</button>
                             <span class="catalog-stock-value js-stock-value">1</span>
                             <button type="button" class="catalog-stock-btn js-stock-plus" aria-label="Sumar cantidad" {{ $defaultPresentationStock <= 1 ? 'disabled' : '' }}>+</button>
                         </div>

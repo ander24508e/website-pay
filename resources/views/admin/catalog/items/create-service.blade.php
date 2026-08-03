@@ -2,6 +2,10 @@
 
 @section('title', 'Nuevo Servicio')
 
+@push('styles')
+    @vite('resources/scss/Catalogo/catalogo-services.scss')
+@endpush
+
 @section('content')
     @php
         $returnUrl = ($returnToCategory && $selectedCategoryId > 0)

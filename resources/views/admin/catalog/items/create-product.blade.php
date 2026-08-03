@@ -2,6 +2,10 @@
 
 @section('title', 'Nuevo Producto')
 
+@push('styles')
+    @vite('resources/scss/Catalogo/catalogo-products.scss')
+@endpush
+
 @section('content')
     @php
         $fromInventory = $fromInventory ?? false;
