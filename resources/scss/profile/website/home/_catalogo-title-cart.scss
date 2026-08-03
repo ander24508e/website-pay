@@ -367,6 +367,109 @@
     outline: none;
 }
 
+#catalogo .catalogo-detail-vehicle .select2-container {
+    width: 100% !important;
+}
+
+#catalogo .catalogo-detail-vehicle .select2-container .select2-selection--single {
+    min-height: 2.75rem !important;
+    height: 2.75rem !important;
+    border: 1px solid color-mix(in srgb, var(--brand-primary) 72%, white 8%) !important;
+    border-radius: 9px !important;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.08),
+            rgba(255, 255, 255, 0.035)
+        ) !important;
+    box-shadow: none !important;
+}
+
+#catalogo .catalogo-detail-vehicle .select2-container--open .select2-selection--single,
+#catalogo .catalogo-detail-vehicle .select2-container--focus .select2-selection--single {
+    border-color: color-mix(in srgb, var(--brand-primary) 78%, white 16%) !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 22%, transparent) !important;
+}
+
+#catalogo .catalogo-detail-vehicle .select2-selection__rendered {
+    line-height: 2.75rem !important;
+    padding-left: 0.7rem !important;
+    padding-right: 2.4rem !important;
+    color: #ffffff !important;
+    font-size: 0.9rem !important;
+    font-weight: 500 !important;
+}
+
+#catalogo .catalogo-detail-vehicle .select2-selection__placeholder {
+    color: rgba(255, 255, 255, 0.72) !important;
+}
+
+#catalogo .catalogo-detail-vehicle .select2-selection__arrow {
+    height: 2.75rem !important;
+    right: 0.55rem !important;
+}
+
+#catalogo .catalogo-detail-vehicle .select2-selection__arrow b {
+    border-color: rgba(255, 255, 255, 0.8) transparent transparent transparent !important;
+}
+
+#catalogo .website-vehicle-select-dropdown {
+    overflow: hidden !important;
+    border: 1px solid color-mix(in srgb, var(--brand-primary) 70%, white 8%) !important;
+    border-radius: 9px !important;
+    background: #171717 !important;
+    box-shadow: 0 18px 38px rgba(0, 0, 0, 0.42) !important;
+}
+
+#catalogo .website-vehicle-select-dropdown .select2-search--dropdown {
+    padding: 0.55rem !important;
+    background: #171717 !important;
+}
+
+#catalogo .website-vehicle-select-dropdown .select2-search__field {
+    min-height: 2.4rem !important;
+    border: 1px solid color-mix(in srgb, var(--brand-primary) 70%, white 10%) !important;
+    border-radius: 7px !important;
+    background: #0d0f17 !important;
+    color: #ffffff !important;
+    padding: 0.45rem 0.65rem !important;
+    outline: none !important;
+}
+
+#catalogo .website-vehicle-select-dropdown .select2-search__field:focus {
+    border-color: color-mix(in srgb, var(--brand-primary) 80%, white 15%) !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 18%, transparent) !important;
+}
+
+#catalogo .website-vehicle-select-dropdown .select2-results__options {
+    max-height: 220px !important;
+}
+
+#catalogo .website-vehicle-select-dropdown .select2-results__group {
+    padding: 0.55rem 0.75rem 0.25rem !important;
+    color: #ffffff !important;
+    font-size: 0.82rem !important;
+    font-weight: 800 !important;
+}
+
+#catalogo .website-vehicle-select-dropdown .select2-results__option {
+    padding: 0.52rem 0.75rem !important;
+    background: #171717 !important;
+    color: #ffffff !important;
+    font-size: 0.9rem !important;
+}
+
+#catalogo .website-vehicle-select-dropdown .select2-results__option--highlighted,
+#catalogo .website-vehicle-select-dropdown .select2-results__option--highlighted.select2-results__option--selectable {
+    background: var(--brand-primary) !important;
+    color: #ffffff !important;
+}
+
+#catalogo .website-vehicle-select-dropdown .select2-results__option--selected {
+    background: color-mix(in srgb, var(--brand-primary) 30%, #171717 70%) !important;
+    color: #ffffff !important;
+}
+
 #catalogo .catalogo-detail-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));

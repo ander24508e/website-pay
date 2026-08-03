@@ -43,8 +43,9 @@
                 <p class="catalogo-modal-desc" id="catalogoDetailDescription"></p>
                 <div class="catalogo-detail-vehicle" id="catalogoDetailVehicle" hidden>
                     <label for="detailVehicleSelect">Busca tu vehiculo</label>
-                    <select id="detailVehicleSelect">
-                        <option value="">Ej: Kia Picanto, Toyota Hilux</option>
+                    <select id="detailVehicleSelect" class="select2 website-vehicle-select"
+                        data-placeholder="Ej: Kia Picanto, Toyota Hilux">
+                        <option value="">Busca tu vehiculo</option>
                     </select>
                     <p class="catalogo-detail-hint" id="detailVehicleHint">
                         El precio se calcula automaticamente al seleccionar tu vehiculo.
@@ -447,6 +448,64 @@
                 return Array.isArray(item?.precios_vehiculo) ? item.precios_vehiculo : [];
             }
 
+            function canUseSelect2() {
+                return Boolean(window.jQuery?.fn?.select2 && detailVehicleSelect);
+            }
+
+            function destroyDetailVehicleSelect2() {
+                if (!canUseSelect2()) return;
+
+                const $select = window.jQuery(detailVehicleSelect);
+                if ($select.hasClass('select2-hidden-accessible')) {
+                    $select.select2('destroy');
+                }
+            }
+
+            function initDetailVehicleSelect2() {
+                if (!canUseSelect2() || !detailOverlay || detailVehicle?.hidden) return;
+
+                const $select = window.jQuery(detailVehicleSelect);
+                if ($select.hasClass('select2-hidden-accessible')) {
+                    $select.select2('destroy');
+                }
+
+                $select.select2({
+                    width: '100%',
+                    placeholder: detailVehicleSelect.dataset.placeholder || 'Busca tu vehiculo',
+                    dropdownParent: window.jQuery(detailOverlay),
+                    dropdownCssClass: 'website-vehicle-select-dropdown',
+                    selectionCssClass: 'website-vehicle-select-selection',
+                    language: {
+                        noResults: () => 'No encontramos ese vehiculo',
+                        searching: () => 'Buscando...',
+                    },
+                });
+
+                $select
+                    .off('change.websiteVehicleSelect')
+                    .on('change.websiteVehicleSelect', updateServiceVehiclePrice);
+            }
+
+            function formatCatalogPrice(value) {
+                return `$${Number(value || 0).toFixed(2)}`;
+            }
+
+            function getVehiclePriceEntry(item, vehicleTypeId) {
+                return getVehiclePrices(item).find((price) => Number(price.vehicle_type_id) === Number(vehicleTypeId)) || null;
+            }
+
+            function setVehicleOptionPriceData(option, priceEntry, fallbackPrice) {
+                const price = priceEntry?.price !== null && priceEntry?.price !== undefined
+                    ? Number(priceEntry.price)
+                    : Number(fallbackPrice || 0);
+
+                option.dataset.price = String(price);
+                option.dataset.durationMinutes = priceEntry?.duration_minutes ? String(priceEntry.duration_minutes) : '';
+                option.dataset.priceDescription = priceEntry?.description || '';
+
+                return price;
+            }
+
             function getSelectedVehicleContext() {
                 const option = detailVehicleSelect?.selectedOptions?.[0];
                 if (!option || !option.value) {
@@ -469,40 +528,51 @@
                     : Number(currentDetailItem.precio_base ?? currentDetailItem.precio ?? 0);
 
                 detailPrice.textContent = option?.value
-                    ? `Precio: ${price.toFixed(2)}`
-                    : `Desde ${Number(currentDetailItem.precio || 0).toFixed(2)}`;
+                    ? `Precio: ${formatCatalogPrice(price)}`
+                    : `Desde ${formatCatalogPrice(currentDetailItem.precio || 0)}`;
+
+                if (detailVehicleHint) {
+                    if (!option?.value) {
+                        detailVehicleHint.textContent = 'Selecciona tu vehiculo para calcular el precio automaticamente.';
+                    } else if (option.dataset.durationMinutes) {
+                        detailVehicleHint.textContent = `Duracion aproximada: ${option.dataset.durationMinutes} min.`;
+                    } else {
+                        detailVehicleHint.textContent = 'Precio calculado para el vehiculo seleccionado.';
+                    }
+                }
             }
 
             function renderServiceVehicleOptions(item) {
                 if (!detailVehicle || !detailVehicleSelect) return;
+                destroyDetailVehicleSelect2();
+
                 const prices = getVehiclePrices(item);
-                const priceByType = new Map(prices.map((price) => [Number(price.vehicle_type_id), Number(price.price)]));
                 const requiresVehicle = Boolean(item.requiere_tipo_vehiculo) && prices.length > 0;
                 const basePrice = Number(item.precio_base ?? item.precio ?? 0);
-                const priceForType = (vehicleTypeId) => priceByType.has(Number(vehicleTypeId))
-                    ? priceByType.get(Number(vehicleTypeId))
-                    : basePrice;
 
                 detailVehicle.hidden = !requiresVehicle;
-                detailVehicleSelect.innerHTML = '<option value="">Busca tu vehiculo</option>';
+                detailVehicleSelect.innerHTML = '<option value="">Ej: Kia Picanto, Toyota Hilux</option>';
 
                 if (!requiresVehicle) return;
 
                 const pricedTypeIds = new Set(prices.map((price) => Number(price.vehicle_type_id)));
+                const renderedTypeIds = new Set();
                 const compatibleVehicles = customerVehicles.filter((vehicle) => pricedTypeIds.has(Number(vehicle.vehicle_type_id)));
 
                 if (compatibleVehicles.length) {
                     const group = document.createElement('optgroup');
                     group.label = 'Mis vehiculos';
                     compatibleVehicles.forEach((vehicle) => {
+                        const priceEntry = getVehiclePriceEntry(item, vehicle.vehicle_type_id);
                         const option = document.createElement('option');
                         option.value = `vehicle:${vehicle.id}`;
                         option.dataset.vehicleId = String(vehicle.id);
                         option.dataset.vehicleSpecificationId = String(vehicle.vehicle_specification_id);
                         option.dataset.vehicleTypeId = String(vehicle.vehicle_type_id || '');
-                        option.dataset.price = String(priceForType(vehicle.vehicle_type_id));
-                        option.textContent = `${vehicle.label} - ${priceForType(vehicle.vehicle_type_id).toFixed(2)}`;
+                        const price = setVehicleOptionPriceData(option, priceEntry, basePrice);
+                        option.textContent = `${vehicle.label} - ${formatCatalogPrice(price)}`;
                         group.appendChild(option);
+                        renderedTypeIds.add(Number(vehicle.vehicle_type_id));
                     });
                     detailVehicleSelect.appendChild(group);
                 }
@@ -515,23 +585,48 @@
                     genericGroup.label = compatibleVehicles.length ? 'Otros vehiculos' : 'Vehiculos disponibles';
 
                     compatibleSpecifications.forEach((vehicleSpecification) => {
+                        const priceEntry = getVehiclePriceEntry(item, vehicleSpecification.vehicle_type_id);
                         const option = document.createElement('option');
                         option.value = `spec:${vehicleSpecification.id}`;
                         option.dataset.vehicleSpecificationId = String(vehicleSpecification.id);
                         option.dataset.vehicleTypeId = String(vehicleSpecification.vehicle_type_id || '');
-                        option.dataset.price = String(priceForType(vehicleSpecification.vehicle_type_id));
-                        option.textContent = `${vehicleSpecification.name} - ${priceForType(vehicleSpecification.vehicle_type_id).toFixed(2)}`;
+                        const price = setVehicleOptionPriceData(option, priceEntry, basePrice);
+                        option.textContent = `${vehicleSpecification.name} - ${formatCatalogPrice(price)}`;
                         genericGroup.appendChild(option);
+                        renderedTypeIds.add(Number(vehicleSpecification.vehicle_type_id));
                     });
 
                     detailVehicleSelect.appendChild(genericGroup);
                 }
 
-                if (detailVehicleHint) {
-                    detailVehicleHint.textContent = compatibleVehicles.length
-                        ? 'Selecciona tu vehiculo para calcular el precio automaticamente.'
-                        : 'Busca tu vehiculo. Si no aparece, escribenos para confirmar el precio.';
+                const directPrices = prices.filter((price) => !renderedTypeIds.has(Number(price.vehicle_type_id)));
+
+                if (directPrices.length) {
+                    const directGroup = document.createElement('optgroup');
+                    directGroup.label = compatibleVehicles.length || compatibleSpecifications.length
+                        ? 'Otros precios disponibles'
+                        : 'Vehiculos disponibles';
+
+                    directPrices.forEach((priceEntry) => {
+                        const option = document.createElement('option');
+                        const vehicleTypeId = Number(priceEntry.vehicle_type_id);
+                        const price = setVehicleOptionPriceData(option, priceEntry, basePrice);
+                        option.value = `type:${vehicleTypeId}`;
+                        option.dataset.vehicleTypeId = String(vehicleTypeId);
+                        option.textContent = `${priceEntry.vehicle_type_name || 'Vehiculo'} - ${formatCatalogPrice(price)}`;
+                        directGroup.appendChild(option);
+                    });
+
+                    detailVehicleSelect.appendChild(directGroup);
                 }
+
+                if (detailVehicleHint) {
+                    detailVehicleHint.textContent = compatibleVehicles.length || compatibleSpecifications.length || directPrices.length
+                        ? 'Selecciona tu vehiculo para calcular el precio automaticamente.'
+                        : 'No encontramos precios disponibles para este servicio.';
+                }
+
+                updateServiceVehiclePrice();
             }
 
             function openDetailModal(data) {
@@ -603,11 +698,13 @@
                 }
 
                 detailOverlay.hidden = false;
+                initDetailVehicleSelect2();
                 document.body.style.overflow = 'hidden';
             }
 
             function closeDetailModal() {
                 if (!detailOverlay) return;
+                destroyDetailVehicleSelect2();
                 detailOverlay.hidden = true;
                 document.body.style.overflow = '';
                 currentDetailItem = null;

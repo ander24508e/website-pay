@@ -82,7 +82,9 @@ class CatalogoController extends Controller
                 $stockDisponible = $this->resolveAvailableStock($item, $defaultVariant);
                 $vehiclePrices = $item->vehicleTypePrices
                     ->filter(fn ($vehiclePrice) => $vehiclePrice->active && $vehiclePrice->vehicleType?->active)
+                    ->sortBy(fn ($vehiclePrice) => (string) $vehiclePrice->vehicleType?->name)
                     ->map(fn ($vehiclePrice) => [
+                        'id' => (int) $vehiclePrice->id,
                         'vehicle_type_id' => (int) $vehiclePrice->vehicle_type_id,
                         'vehicle_type_name' => $vehiclePrice->vehicleType?->name,
                         'price' => $vehiclePrice->price === null ? null : (float) $vehiclePrice->price,
