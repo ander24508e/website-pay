@@ -490,8 +490,15 @@
                 return `$${Number(value || 0).toFixed(2)}`;
             }
 
-            function getVehiclePriceEntry(item, vehicleTypeId) {
-                return getVehiclePrices(item).find((price) => Number(price.vehicle_type_id) === Number(vehicleTypeId)) || null;
+            function getVehiclePriceEntry(item, vehicleTypeId, vehicleSpecificationId = null) {
+                const prices = getVehiclePrices(item);
+
+                if (vehicleSpecificationId) {
+                    const exactPrice = prices.find((price) => Number(price.vehicle_specification_id) === Number(vehicleSpecificationId));
+                    if (exactPrice) return exactPrice;
+                }
+
+                return prices.find((price) => !price.vehicle_specification_id && Number(price.vehicle_type_id) === Number(vehicleTypeId)) || null;
             }
 
             function setVehicleOptionPriceData(option, priceEntry, fallbackPrice) {
@@ -555,15 +562,25 @@
 
                 if (!requiresVehicle) return;
 
+                const pricedSpecificationIds = new Set(prices
+                    .filter((price) => price.vehicle_specification_id)
+                    .map((price) => Number(price.vehicle_specification_id)));
+                const fallbackTypeIds = new Set(prices
+                    .filter((price) => !price.vehicle_specification_id)
+                    .map((price) => Number(price.vehicle_type_id)));
                 const pricedTypeIds = new Set(prices.map((price) => Number(price.vehicle_type_id)));
+                const renderedPriceIds = new Set();
                 const renderedTypeIds = new Set();
-                const compatibleVehicles = customerVehicles.filter((vehicle) => pricedTypeIds.has(Number(vehicle.vehicle_type_id)));
+                const compatibleVehicles = customerVehicles.filter((vehicle) =>
+                    pricedSpecificationIds.has(Number(vehicle.vehicle_specification_id)) ||
+                    fallbackTypeIds.has(Number(vehicle.vehicle_type_id))
+                );
 
                 if (compatibleVehicles.length) {
                     const group = document.createElement('optgroup');
                     group.label = 'Mis vehiculos';
                     compatibleVehicles.forEach((vehicle) => {
-                        const priceEntry = getVehiclePriceEntry(item, vehicle.vehicle_type_id);
+                        const priceEntry = getVehiclePriceEntry(item, vehicle.vehicle_type_id, vehicle.vehicle_specification_id);
                         const option = document.createElement('option');
                         option.value = `vehicle:${vehicle.id}`;
                         option.dataset.vehicleId = String(vehicle.id);
@@ -572,20 +589,24 @@
                         const price = setVehicleOptionPriceData(option, priceEntry, basePrice);
                         option.textContent = `${vehicle.label} - ${formatCatalogPrice(price)}`;
                         group.appendChild(option);
+                        if (priceEntry?.id) renderedPriceIds.add(Number(priceEntry.id));
                         renderedTypeIds.add(Number(vehicle.vehicle_type_id));
                     });
                     detailVehicleSelect.appendChild(group);
                 }
 
                 const compatibleSpecifications = vehicleSpecifications
-                    .filter((specification) => pricedTypeIds.has(Number(specification.vehicle_type_id)));
+                    .filter((specification) =>
+                        pricedSpecificationIds.has(Number(specification.id)) ||
+                        fallbackTypeIds.has(Number(specification.vehicle_type_id))
+                    );
 
                 if (compatibleSpecifications.length) {
                     const genericGroup = document.createElement('optgroup');
                     genericGroup.label = compatibleVehicles.length ? 'Otros vehiculos' : 'Vehiculos disponibles';
 
                     compatibleSpecifications.forEach((vehicleSpecification) => {
-                        const priceEntry = getVehiclePriceEntry(item, vehicleSpecification.vehicle_type_id);
+                        const priceEntry = getVehiclePriceEntry(item, vehicleSpecification.vehicle_type_id, vehicleSpecification.id);
                         const option = document.createElement('option');
                         option.value = `spec:${vehicleSpecification.id}`;
                         option.dataset.vehicleSpecificationId = String(vehicleSpecification.id);
@@ -593,13 +614,14 @@
                         const price = setVehicleOptionPriceData(option, priceEntry, basePrice);
                         option.textContent = `${vehicleSpecification.name} - ${formatCatalogPrice(price)}`;
                         genericGroup.appendChild(option);
+                        if (priceEntry?.id) renderedPriceIds.add(Number(priceEntry.id));
                         renderedTypeIds.add(Number(vehicleSpecification.vehicle_type_id));
                     });
 
                     detailVehicleSelect.appendChild(genericGroup);
                 }
 
-                const directPrices = prices.filter((price) => !renderedTypeIds.has(Number(price.vehicle_type_id)));
+                const directPrices = prices.filter((price) => !renderedPriceIds.has(Number(price.id)));
 
                 if (directPrices.length) {
                     const directGroup = document.createElement('optgroup');
@@ -610,10 +632,12 @@
                     directPrices.forEach((priceEntry) => {
                         const option = document.createElement('option');
                         const vehicleTypeId = Number(priceEntry.vehicle_type_id);
+                        const vehicleSpecificationId = Number(priceEntry.vehicle_specification_id || 0);
                         const price = setVehicleOptionPriceData(option, priceEntry, basePrice);
-                        option.value = `type:${vehicleTypeId}`;
+                        option.value = vehicleSpecificationId ? `spec:${vehicleSpecificationId}` : `type:${vehicleTypeId}`;
+                        if (vehicleSpecificationId) option.dataset.vehicleSpecificationId = String(vehicleSpecificationId);
                         option.dataset.vehicleTypeId = String(vehicleTypeId);
-                        option.textContent = `${priceEntry.vehicle_type_name || 'Vehiculo'} - ${formatCatalogPrice(price)}`;
+                        option.textContent = `${priceEntry.vehicle_name || priceEntry.vehicle_type_name || 'Vehiculo'} - ${formatCatalogPrice(price)}`;
                         directGroup.appendChild(option);
                     });
 

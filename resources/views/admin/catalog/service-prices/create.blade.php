@@ -15,7 +15,7 @@
         </a>
         <div>
             <h2 class="text-xl font-bold text-gray-800 sm:text-2xl">Nuevo Precio por Vehiculo</h2>
-            <p class="text-sm text-gray-400">Agrega un precio para {{ $service->name }} segun el tipo de vehiculo.</p>
+            <p class="text-sm text-gray-400">Agrega un precio para {{ $service->name }} segun marca, modelo y tipo.</p>
         </div>
     </div>
 

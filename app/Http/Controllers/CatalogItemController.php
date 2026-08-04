@@ -223,6 +223,9 @@ class CatalogItemController extends Controller
             'category',
             'variants',
             'vehicleTypePrices.vehicleType',
+            'vehicleTypePrices.vehicleSpecification.brand',
+            'vehicleTypePrices.vehicleSpecification.model',
+            'vehicleTypePrices.vehicleSpecification.type',
             'vehicleTypePrices.supplies.variant.item',
             'supplies.variant.item',
         ]);
@@ -244,7 +247,16 @@ class CatalogItemController extends Controller
             ->ordered()
             ->get();
         $vehicleTypes = $this->getActiveVehicleTypes();
-        $catalogItem->load(['type', 'variants', 'vehicleTypePrices.vehicleType', 'vehicleTypePrices.supplies.variant.item', 'supplies.variant.item']);
+        $catalogItem->load([
+            'type',
+            'variants',
+            'vehicleTypePrices.vehicleType',
+            'vehicleTypePrices.vehicleSpecification.brand',
+            'vehicleTypePrices.vehicleSpecification.model',
+            'vehicleTypePrices.vehicleSpecification.type',
+            'vehicleTypePrices.supplies.variant.item',
+            'supplies.variant.item',
+        ]);
         $supplyVariants = $this->getSupplyVariants($catalogItem->empresa_id);
         $returnUrl = $this->catalogItemBackUrl($request, $catalogItem, route('admin.catalog-items.show', $catalogItem));
         $returnContext = $this->catalogItemReturnContext($request);

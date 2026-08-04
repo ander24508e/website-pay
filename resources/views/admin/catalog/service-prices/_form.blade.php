@@ -1,7 +1,12 @@
 @php
     $inputClass =
         'w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300';
+    $quickInputClass =
+        'h-11 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 shadow-sm outline-none transition placeholder:text-gray-400 focus:border-gray-400 focus:ring-2 focus:ring-gray-200';
     $labelClass = 'mb-1 block text-xs font-semibold text-gray-700';
+    $selectedSpecification = $serviceVehicleTypePrice?->vehicleSpecification;
+    $selectedBrandId = old('vehicle_brand_id', $selectedSpecification?->vehicle_brand_id);
+    $selectedModelId = old('vehicle_model_id', $selectedSpecification?->vehicle_model_id);
     $selectedVehicleTypeId = old('vehicle_type_id', $serviceVehicleTypePrice?->vehicle_type_id);
     $supplyRows = old('supplies');
 
@@ -31,17 +36,63 @@
                 class="{{ $inputClass }} bg-white text-gray-600" readonly>
 
             <div class="mt-5 grid gap-3 sm:grid-cols-2">
-
                 <div class="min-w-0">
-                    <label class="{{ $labelClass }}">Crear tipo nuevo</label>
-                    <input type="text" name="new_vehicle_type_name" value="{{ old('new_vehicle_type_name') }}"
-                        class="h-11 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 shadow-sm outline-none transition placeholder:text-gray-400 focus:border-gray-400 focus:ring-2 focus:ring-gray-200 @error('new_vehicle_type_name') border-red-400 bg-red-50 @enderror"
-                        placeholder="Ej: Auto pequeño, SUV">
-                    @error('new_vehicle_type_name')
+                    <label class="{{ $labelClass }}">Marca</label>
+                    <select name="vehicle_brand_id" data-placeholder="Selecciona marca"
+                        class="select2 w-full @error('vehicle_brand_id') border-red-400 @enderror">
+                        <option value="">Selecciona marca</option>
+                        @foreach ($vehicleBrands as $vehicleBrand)
+                            <option value="{{ $vehicleBrand->id }}" @selected((string) $selectedBrandId === (string) $vehicleBrand->id)>
+                                {{ $vehicleBrand->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('vehicle_brand_id')
                         <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
 
+                <div class="min-w-0">
+                    <label class="{{ $labelClass }}">Crear marca nueva</label>
+                    <input type="text" name="new_vehicle_brand_name" value="{{ old('new_vehicle_brand_name') }}"
+                        class="{{ $quickInputClass }} @error('new_vehicle_brand_name') border-red-400 bg-red-50 @enderror"
+                        placeholder="Ej: Toyota, Kia">
+                    @error('new_vehicle_brand_name')
+                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+
+            <div class="mt-3 grid gap-3 sm:grid-cols-2">
+                <div class="min-w-0">
+                    <label class="{{ $labelClass }}">Modelo</label>
+                    <select name="vehicle_model_id" data-placeholder="Selecciona modelo"
+                        class="select2 w-full @error('vehicle_model_id') border-red-400 @enderror">
+                        <option value="">Selecciona modelo</option>
+                        @foreach ($vehicleModels as $vehicleModel)
+                            <option value="{{ $vehicleModel->id }}" data-brand-id="{{ $vehicleModel->vehicle_brand_id }}"
+                                @selected((string) $selectedModelId === (string) $vehicleModel->id)>
+                                {{ $vehicleModel->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('vehicle_model_id')
+                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="min-w-0">
+                    <label class="{{ $labelClass }}">Crear modelo nuevo</label>
+                    <input type="text" name="new_vehicle_model_name" value="{{ old('new_vehicle_model_name') }}"
+                        class="{{ $quickInputClass }} @error('new_vehicle_model_name') border-red-400 bg-red-50 @enderror"
+                        placeholder="Ej: Corolla, Picanto">
+                    @error('new_vehicle_model_name')
+                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+
+            <div class="mt-3 grid gap-3 sm:grid-cols-2">
                 <div class="min-w-0">
                     <label class="{{ $labelClass }}">Tipo de vehiculo *</label>
                     <select name="vehicle_type_id" data-placeholder="Selecciona tipo"
@@ -54,6 +105,16 @@
                         @endforeach
                     </select>
                     @error('vehicle_type_id')
+                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="min-w-0">
+                    <label class="{{ $labelClass }}">Crear tipo nuevo</label>
+                    <input type="text" name="new_vehicle_type_name" value="{{ old('new_vehicle_type_name') }}"
+                        class="{{ $quickInputClass }} @error('new_vehicle_type_name') border-red-400 bg-red-50 @enderror"
+                        placeholder="Ej: Auto pequeno, SUV">
+                    @error('new_vehicle_type_name')
                         <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
@@ -99,8 +160,7 @@
 
             <div class="mt-5 border-t border-gray-200 pt-4">
                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Insumos usados</p>
-                <p class="mb-3 text-xs text-gray-500">Opcional. Registra productos que se consumen al realizar este
-                    servicio.</p>
+                <p class="mb-3 text-xs text-gray-500">Opcional. Registra productos que se consumen al realizar este servicio.</p>
 
                 @if ($supplyVariants->isEmpty())
                     <p class="rounded-lg border border-gray-100 bg-white p-3 text-xs text-gray-500">
@@ -153,7 +213,7 @@
         <section class="rounded-lg border border-gray-100 bg-gray-50 p-4">
             <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Resumen</p>
             <p class="mt-2 text-sm text-gray-600">
-                El cliente buscara su vehiculo real. El sistema usara este tipo interno para calcular el precio.
+                El cliente buscara su vehiculo real. El sistema conectara marca, modelo y tipo para calcular el precio.
             </p>
         </section>
     </aside>

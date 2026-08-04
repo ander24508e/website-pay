@@ -29,7 +29,14 @@ class CarritoController extends Controller
             'vehicle_specification_id' => 'nullable|integer',
         ]);
 
-        $item = CatalogItem::with(['type', 'vehicleTypePrices.vehicleType', 'activeVariants'])
+        $item = CatalogItem::with([
+            'type',
+            'vehicleTypePrices.vehicleType',
+            'vehicleTypePrices.vehicleSpecification.brand',
+            'vehicleTypePrices.vehicleSpecification.model',
+            'vehicleTypePrices.vehicleSpecification.type',
+            'activeVariants',
+        ])
             ->where('active', true)
             ->where('purchasable', true)
             ->findOrFail($request->id);
@@ -56,8 +63,9 @@ class CarritoController extends Controller
             $vehicleContext = $priceResolver->resolve(
                 $item,
                 $request->integer('vehicle_id') ?: null,
-                $request->integer('vehicle_specification_id') ?: ($request->integer('vehicle_type_id') ?: null),
-                auth()->id()
+                $request->integer('vehicle_specification_id') ?: null,
+                auth()->id(),
+                $request->integer('vehicle_type_id') ?: null
             );
             $price = $vehicleContext['price'];
         }

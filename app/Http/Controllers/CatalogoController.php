@@ -53,6 +53,9 @@ class CatalogoController extends Controller
                     'category',
                     'activeVariants',
                     'vehicleTypePrices.vehicleType',
+                    'vehicleTypePrices.vehicleSpecification.brand',
+                    'vehicleTypePrices.vehicleSpecification.model',
+                    'vehicleTypePrices.vehicleSpecification.type',
                 ])
                 ->where('catalog_items.active', true)
                 ->where('catalog_types.active', true)
@@ -81,11 +84,25 @@ class CatalogoController extends Controller
                 $defaultVariant = $this->resolveDefaultPublicVariant($item);
                 $stockDisponible = $this->resolveAvailableStock($item, $defaultVariant);
                 $vehiclePrices = $item->vehicleTypePrices
-                    ->filter(fn ($vehiclePrice) => $vehiclePrice->active && $vehiclePrice->vehicleType?->active)
-                    ->sortBy(fn ($vehiclePrice) => (string) $vehiclePrice->vehicleType?->name)
+                    ->filter(function ($vehiclePrice) {
+                        $specification = $vehiclePrice->vehicleSpecification;
+
+                        if ($specification) {
+                            return $vehiclePrice->active
+                                && $specification->active
+                                && $specification->brand?->active
+                                && $specification->model?->active
+                                && $specification->type?->active;
+                        }
+
+                        return $vehiclePrice->active && $vehiclePrice->vehicleType?->active;
+                    })
+                    ->sortBy(fn ($vehiclePrice) => (string) $vehiclePrice->vehicle_label)
                     ->map(fn ($vehiclePrice) => [
                         'id' => (int) $vehiclePrice->id,
+                        'vehicle_specification_id' => $vehiclePrice->vehicle_specification_id ? (int) $vehiclePrice->vehicle_specification_id : null,
                         'vehicle_type_id' => (int) $vehiclePrice->vehicle_type_id,
+                        'vehicle_name' => $vehiclePrice->vehicle_label,
                         'vehicle_type_name' => $vehiclePrice->vehicleType?->name,
                         'price' => $vehiclePrice->price === null ? null : (float) $vehiclePrice->price,
                         'duration_minutes' => $vehiclePrice->duration_minutes,

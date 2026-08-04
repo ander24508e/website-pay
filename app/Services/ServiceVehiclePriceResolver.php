@@ -15,9 +15,16 @@ class ServiceVehiclePriceResolver
         CatalogItem $service,
         ?int $vehicleId,
         ?int $vehicleSpecificationId,
-        ?int $userId
+        ?int $userId,
+        ?int $vehicleTypeId = null
     ): array {
-        $service->loadMissing(['type', 'vehicleTypePrices.vehicleType']);
+        $service->loadMissing([
+            'type',
+            'vehicleTypePrices.vehicleType',
+            'vehicleTypePrices.vehicleSpecification.brand',
+            'vehicleTypePrices.vehicleSpecification.model',
+            'vehicleTypePrices.vehicleSpecification.type',
+        ]);
 
         if (($service->type?->business_model ?? CatalogType::BUSINESS_MODEL_SERVICES) !== CatalogType::BUSINESS_MODEL_SERVICES) {
             return $this->emptyContext((float) $service->display_price);
@@ -86,17 +93,35 @@ class ServiceVehiclePriceResolver
                     'vehicle_specification_id' => 'El vehiculo seleccionado no esta disponible.',
                 ]);
             }
+        } elseif ($vehicleTypeId) {
+            $vehicleType = VehicleType::query()
+                ->whereKey($vehicleTypeId)
+                ->where('active', true)
+                ->first();
+
+            if (!$vehicleType?->active) {
+                throw ValidationException::withMessages([
+                    'vehicle_type_id' => 'El tipo de vehiculo seleccionado no esta disponible.',
+                ]);
+            }
         } elseif ($hasConfiguredPrices) {
             throw ValidationException::withMessages([
                 'vehicle_specification_id' => 'Selecciona tu vehiculo para calcular el precio.',
             ]);
         }
 
-        $configuredPrice = $vehicleType
-            ? $service->vehicleTypePrices
-                ->where('active', true)
-                ->firstWhere('vehicle_type_id', $vehicleType->id)
-            : null;
+        $activePrices = $service->vehicleTypePrices->where('active', true);
+        $configuredPrice = null;
+
+        if ($vehicleSpecification) {
+            $configuredPrice = $activePrices->firstWhere('vehicle_specification_id', $vehicleSpecification->id);
+        }
+
+        if (!$configuredPrice && $vehicleType) {
+            $configuredPrice = $activePrices
+                ->whereNull('vehicle_specification_id')
+                ->firstWhere('vehicle_type_id', $vehicleType->id);
+        }
 
         if ($hasConfiguredPrices && !$configuredPrice) {
             throw ValidationException::withMessages([

@@ -84,6 +84,7 @@ return new class extends Migration
         Schema::create('service_vehicle_type_prices', function (Blueprint $table) {
             $table->id();
             $table->foreignId('catalog_item_id')->constrained('catalog_items')->cascadeOnDelete();
+            $table->foreignId('vehicle_specification_id')->nullable()->constrained('vehicle_specifications')->restrictOnDelete();
             $table->foreignId('vehicle_type_id')->constrained('vehicle_types')->restrictOnDelete();
             $table->decimal('price', 10, 2)->nullable();
             $table->unsignedInteger('duration_minutes')->nullable();
@@ -91,7 +92,8 @@ return new class extends Migration
             $table->boolean('active')->default(true);
             $table->timestamps();
 
-            $table->unique(['catalog_item_id', 'vehicle_type_id'], 'service_vehicle_type_unique');
+            $table->unique(['catalog_item_id', 'vehicle_specification_id'], 'service_vehicle_spec_unique');
+            $table->index(['catalog_item_id', 'vehicle_type_id'], 'service_vehicle_type_index');
         });
 
         Schema::create('catalog_item_supplies', function (Blueprint $table) {

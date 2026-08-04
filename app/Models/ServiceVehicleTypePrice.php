@@ -13,6 +13,7 @@ class ServiceVehicleTypePrice extends Model
 
     protected $fillable = [
         'catalog_item_id',
+        'vehicle_specification_id',
         'vehicle_type_id',
         'price',
         'duration_minutes',
@@ -36,8 +37,20 @@ class ServiceVehicleTypePrice extends Model
         return $this->belongsTo(VehicleType::class, 'vehicle_type_id');
     }
 
+    public function vehicleSpecification(): BelongsTo
+    {
+        return $this->belongsTo(VehicleSpecification::class, 'vehicle_specification_id');
+    }
+
     public function supplies(): HasMany
     {
         return $this->hasMany(CatalogItemSupply::class, 'service_vehicle_type_price_id');
+    }
+
+    public function getVehicleLabelAttribute(): string
+    {
+        return $this->vehicleSpecification?->label
+            ?? $this->vehicleType?->name
+            ?? 'Vehiculo eliminado';
     }
 }

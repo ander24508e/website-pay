@@ -76,7 +76,14 @@ class CreateSaleService
 
         foreach ($data->items as $index => $row) {
             $catalogItem = CatalogItem::query()
-                ->with(['type', 'activeVariants', 'vehicleTypePrices.vehicleType'])
+                ->with([
+                    'type',
+                    'activeVariants',
+                    'vehicleTypePrices.vehicleType',
+                    'vehicleTypePrices.vehicleSpecification.brand',
+                    'vehicleTypePrices.vehicleSpecification.model',
+                    'vehicleTypePrices.vehicleSpecification.type',
+                ])
                 ->where('active', true)
                 ->where('purchasable', true)
                 ->find((int) ($row['catalog_item_id'] ?? 0));
@@ -105,8 +112,9 @@ class CreateSaleService
                 $vehicleContext = $this->priceResolver->resolve(
                     $catalogItem,
                     !empty($row['vehicle_id']) ? (int) $row['vehicle_id'] : null,
-                    !empty($row['vehicle_specification_id']) ? (int) $row['vehicle_specification_id'] : (!empty($row['vehicle_type_id']) ? (int) $row['vehicle_type_id'] : null),
-                    $data->userId
+                    !empty($row['vehicle_specification_id']) ? (int) $row['vehicle_specification_id'] : null,
+                    $data->userId,
+                    !empty($row['vehicle_type_id']) ? (int) $row['vehicle_type_id'] : null
                 );
                 $unitPrice = (float) $vehicleContext['price'];
             }

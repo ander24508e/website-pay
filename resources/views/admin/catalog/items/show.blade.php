@@ -110,7 +110,7 @@
                                         <div class="flex items-start justify-between gap-3">
                                             <div class="min-w-0">
                                                 <p class="font-medium text-gray-800 break-words">
-                                                    {{ $vehiclePrice->vehicleType?->name ?? 'Tipo eliminado' }}</p>
+                                                    {{ $vehiclePrice->vehicle_label }}</p>
                                                 <p class="text-xs text-gray-400">
                                                     {{ $vehiclePrice->duration_minutes ? $vehiclePrice->duration_minutes . ' min' : 'Sin duracion' }}
                                                 </p>
@@ -164,7 +164,7 @@
                                 <table class="min-w-full text-sm text-left">
                                     <thead class="bg-gray-50 border-b">
                                         <tr>
-                                            <th class="px-4 py-3">Tipo de vehiculo</th>
+                                            <th class="px-4 py-3">Vehiculo</th>
                                             <th class="px-4 py-3">Precio</th>
                                             <th class="px-4 py-3">Duracion</th>
                                             <th class="px-4 py-3">Insumos</th>
@@ -177,7 +177,7 @@
                                             <tr>
                                                 <td class="px-4 py-3">
                                                     <p class="font-medium text-gray-800">
-                                                        {{ $vehiclePrice->vehicleType?->name ?? 'Tipo eliminado' }}</p>
+                                                        {{ $vehiclePrice->vehicle_label }}</p>
                                                     @if ($vehiclePrice->description)
                                                         <p class="text-xs text-gray-400">{{ $vehiclePrice->description }}
                                                         </p>
