@@ -17,14 +17,11 @@
         $returnUrl = $fromInventory
             ? $inventoryReturnUrl
             : ($returnToCategory && $selectedCategoryId > 0
-                ? route('admin.catalog-items.index', [
-                    'catalog_type_id' => $selectedProductTypeId,
-                    'catalog_category_id' => $selectedCategoryId,
-                ])
+                ? route('admin.catalog-types.show', $selectedProductTypeId)
                 : ($returnToType && $selectedProductTypeId > 0
                     ? route('admin.catalog-types.show', $selectedProductTypeId)
                     : ($selectedProductTypeId > 0
-                        ? route('admin.catalog-items.index', ['catalog_type_id' => $selectedProductTypeId])
+                        ? route('admin.catalog-types.show', $selectedProductTypeId)
                         : route('admin.catalog.index'))));
     @endphp
 

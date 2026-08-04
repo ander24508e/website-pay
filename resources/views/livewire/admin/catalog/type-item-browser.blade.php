@@ -8,17 +8,27 @@
 
     <div
         class="catalog-business-list-header p-4 sm:p-5 flex flex-col gap-3 shrink-0 lg:flex-row lg:items-start lg:justify-between">
-        <div class="catalog-business-search min-w-0 flex-1" wire:ignore>
+        <div class="catalog-business-search min-w-0 flex-1">
             <label for="catalogTypeItemSearch-{{ $catalogTypeId }}">Buscar {{ $itemSingular }}</label>
-            <select id="catalogTypeItemSearch-{{ $catalogTypeId }}" class="select2 catalog-business-search-select"
-                data-placeholder="Buscar {{ $itemSingular }}">
-                <option value="">Todos los {{ $itemPlural }}</option>
-                @foreach ($allItems as $selectItem)
-                    <option value="{{ $selectItem->id }}" @selected((int) $selectedItemId === (int) $selectItem->id)>
-                        {{ $selectItem->name }}{{ $selectItem->category?->name ? ' / ' . $selectItem->category->name : '' }}
-                    </option>
-                @endforeach
-            </select>
+            <div class="catalog-business-search-row">
+                <div class="min-w-0 flex-1" wire:ignore>
+                    <select id="catalogTypeItemSearch-{{ $catalogTypeId }}" class="select2 catalog-business-search-select"
+                        data-placeholder="Buscar {{ $itemSingular }}">
+                        <option value="">Todos los {{ $itemPlural }}</option>
+                        @foreach ($allItems as $selectItem)
+                            <option value="{{ $selectItem->id }}" @selected((int) $selectedItemId === (int) $selectItem->id)>
+                                {{ $selectItem->name }}{{ $selectItem->category?->name ? ' / ' . $selectItem->category->name : '' }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                @if ($selectedItemId)
+                    <button type="button" wire:click="clearSelection" class="catalog-business-search-clear"
+                        title="Borrar búsqueda" aria-label="Borrar búsqueda">
+                        <x-heroicon-o-x-mark class="w-5 h-5" />
+                    </button>
+                @endif
+            </div>
         </div>
 
         <div class="flex flex-col items-stretch gap-2 shrink-0 sm:flex-row sm:items-center">
@@ -26,15 +36,11 @@
                 class="{{ $primaryButtonClass }}">
                 + Agregar {{ $itemSingularTitle }}
             </a>
-            <a href="{{ route('admin.catalog-items.index', ['catalog_type_id' => $catalogTypeId]) }}"
-                class="{{ $secondaryButtonClass }}">
-                Mostrar Todo
-            </a>
         </div>
     </div>
 
     @if ($items->isEmpty())
-        <div class="catalog-business-empty">
+        <div class="catalog-business-empty text-center">
             <p class="font-medium text-gray-700 mb-2">
                 {{ $selectedItemId ? 'No se encontró ese ' . $itemSingular . '.' : 'Aún no tienes ' . $itemPlural . ' aquí.' }}
             </p>
@@ -45,11 +51,6 @@
                 <button type="button" wire:click="clearSelection" class="{{ $secondaryButtonClass }}">
                     Mostrar todos
                 </button>
-            @else
-                <a href="{{ route('admin.catalog-items.create', ['catalog_type_id' => $catalogTypeId, 'return_to_type' => 1]) }}"
-                    class="{{ $primaryButtonClass }}">
-                    Crear {{ $itemSingularTitle }}
-                </a>
             @endif
         </div>
     @else

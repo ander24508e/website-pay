@@ -9,14 +9,11 @@
 @section('content')
     @php
         $returnUrl = ($returnToCategory && $selectedCategoryId > 0)
-            ? route('admin.catalog-items.index', [
-                'catalog_type_id' => $selectedTypeId,
-                'catalog_category_id' => $selectedCategoryId,
-            ])
+            ? route('admin.catalog-types.show', $selectedTypeId)
             : (($returnToType && $selectedTypeId > 0)
                 ? route('admin.catalog-types.show', $selectedTypeId)
                 : ($selectedTypeId > 0
-                    ? route('admin.catalog-items.index', ['catalog_type_id' => $selectedTypeId])
+                    ? route('admin.catalog-types.show', $selectedTypeId)
                     : route('admin.catalog.index')));
     @endphp
 

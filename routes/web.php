@@ -228,6 +228,7 @@ Route::middleware(['auth', 'role:admin'])
             ->name('catalog-service-prices.destroy');
         Route::resource('/catalogo/items', CatalogItemController::class)
             ->parameters(['items' => 'catalogItem'])
+            ->except(['index'])
             ->names('catalog-items');
         Route::get('/catalogo/variantes', fn () => redirect()->route('admin.catalog-variants.index'));
         Route::get('/catalogo/variantes/create', fn (\Illuminate\Http\Request $request) => redirect()->route('admin.catalog-variants.create', $request->query()));

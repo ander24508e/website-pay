@@ -80,7 +80,7 @@ class ProductForm extends Component
 
         $this->selectedTypeId = (int) ($type?->id ?? 0);
         $this->returnUrl = $returnUrl ?: ($this->selectedTypeId > 0
-            ? route('admin.catalog-items.index', ['catalog_type_id' => $this->selectedTypeId])
+            ? route('admin.catalog-types.show', $this->selectedTypeId)
             : route('admin.catalog.index'));
     }
 

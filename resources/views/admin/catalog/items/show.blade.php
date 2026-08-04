@@ -5,7 +5,7 @@
 @section('content')
     @php
         $returnUrl =
-            $returnUrl ?? route('admin.catalog-items.index', ['catalog_type_id' => $catalogItem->catalog_type_id]);
+            $returnUrl ?? route('admin.catalog-types.show', $catalogItem->catalog_type_id);
         $returnContext = $returnContext ?? [];
         $isServiceContext =
             ($catalogItem->type?->business_model ?? 'services') === \App\Models\CatalogType::BUSINESS_MODEL_SERVICES;

@@ -17,72 +17,6 @@ use Illuminate\Support\Str;
 
 class CatalogItemController extends Controller
 {
-    public function index(Request $request)
-    {
-        $empresa = $this->getOrCreateEmpresa();
-        $search = trim((string) $request->query('q', ''));
-        $selectedTypeId = (int) $request->query('catalog_type_id', 0);
-        $selectedCategoryId = (int) $request->query('catalog_category_id', 0);
-        $selectedType = null;
-        $selectedCategory = null;
-        $baseQuery = CatalogItem::query()->where('empresa_id', $empresa->id);
-        $types = CatalogType::query()
-            ->where('empresa_id', $empresa->id)
-            ->ordered()
-            ->get();
-
-        if ($selectedTypeId > 0) {
-            $selectedType = CatalogType::query()
-                ->where('empresa_id', $empresa->id)
-                ->find($selectedTypeId);
-
-            if ($selectedType) {
-                $baseQuery->where('catalog_type_id', $selectedType->id);
-            }
-        }
-
-        if ($selectedCategoryId > 0) {
-            $selectedCategory = CatalogCategory::query()
-                ->where('empresa_id', $empresa->id)
-                ->with('type')
-                ->find($selectedCategoryId);
-
-            if ($selectedCategory) {
-                $baseQuery->where('catalog_category_id', $selectedCategory->id);
-                $selectedType = $selectedCategory->type;
-            }
-        }
-
-        $items = (clone $baseQuery)
-            ->with(['type', 'category'])
-            ->withCount(['variants', 'vehicleTypePrices'])
-            ->when($search !== '', function ($query) use ($search) {
-                $query->where(function ($subQuery) use ($search) {
-                    $subQuery->where('name', 'like', "%{$search}%")
-                        ->orWhere('description', 'like', "%{$search}%")
-                        ->orWhere('slug', 'like', "%{$search}%")
-                        ->orWhereHas('type', function ($typeQuery) use ($search) {
-                            $typeQuery->where('name', 'like', "%{$search}%");
-                        })
-                        ->orWhereHas('category', function ($categoryQuery) use ($search) {
-                            $categoryQuery->where('name', 'like', "%{$search}%");
-                        });
-                });
-            })
-            ->ordered()
-            ->paginate(12)
-            ->withQueryString();
-
-        $stats = [
-            'total' => (clone $baseQuery)->count(),
-            'active' => (clone $baseQuery)->where('active', true)->count(),
-            'purchasable' => (clone $baseQuery)->where('purchasable', true)->count(),
-            'reservable' => (clone $baseQuery)->where('reservable', true)->count(),
-        ];
-
-        return view('admin.catalog.items.index', compact('empresa', 'items', 'stats', 'selectedType', 'selectedCategory', 'types'));
-    }
-
     public function create(Request $request)
     {
         $empresa = $this->getOrCreateEmpresa();
@@ -272,17 +206,14 @@ class CatalogItemController extends Controller
         }
 
         if ($request->boolean('redirect_to_category') && $item->catalog_category_id) {
-            return redirect()->route('admin.catalog-items.index', [
-                'catalog_type_id' => $item->catalog_type_id,
-                'catalog_category_id' => $item->catalog_category_id,
-            ]);
+            return redirect()->route('admin.catalog-types.show', $item->catalog_type_id);
         }
 
         if ($request->boolean('redirect_to_type')) {
             return redirect()->route('admin.catalog-types.show', $item->catalog_type_id);
         }
 
-        return redirect()->route('admin.catalog-items.index', ['catalog_type_id' => $item->catalog_type_id]);
+        return redirect()->route('admin.catalog-types.show', $item->catalog_type_id);
     }
 
     public function show(Request $request, CatalogItem $catalogItem)
@@ -420,17 +351,11 @@ class CatalogItemController extends Controller
         }
 
         if ($request->boolean('redirect_to_category') && $catalogItem->catalog_category_id) {
-            return redirect()->route('admin.catalog-items.index', [
-                'catalog_type_id' => $catalogItem->catalog_type_id,
-                'catalog_category_id' => $catalogItem->catalog_category_id,
-            ]);
+            return redirect()->route('admin.catalog-types.show', $catalogItem->catalog_type_id);
         }
 
         if ($request->boolean('redirect_to_items')) {
-            return redirect()->route('admin.catalog-items.index', array_filter([
-                'catalog_type_id' => $catalogItem->catalog_type_id,
-                'catalog_category_id' => $catalogItem->catalog_category_id,
-            ]));
+            return redirect()->route('admin.catalog-types.show', $catalogItem->catalog_type_id);
         }
 
         return redirect()->route('admin.catalog-items.show', $catalogItem);
@@ -450,7 +375,7 @@ class CatalogItemController extends Controller
                 return redirect()->route('admin.catalog-types.show', $catalogTypeId);
             }
 
-            return redirect()->route('admin.catalog-items.index', ['catalog_type_id' => $catalogTypeId]);
+            return redirect()->route('admin.catalog-types.show', $catalogTypeId);
         }
 
         if ($image && Storage::disk('public')->exists($image)) {
@@ -463,7 +388,7 @@ class CatalogItemController extends Controller
             return redirect()->route('admin.catalog-types.show', $catalogTypeId);
         }
 
-        return redirect()->route('admin.catalog-items.index', ['catalog_type_id' => $catalogTypeId]);
+        return redirect()->route('admin.catalog-types.show', $catalogTypeId);
     }
 
     private function getOrCreateEmpresa(): Empresa
@@ -501,20 +426,14 @@ class CatalogItemController extends Controller
         }
 
         if ($request->boolean('return_to_category') && $catalogItem->catalog_category_id) {
-            return route('admin.catalog-items.index', [
-                'catalog_type_id' => $catalogItem->catalog_type_id,
-                'catalog_category_id' => $catalogItem->catalog_category_id,
-            ]);
+            return route('admin.catalog-types.show', $catalogItem->catalog_type_id);
         }
 
         if ($request->boolean('return_to_items')) {
-            return route('admin.catalog-items.index', array_filter([
-                'catalog_type_id' => $catalogItem->catalog_type_id,
-                'catalog_category_id' => $catalogItem->catalog_category_id,
-            ]));
+            return route('admin.catalog-types.show', $catalogItem->catalog_type_id);
         }
 
-        return $defaultUrl ?: route('admin.catalog-items.index', ['catalog_type_id' => $catalogItem->catalog_type_id]);
+        return $defaultUrl ?: route('admin.catalog-types.show', $catalogItem->catalog_type_id);
     }
 
     private function resolveCategory(int $empresaId, int $typeId, ?int $categoryId): ?CatalogCategory

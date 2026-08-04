@@ -130,10 +130,7 @@ class CatalogCategoryController extends Controller
 
     public function show(CatalogCategory $catalogCategory)
     {
-        return redirect()->route('admin.catalog-items.index', [
-            'catalog_type_id' => $catalogCategory->catalog_type_id,
-            'catalog_category_id' => $catalogCategory->id,
-        ]);
+        return redirect()->route('admin.catalog-types.show', $catalogCategory->catalog_type_id);
     }
 
     public function edit(CatalogCategory $catalogCategory)

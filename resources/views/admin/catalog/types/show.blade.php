@@ -47,7 +47,7 @@
                         </div>
                         <div>
                             <p class="text-xs text-gray-400 uppercase tracking-wide">Descripción</p>
-                            <p class="text-gray-700 break-words">{{ $catalogType->description ?: 'Sin descripción.' }}</p>
+                            <p class="text-center text-gray-700 break-words">{{ $catalogType->description ?: 'Sin descripción.' }}</p>
                         </div>
                         <div>
                             <p class="text-xs text-gray-400 uppercase tracking-wide">Modelo del negocio</p>
