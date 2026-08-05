@@ -35,7 +35,7 @@
 <main class="auth-page-wrap">
 <div class="card">
     <div class="logo-wrap">
-        <img src="{{ $empresa->logo_url ?? asset('images/default-avatar.png') }}"
+        <img src="{{ $empresa->logo_url ?? asset('Images/empresa-logo.jpg') }}"
              alt="{{ $empresa->nombre ?? 'Endara Carwash' }}"
              class="logo-img">
         <div class="brand">{{ strtoupper($empresa->nombre_corto ?? 'ENDARA CARWASH') }}</div>
