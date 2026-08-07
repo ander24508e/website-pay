@@ -5,9 +5,15 @@
         'h-11 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 shadow-sm outline-none transition placeholder:text-gray-400 focus:border-gray-400 focus:ring-2 focus:ring-gray-200';
     $labelClass = 'mb-1 block text-xs font-semibold text-gray-700';
     $selectedSpecification = $serviceVehicleTypePrice?->vehicleSpecification;
-    $selectedBrandId = old('vehicle_brand_id', $selectedSpecification?->vehicle_brand_id);
-    $selectedModelId = old('vehicle_model_id', $selectedSpecification?->vehicle_model_id);
-    $selectedVehicleTypeId = old('vehicle_type_id', $serviceVehicleTypePrice?->vehicle_type_id);
+    $selectedSpecificationId = old('vehicle_specification_id', $selectedSpecification?->id);
+    $vehicleSpecifications = $vehicleSpecifications ?? collect();
+    $creatingNewSpecification =
+        old('new_vehicle_brand_name') ||
+        old('new_vehicle_model_name') ||
+        old('new_vehicle_type_name') ||
+        $errors->has('new_vehicle_brand_name') ||
+        $errors->has('new_vehicle_model_name') ||
+        $errors->has('new_vehicle_type_name');
     $supplyRows = old('supplies');
 
     if ($supplyRows === null) {
@@ -35,88 +41,77 @@
             <input type="text" value="{{ $service->type?->name ?? 'Servicio' }} / {{ $service->name }}"
                 class="{{ $inputClass }} bg-white text-gray-600" readonly>
 
-            <div class="mt-5 grid gap-3 sm:grid-cols-2">
-                <div class="min-w-0">
-                    <label class="{{ $labelClass }}">Marca</label>
-                    <select name="vehicle_brand_id" data-placeholder="Selecciona marca"
-                        class="select2 w-full @error('vehicle_brand_id') border-red-400 @enderror">
-                        <option value="">Selecciona marca</option>
-                        @foreach ($vehicleBrands as $vehicleBrand)
-                            <option value="{{ $vehicleBrand->id }}" @selected((string) $selectedBrandId === (string) $vehicleBrand->id)>
-                                {{ $vehicleBrand->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('vehicle_brand_id')
-                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                    @enderror
+            <div class="mt-5 {{ $creatingNewSpecification ? 'hidden' : '' }}" data-existing-specification-panel>
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <label class="{{ $labelClass }}">Especificaci&oacute;n de veh&iacute;culo existente</label>
+                    <button type="button"
+                        class="rounded-lg bg-gray-900 px-3 py-2 text-xs font-semibold text-white transition hover:bg-gray-700"
+                        data-show-new-specification>
+                        + Crear nueva especificaci&oacute;n
+                    </button>
                 </div>
-
-                <div class="min-w-0">
-                    <label class="{{ $labelClass }}">Crear marca nueva</label>
-                    <input type="text" name="new_vehicle_brand_name" value="{{ old('new_vehicle_brand_name') }}"
-                        class="{{ $quickInputClass }} @error('new_vehicle_brand_name') border-red-400 bg-red-50 @enderror"
-                        placeholder="Ej: Toyota, Kia">
-                    @error('new_vehicle_brand_name')
-                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                    @enderror
-                </div>
+                <select name="vehicle_specification_id" data-placeholder="Busca marca / modelo / tipo"
+                    class="select2 w-full @error('vehicle_specification_id') border-red-400 @enderror">
+                    <option value="">Selecciona una especificaci&oacute;n</option>
+                    @foreach ($vehicleSpecifications as $vehicleSpecification)
+                        <option value="{{ $vehicleSpecification->id }}" @selected((string) $selectedSpecificationId === (string) $vehicleSpecification->id)>
+                            {{ $vehicleSpecification->label }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('vehicle_specification_id')
+                    <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                @enderror
+                <p class="mt-2 text-xs text-gray-500">
+                    Si ya existe el veh&iacute;culo, selecci&oacute;nalo aqu&iacute; y solo configura precio, duraci&oacute;n e insumos para este servicio.
+                </p>
             </div>
 
-            <div class="mt-3 grid gap-3 sm:grid-cols-2">
-                <div class="min-w-0">
-                    <label class="{{ $labelClass }}">Modelo</label>
-                    <select name="vehicle_model_id" data-placeholder="Selecciona modelo"
-                        class="select2 w-full @error('vehicle_model_id') border-red-400 @enderror">
-                        <option value="">Selecciona modelo</option>
-                        @foreach ($vehicleModels as $vehicleModel)
-                            <option value="{{ $vehicleModel->id }}" data-brand-id="{{ $vehicleModel->vehicle_brand_id }}"
-                                @selected((string) $selectedModelId === (string) $vehicleModel->id)>
-                                {{ $vehicleModel->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('vehicle_model_id')
-                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                    @enderror
+            <div class="mt-5 {{ $creatingNewSpecification ? '' : 'hidden' }}" data-new-specification-panel>
+                <div class="border-t border-gray-200 pt-4">
+                    <div class="flex flex-wrap items-start justify-between gap-2">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Crear nueva especificaci&oacute;n</p>
+                            <p class="mt-1 text-xs text-gray-500">Usa estos campos &uacute;nicamente cuando no encuentres la combinaci&oacute;n de marca, modelo y tipo.</p>
+                        </div>
+                        <button type="button"
+                            class="rounded-lg bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-700 transition hover:bg-gray-200"
+                            data-show-existing-specification>
+                            Usar especificaci&oacute;n existente
+                        </button>
+                    </div>
                 </div>
 
-                <div class="min-w-0">
-                    <label class="{{ $labelClass }}">Crear modelo nuevo</label>
-                    <input type="text" name="new_vehicle_model_name" value="{{ old('new_vehicle_model_name') }}"
-                        class="{{ $quickInputClass }} @error('new_vehicle_model_name') border-red-400 bg-red-50 @enderror"
-                        placeholder="Ej: Corolla, Picanto">
-                    @error('new_vehicle_model_name')
-                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                    @enderror
-                </div>
-            </div>
+                <div class="mt-5 grid gap-3 sm:grid-cols-3">
+                    <div class="min-w-0">
+                        <label class="{{ $labelClass }}">Crear marca nueva</label>
+                        <input type="text" name="new_vehicle_brand_name" value="{{ old('new_vehicle_brand_name') }}"
+                            class="{{ $quickInputClass }} @error('new_vehicle_brand_name') border-red-400 bg-red-50 @enderror"
+                            placeholder="Ej: Toyota, Kia">
+                        @error('new_vehicle_brand_name')
+                            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                        @enderror
+                    </div>
 
-            <div class="mt-3 grid gap-3 sm:grid-cols-2">
-                <div class="min-w-0">
-                    <label class="{{ $labelClass }}">Tipo de vehiculo *</label>
-                    <select name="vehicle_type_id" data-placeholder="Selecciona tipo"
-                        class="select2 w-full @error('vehicle_type_id') border-red-400 @enderror">
-                        <option value="">Selecciona tipo</option>
-                        @foreach ($vehicleTypes as $vehicleType)
-                            <option value="{{ $vehicleType->id }}" @selected((string) $selectedVehicleTypeId === (string) $vehicleType->id)>
-                                {{ $vehicleType->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('vehicle_type_id')
-                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                    @enderror
-                </div>
+                    <div class="min-w-0">
+                        <label class="{{ $labelClass }}">Crear modelo nuevo</label>
+                        <input type="text" name="new_vehicle_model_name" value="{{ old('new_vehicle_model_name') }}"
+                            class="{{ $quickInputClass }} @error('new_vehicle_model_name') border-red-400 bg-red-50 @enderror"
+                            placeholder="Ej: Corolla, Picanto">
+                        @error('new_vehicle_model_name')
+                            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                        @enderror
+                    </div>
 
-                <div class="min-w-0">
-                    <label class="{{ $labelClass }}">Crear tipo nuevo</label>
-                    <input type="text" name="new_vehicle_type_name" value="{{ old('new_vehicle_type_name') }}"
-                        class="{{ $quickInputClass }} @error('new_vehicle_type_name') border-red-400 bg-red-50 @enderror"
-                        placeholder="Ej: Auto pequeno, SUV">
-                    @error('new_vehicle_type_name')
-                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                    @enderror
+                    <div class="min-w-0">
+                        <label class="{{ $labelClass }}">Crear tipo nuevo</label>
+                        <input type="text" name="new_vehicle_type_name" value="{{ old('new_vehicle_type_name') }}"
+                            class="{{ $quickInputClass }} @error('new_vehicle_type_name') border-red-400 bg-red-50 @enderror"
+                            placeholder="Ej: Auto peque&ntilde;o, SUV">
+                        @error('new_vehicle_type_name')
+                            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                        @enderror
+                    </div>
                 </div>
             </div>
 
@@ -218,3 +213,52 @@
         </section>
     </aside>
 </div>
+
+@once
+    @push('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                document.querySelectorAll('.catalog-service-price-form').forEach((form) => {
+                    const existingPanel = form.querySelector('[data-existing-specification-panel]');
+                    const newPanel = form.querySelector('[data-new-specification-panel]');
+                    const showNewButton = form.querySelector('[data-show-new-specification]');
+                    const showExistingButton = form.querySelector('[data-show-existing-specification]');
+                    const specificationSelect = form.querySelector('select[name="vehicle_specification_id"]');
+                    const newInputs = form.querySelectorAll(
+                        'input[name="new_vehicle_brand_name"], input[name="new_vehicle_model_name"], input[name="new_vehicle_type_name"]'
+                    );
+
+                    if (!existingPanel || !newPanel || !showNewButton || !showExistingButton) {
+                        return;
+                    }
+
+                    const clearSelect2 = (select) => {
+                        if (!select) {
+                            return;
+                        }
+
+                        select.value = '';
+
+                        if (window.jQuery && window.jQuery.fn.select2) {
+                            window.jQuery(select).val('').trigger('change');
+                        }
+                    };
+
+                    showNewButton.addEventListener('click', () => {
+                        existingPanel.classList.add('hidden');
+                        newPanel.classList.remove('hidden');
+                        clearSelect2(specificationSelect);
+                    });
+
+                    showExistingButton.addEventListener('click', () => {
+                        newPanel.classList.add('hidden');
+                        existingPanel.classList.remove('hidden');
+                        newInputs.forEach((input) => {
+                            input.value = '';
+                        });
+                    });
+                });
+            });
+        </script>
+    @endpush
+@endonce

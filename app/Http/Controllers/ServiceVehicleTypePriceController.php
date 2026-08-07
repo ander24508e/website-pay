@@ -13,6 +13,7 @@ use App\Models\VehicleModel;
 use App\Models\VehicleSpecification;
 use App\Models\VehicleType;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 
 class ServiceVehicleTypePriceController extends Controller
@@ -21,6 +22,7 @@ class ServiceVehicleTypePriceController extends Controller
     {
         $service = $this->serviceItem($catalogItem);
         $serviceVehicleTypePrice = null;
+        $vehicleSpecifications = $this->vehicleSpecifications();
         $vehicleBrands = $this->vehicleBrands();
         $vehicleModels = $this->vehicleModels();
         $vehicleTypes = $this->vehicleTypes();
@@ -31,6 +33,7 @@ class ServiceVehicleTypePriceController extends Controller
         return view('admin.catalog.service-prices.create', compact(
             'service',
             'serviceVehicleTypePrice',
+            'vehicleSpecifications',
             'vehicleBrands',
             'vehicleModels',
             'vehicleTypes',
@@ -47,30 +50,43 @@ class ServiceVehicleTypePriceController extends Controller
         $vehicleSpecification = $this->resolveVehicleSpecification($data);
         $vehicleType = $vehicleSpecification->type;
 
-        $duplicate = $service->vehicleTypePrices()
-            ->where('vehicle_specification_id', $vehicleSpecification->id)
-            ->exists();
+        $duplicate = $this->duplicatePriceExists($service, $vehicleSpecification);
 
         if ($duplicate) {
             return back()
                 ->withInput()
-                ->withErrors(['vehicle_model_id' => 'Este vehiculo ya tiene precio para este servicio.']);
+                ->withErrors(['vehicle_specification_id' => 'Este vehículo ya tiene precio para este servicio.']);
         }
 
-        $price = ServiceVehicleTypePrice::create([
-            'catalog_item_id' => $service->id,
-            'vehicle_specification_id' => $vehicleSpecification->id,
-            'vehicle_type_id' => $vehicleType->id,
-            'price' => (float) $data['price'],
-            'duration_minutes' => $data['duration_minutes'] ?? null,
-            'description' => $this->cleanInput($data['description'] ?? null),
-            'active' => $request->boolean('active', true),
-        ]);
+        $price = ServiceVehicleTypePrice::create($this->priceAttributes($service, $vehicleSpecification, $vehicleType, $data, $request->boolean('active', true)));
 
         $this->syncSupplies($service->id, $price, $data['supplies'] ?? []);
         NotificationHelper::success('Precio por vehiculo creado correctamente.');
 
         return redirect()->route('admin.catalog-items.show', $service);
+    }
+
+    private function priceAttributes(
+        CatalogItem $service,
+        VehicleSpecification $vehicleSpecification,
+        VehicleType $vehicleType,
+        array $data,
+        bool $active
+    ): array {
+        $attributes = [
+            'catalog_item_id' => $service->id,
+            'vehicle_type_id' => $vehicleType->id,
+            'price' => (float) $data['price'],
+            'duration_minutes' => $data['duration_minutes'] ?? null,
+            'description' => $this->cleanInput($data['description'] ?? null),
+            'active' => $active,
+        ];
+
+        if ($this->supportsVehicleSpecifications()) {
+            $attributes['vehicle_specification_id'] = $vehicleSpecification->id;
+        }
+
+        return $attributes;
     }
 
     public function edit(Request $request, ServiceVehicleTypePrice $serviceVehicleTypePrice)
@@ -85,6 +101,7 @@ class ServiceVehicleTypePriceController extends Controller
             'vehicleType',
         ]);
         $service = $this->serviceItem($serviceVehicleTypePrice->service);
+        $vehicleSpecifications = $this->vehicleSpecifications();
         $vehicleBrands = $this->vehicleBrands();
         $vehicleModels = $this->vehicleModels();
         $vehicleTypes = $this->vehicleTypes();
@@ -95,6 +112,7 @@ class ServiceVehicleTypePriceController extends Controller
         return view('admin.catalog.service-prices.edit', compact(
             'service',
             'serviceVehicleTypePrice',
+            'vehicleSpecifications',
             'vehicleBrands',
             'vehicleModels',
             'vehicleTypes',
@@ -112,25 +130,15 @@ class ServiceVehicleTypePriceController extends Controller
         $vehicleSpecification = $this->resolveVehicleSpecification($data);
         $vehicleType = $vehicleSpecification->type;
 
-        $duplicate = $service->vehicleTypePrices()
-            ->where('vehicle_specification_id', $vehicleSpecification->id)
-            ->whereKeyNot($serviceVehicleTypePrice->id)
-            ->exists();
+        $duplicate = $this->duplicatePriceExists($service, $vehicleSpecification, $serviceVehicleTypePrice->id);
 
         if ($duplicate) {
             return back()
                 ->withInput()
-                ->withErrors(['vehicle_model_id' => 'Este vehiculo ya tiene precio para este servicio.']);
+                ->withErrors(['vehicle_specification_id' => 'Este vehículo ya tiene precio para este servicio.']);
         }
 
-        $serviceVehicleTypePrice->update([
-            'vehicle_specification_id' => $vehicleSpecification->id,
-            'vehicle_type_id' => $vehicleType->id,
-            'price' => (float) $data['price'],
-            'duration_minutes' => $data['duration_minutes'] ?? null,
-            'description' => $this->cleanInput($data['description'] ?? null),
-            'active' => $request->boolean('active'),
-        ]);
+        $serviceVehicleTypePrice->update($this->priceAttributes($service, $vehicleSpecification, $vehicleType, $data, $request->boolean('active')));
 
         $this->syncSupplies($service->id, $serviceVehicleTypePrice, $data['supplies'] ?? []);
         NotificationHelper::success('Precio por vehiculo actualizado correctamente.');
@@ -163,6 +171,7 @@ class ServiceVehicleTypePriceController extends Controller
     private function validatedData(Request $request): array
     {
         return $request->validate([
+            'vehicle_specification_id' => ['nullable', 'integer', 'exists:vehicle_specifications,id'],
             'vehicle_brand_id' => ['nullable', 'integer', 'exists:vehicle_brands,id'],
             'new_vehicle_brand_name' => ['nullable', 'string', 'max:255'],
             'vehicle_model_id' => ['nullable', 'integer', 'exists:vehicle_models,id'],
@@ -182,6 +191,29 @@ class ServiceVehicleTypePriceController extends Controller
 
     private function resolveVehicleSpecification(array $data): VehicleSpecification
     {
+        $selectedSpecificationId = (int) ($data['vehicle_specification_id'] ?? 0);
+
+        if ($selectedSpecificationId > 0 && !$this->hasManualSpecificationInput($data)) {
+            $vehicleSpecification = VehicleSpecification::query()
+                ->where('active', true)
+                ->with(['brand', 'model', 'type'])
+                ->find($selectedSpecificationId);
+
+            if ($vehicleSpecification) {
+                return $vehicleSpecification;
+            }
+
+            throw ValidationException::withMessages([
+                'vehicle_specification_id' => 'La especificación seleccionada no está disponible.',
+            ]);
+        }
+
+        if ($selectedSpecificationId <= 0 && !$this->hasManualSpecificationInput($data)) {
+            throw ValidationException::withMessages([
+                'vehicle_specification_id' => 'Selecciona una especificación existente o crea una nueva.',
+            ]);
+        }
+
         $brand = $this->resolveVehicleBrand($data);
         $model = $this->resolveVehicleModel($data, $brand);
         $vehicleType = $this->resolveVehicleType($data);
@@ -191,6 +223,52 @@ class ServiceVehicleTypePriceController extends Controller
             'vehicle_model_id' => $model->id,
             'vehicle_type_id' => $vehicleType->id,
         ], ['active' => true]);
+    }
+
+    private function duplicatePriceExists(CatalogItem $service, VehicleSpecification $vehicleSpecification, ?int $ignoreId = null): bool
+    {
+        $query = $service->vehicleTypePrices();
+
+        if ($this->supportsVehicleSpecifications()) {
+            $query->where('vehicle_specification_id', $vehicleSpecification->id);
+        } else {
+            $query->where('vehicle_type_id', $vehicleSpecification->vehicle_type_id);
+        }
+
+        if ($ignoreId) {
+            $query->whereKeyNot($ignoreId);
+        }
+
+        return $query->exists();
+    }
+
+    private function supportsVehicleSpecifications(): bool
+    {
+        static $supports = null;
+
+        if ($supports === null) {
+            $supports = Schema::hasColumn('service_vehicle_type_prices', 'vehicle_specification_id');
+        }
+
+        return $supports;
+    }
+
+    private function hasManualSpecificationInput(array $data): bool
+    {
+        foreach ([
+            'vehicle_brand_id',
+            'new_vehicle_brand_name',
+            'vehicle_model_id',
+            'new_vehicle_model_name',
+            'vehicle_type_id',
+            'new_vehicle_type_name',
+        ] as $key) {
+            if ($this->cleanInput((string) ($data[$key] ?? '')) !== null) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function resolveVehicleBrand(array $data): VehicleBrand
@@ -278,6 +356,15 @@ class ServiceVehicleTypePriceController extends Controller
             ->where('active', true)
             ->orderBy('name')
             ->get(['id', 'vehicle_brand_id', 'name', 'active']);
+    }
+
+    private function vehicleSpecifications()
+    {
+        return VehicleSpecification::query()
+            ->where('active', true)
+            ->with(['brand:id,name', 'model:id,name,vehicle_brand_id', 'type:id,name'])
+            ->ordered()
+            ->get(['id', 'vehicle_brand_id', 'vehicle_model_id', 'vehicle_type_id', 'active']);
     }
 
     private function syncSupplies(int $serviceId, ServiceVehicleTypePrice $price, array $supplies): void
