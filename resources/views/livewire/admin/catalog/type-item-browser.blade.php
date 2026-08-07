@@ -71,6 +71,10 @@
                                 <p>{{ \Illuminate\Support\Str::limit($item->description, 70) ?: 'Sin descripción' }}</p>
                             </div>
                             <div class="catalog-business-item-actions">
+                                <a href="{{ route('admin.catalog-items.show', ['catalogItem' => $item, 'return_to_type' => 1]) }}"
+                                    title="Ver {{ $itemSingular }}" aria-label="Ver {{ $itemSingular }}">
+                                    <x-heroicon-o-eye class="w-4 h-4" />
+                                </a>
                                 <a href="{{ route('admin.catalog-items.edit', ['catalogItem' => $item, 'return_to_type' => 1]) }}"
                                     title="Editar {{ $itemSingular }}" aria-label="Editar {{ $itemSingular }}">
                                     <x-heroicon-o-pencil-square class="w-4 h-4" />

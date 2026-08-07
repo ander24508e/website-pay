@@ -1,380 +1,286 @@
-﻿@extends('layouts.admin')
+@extends('layouts.admin')
 
-@section('title', 'Detalle Producto o Servicio')
+@section('title', $catalogItem->name)
+
+@push('styles')
+    @vite($catalogItem->type?->business_model === \App\Models\CatalogType::BUSINESS_MODEL_PRODUCTS
+        ? 'resources/scss/Catalogo/catalogo-products.scss'
+        : 'resources/scss/Catalogo/catalogo-services.scss')
+@endpush
 
 @section('content')
     @php
-        $returnUrl =
-            $returnUrl ?? route('admin.catalog-types.show', $catalogItem->catalog_type_id);
+        $returnUrl = $returnUrl ?? route('admin.catalog-types.show', $catalogItem->catalog_type_id);
         $returnContext = $returnContext ?? [];
         $isServiceContext =
             ($catalogItem->type?->business_model ?? 'services') === \App\Models\CatalogType::BUSINESS_MODEL_SERVICES;
+        $configItems = $isServiceContext ? $catalogItem->vehicleTypePrices : $catalogItem->variants;
+        $configCount = $configItems->count();
+        $itemLabel = $isServiceContext ? 'servicio' : 'producto';
+        $configSingular = $isServiceContext ? 'precio por vehiculo' : 'presentacion';
+        $configPlural = $isServiceContext ? 'precios por vehiculo' : 'presentaciones';
+        $configSearchId = 'catalogItemConfigSearch-' . $catalogItem->id;
+        $addConfigUrl = $isServiceContext
+            ? route('admin.catalog-service-prices.create', ['catalogItem' => $catalogItem, ...$returnContext])
+            : route('admin.catalog-variants.create', ['catalog_item_id' => $catalogItem->id]);
     @endphp
 
-    <div class="mx-auto w-full max-w-full overflow-x-hidden px-3 pb-4 sm:px-6">
-
-        <div class="flex flex-wrap items-center gap-3 mb-6">
+    <div class="catalog-business-show catalog-item-detail-show">
+        <div class="catalog-item-detail-header">
             <a href="{{ $returnUrl }}"
-                class="flex items-center justify-center w-9 h-9 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition text-gray-500 hover:text-gray-800">
+                class="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-gray-500 shadow-sm transition hover:bg-gray-50 hover:text-gray-800">
                 <span aria-hidden="true">&larr;</span>
             </a>
             <div>
-                <h2 class="text-xl sm:text-2xl font-bold text-gray-800">{{ $catalogItem->name }}</h2>
-                <p class="text-gray-400 text-sm">Detalle del producto o servicio</p>
+                <h2 class="text-xl font-bold text-gray-800 sm:text-2xl">{{ $catalogItem->name }}</h2>
+                <p class="text-sm text-gray-400">Detalle del {{ $itemLabel }} y sus {{ $configPlural }}.</p>
             </div>
         </div>
 
-        <div class="mx-auto w-full max-w-4xl">
-            <div class="bg-white rounded-xl shadow-sm p-4 sm:p-8">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                    <div class="lg:col-span-1">
+        <div class="catalog-item-detail-layout">
+            <aside>
+                <div class="catalog-item-detail-info rounded-xl bg-white p-5 shadow-sm">
+                    <div class="catalog-item-detail-image-wrap">
                         <img src="{{ $catalogItem->image_url }}" alt="{{ $catalogItem->name }}"
-                            class="w-full h-64 rounded-xl object-cover bg-gray-50 border border-gray-200">
+                            class="catalog-item-detail-image">
                     </div>
 
-                    <div class="lg:col-span-2 space-y-4">
+                    <h3>Informacion del {{ ucfirst($itemLabel) }}</h3>
+
+                    <div class="catalog-item-detail-facts">
                         <div>
-                            <p class="text-xs text-gray-400 uppercase tracking-wide">Nombre</p>
+                            <p class="text-xs uppercase tracking-wide text-gray-400">Nombre</p>
                             <p class="font-semibold text-gray-800 break-words">{{ $catalogItem->name }}</p>
                         </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <p class="text-xs text-gray-400 uppercase tracking-wide">Sección</p>
-                                <p class="text-gray-700">{{ $catalogItem->type?->name ?? 'Sin sección' }}</p>
-                            </div>
-                            <div>
-                                <p class="text-xs text-gray-400 uppercase tracking-wide">Categoría</p>
-                                <p class="text-gray-700">{{ $catalogItem->category?->name ?? '-' }}</p>
-                            </div>
+                        <div>
+                            <p class="text-xs uppercase tracking-wide text-gray-400">Seccion</p>
+                            <p class="text-gray-800">{{ $catalogItem->type?->name ?? 'Sin seccion' }}</p>
                         </div>
                         <div>
-                            <p class="text-xs text-gray-400 uppercase tracking-wide">Descripción</p>
-                            <p class="text-gray-700">{{ $catalogItem->description ?: 'Sin descripción adicional.' }}</p>
+                            <p class="text-xs uppercase tracking-wide text-gray-400">Categoria</p>
+                            <p class="text-gray-800">{{ $catalogItem->category?->name ?? 'Sin categoria' }}</p>
                         </div>
                         <div>
-                            <p class="text-xs text-gray-400 uppercase tracking-wide">
-                                {{ $isServiceContext ? 'Reserva' : 'Control de inventario' }}</p>
-                            <p class="text-gray-700 font-semibold">
-                                {{ $isServiceContext ? ($catalogItem->reservable ? 'Activa' : 'No aplica') : ($catalogItem->uses_inventory ? 'Activo' : 'No aplica') }}
+                            <p class="text-xs uppercase tracking-wide text-gray-400">Descripcion</p>
+                            <p class="text-gray-800">{{ $catalogItem->description ?: 'Sin descripcion adicional.' }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs uppercase tracking-wide text-gray-400">
+                                {{ $isServiceContext ? 'Precios' : 'Presentaciones' }}
                             </p>
+                            <p class="font-semibold text-gray-800">{{ $configCount }}</p>
                         </div>
-                        <div class="flex flex-wrap gap-2">
-                            @if ($catalogItem->featured)
-                                <span
-                                    class="bg-amber-50 text-amber-700 px-3 py-1 rounded-full text-xs font-medium">Destacado</span>
-                            @endif
-                            @if ($catalogItem->purchasable)
-                                <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-medium">Se puede
-                                    vender</span>
-                            @endif
-                            @if ($catalogItem->reservable)
-                                <span class="bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-medium">Se
-                                    puede reservar</span>
-                            @endif
-                            @if ($catalogItem->uses_inventory)
-                                <span
-                                    class="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-xs font-medium">Controla
-                                    stock</span>
+                        <div>
+                            <p class="text-xs uppercase tracking-wide text-gray-400">Estado</p>
+                            @if ($catalogItem->active)
+                                <span class="catalog-business-status is-active">Activo</span>
+                            @else
+                                <span class="catalog-business-status">Oculto</span>
                             @endif
                         </div>
                     </div>
-                </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-                    <div>
-                        <p class="text-xs text-gray-400 uppercase tracking-wide">
-                            {{ $isServiceContext ? 'Precios' : 'Presentaciones' }}</p>
-                        <p class="text-gray-700 font-semibold">
-                            {{ $isServiceContext ? $catalogItem->vehicleTypePrices->count() : $catalogItem->variants->count() }}
-                        </p>
+                    <div class="catalog-item-detail-badges">
+                        @if ($catalogItem->featured)
+                            <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">Destacado</span>
+                        @endif
+                        @if ($catalogItem->purchasable)
+                            <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">Se puede vender</span>
+                        @endif
+                        @if ($catalogItem->reservable)
+                            <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">Se puede reservar</span>
+                        @endif
+                        @if ($catalogItem->uses_inventory)
+                            <span class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700">Controla stock</span>
+                        @endif
+                    </div>
+
+                    <div class="catalog-item-detail-buttons">
+                        <a href="{{ route('admin.catalog-items.edit', ['catalogItem' => $catalogItem, ...$returnContext]) }}"
+                            class="w-full rounded-lg bg-gray-900 px-5 py-2.5 text-center text-sm font-medium text-white transition hover:bg-gray-700">
+                            Editar
+                        </a>
+                        <form action="{{ route('admin.catalog-items.destroy', $catalogItem) }}" method="POST"
+                            onsubmit="return confirm('¿Eliminar este producto o servicio?')">
+                            @csrf
+                            @method('DELETE')
+                            <button
+                                class="w-full rounded-lg border border-red-200 bg-red-50 px-5 py-2.5 text-sm font-medium text-red-600 transition hover:bg-red-100">
+                                Eliminar
+                            </button>
+                        </form>
                     </div>
                 </div>
+            </aside>
 
-                @if ($isServiceContext)
-                    <div class="mb-8">
-                        <div class="flex flex-col gap-3 mb-3 sm:flex-row sm:items-center sm:justify-between">
-                            <div>
-                                <p class="text-sm font-semibold text-gray-800">Precios por vehiculo</p>
-                                <p class="text-xs text-gray-400">Gestiona precios, duracion e insumos por tipo de vehiculo.
-                                </p>
+            <section class="catalog-business-list-shell rounded-xl bg-white shadow-sm overflow-hidden flex flex-col">
+                <div
+                    class="catalog-business-list-header flex shrink-0 flex-col gap-3 p-4 sm:p-5 lg:flex-row lg:items-start lg:justify-between">
+                    <div class="catalog-business-search min-w-0 flex-1">
+                        <label for="{{ $configSearchId }}">Buscar {{ $configSingular }}</label>
+                        <div class="catalog-business-search-row">
+                            <div class="min-w-0 flex-1">
+                                <select id="{{ $configSearchId }}" class="select2 catalog-item-detail-search"
+                                    data-placeholder="Buscar {{ $configSingular }}">
+                                    <option value="">Todas las {{ $configPlural }}</option>
+                                    @foreach ($configItems as $configItem)
+                                        @php
+                                            $optionLabel = $isServiceContext
+                                                ? $configItem->vehicle_label
+                                                : $configItem->name;
+                                        @endphp
+                                        <option value="{{ $configItem->id }}">{{ $optionLabel }}</option>
+                                    @endforeach
+                                </select>
                             </div>
-                            <a href="{{ route('admin.catalog-service-prices.create', ['catalogItem' => $catalogItem, ...$returnContext]) }}"
-                                class="w-full bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition text-sm font-medium text-center sm:w-auto">
-                                + Precio por vehiculo
-                            </a>
                         </div>
-                        <div class="rounded-xl border border-gray-200 overflow-hidden">
-                            <div class="md:hidden divide-y divide-gray-100">
-                                @forelse ($catalogItem->vehicleTypePrices as $vehiclePrice)
-                                    <article class="p-4 space-y-3">
-                                        <div class="flex items-start justify-between gap-3">
+                    </div>
+
+                    <a href="{{ $addConfigUrl }}"
+                        class="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-center text-sm font-medium text-white transition hover:bg-gray-700">
+                        + {{ $isServiceContext ? 'Precio por vehiculo' : 'Nueva Presentacion' }}
+                    </a>
+                </div>
+
+                @if ($configItems->isEmpty())
+                    <div class="catalog-business-empty text-center">
+                        <p class="mb-2 font-medium text-gray-700">
+                            Este {{ $itemLabel }} aun no tiene {{ $configPlural }}.
+                        </p>
+                        <p class="mb-5 text-sm">
+                            Agrega el primero para completar su informacion.
+                        </p>
+                        <a href="{{ $addConfigUrl }}"
+                            class="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-center text-sm font-medium text-white transition hover:bg-gray-700">
+                            + {{ $isServiceContext ? 'Precio por vehiculo' : 'Nueva Presentacion' }}
+                        </a>
+                    </div>
+                @else
+                    <div class="catalog-business-items-scroll">
+                        <div class="catalog-business-card-grid">
+                            @foreach ($configItems as $configItem)
+                                @if ($isServiceContext)
+                                    <article class="catalog-business-item-card catalog-detail-config-card"
+                                        data-config-id="{{ $configItem->id }}">
+                                        <div class="catalog-business-item-main">
                                             <div class="min-w-0">
-                                                <p class="font-medium text-gray-800 break-words">
-                                                    {{ $vehiclePrice->vehicle_label }}</p>
-                                                <p class="text-xs text-gray-400">
-                                                    {{ $vehiclePrice->duration_minutes ? $vehiclePrice->duration_minutes . ' min' : 'Sin duracion' }}
-                                                </p>
+                                                <h4>{{ $configItem->vehicle_label }}</h4>
+                                                <p>{{ $configItem->description ?: 'Sin descripcion' }}</p>
                                             </div>
-                                            @if ($vehiclePrice->active)
-                                                <span
-                                                    class="shrink-0 bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-medium">Activo</span>
+                                            <div class="catalog-business-item-actions">
+                                                <a href="{{ route('admin.catalog-service-prices.edit', $configItem) }}"
+                                                    title="Editar precio" aria-label="Editar precio">
+                                                    <x-heroicon-o-pencil-square class="h-4 w-4" />
+                                                </a>
+                                                <form method="POST"
+                                                    action="{{ route('admin.catalog-service-prices.destroy', $configItem) }}"
+                                                    onsubmit="return confirm('¿Eliminar este precio por vehiculo?');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" title="Eliminar precio" aria-label="Eliminar precio">
+                                                        <x-heroicon-o-trash class="h-4 w-4" />
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+
+                                        <div class="catalog-business-item-meta">
+                                            <span class="catalog-business-chip">
+                                                {{ $configItem->duration_minutes ? $configItem->duration_minutes . ' min' : 'Sin duracion' }}
+                                            </span>
+                                            <strong>${{ number_format((float) $configItem->price, 2) }}</strong>
+                                        </div>
+
+                                        <div class="catalog-business-item-footer">
+                                            <span>Insumos <strong>{{ $configItem->supplies->count() }}</strong></span>
+                                            @if ($configItem->active)
+                                                <span class="catalog-business-status is-active">Activo</span>
                                             @else
-                                                <span
-                                                    class="shrink-0 bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs font-medium">Oculto</span>
+                                                <span class="catalog-business-status">Oculto</span>
                                             @endif
                                         </div>
-
-                                        <div class="grid grid-cols-2 gap-3 text-sm">
-                                            <div>
-                                                <p class="text-xs uppercase text-gray-400 font-semibold">Precio</p>
-                                                <p class="font-semibold text-gray-800">
-                                                    ${{ number_format((float) $vehiclePrice->price, 2) }}</p>
+                                    </article>
+                                @else
+                                    <article class="catalog-business-item-card catalog-detail-config-card"
+                                        data-config-id="{{ $configItem->id }}">
+                                        <div class="catalog-business-item-main">
+                                            <div class="min-w-0">
+                                                <h4>{{ $configItem->name }}</h4>
+                                                <p>{{ $configItem->sku ?: 'Sin codigo interno' }}</p>
                                             </div>
-                                            <div>
-                                                <p class="text-xs uppercase text-gray-400 font-semibold">Insumos</p>
-                                                <p class="font-semibold text-gray-800">
-                                                    {{ $vehiclePrice->supplies->count() }}</p>
+                                            <div class="catalog-business-item-actions">
+                                                <a href="{{ route('admin.catalog-variants.edit', ['catalogVariant' => $configItem, 'redirect_to_item' => 1]) }}"
+                                                    title="Editar presentacion" aria-label="Editar presentacion">
+                                                    <x-heroicon-o-pencil-square class="h-4 w-4" />
+                                                </a>
                                             </div>
                                         </div>
 
-                                        @if ($vehiclePrice->description)
-                                            <p class="text-sm text-gray-500">{{ $vehiclePrice->description }}</p>
-                                        @endif
+                                        <div class="catalog-business-item-meta">
+                                            <span class="catalog-business-chip">
+                                                Stock {{ $configItem->stock ?? 0 }}
+                                            </span>
+                                            <strong>
+                                                {{ $configItem->price !== null ? '$' . number_format((float) $configItem->price, 2) : '-' }}
+                                            </strong>
+                                        </div>
 
-                                        <div class="flex justify-end gap-2">
-                                            <a href="{{ route('admin.catalog-service-prices.edit', $vehiclePrice) }}"
-                                                class="text-sm font-medium text-yellow-600 hover:text-yellow-800">Editar</a>
-                                            <form method="POST"
-                                                action="{{ route('admin.catalog-service-prices.destroy', $vehiclePrice) }}"
-                                                onsubmit="return confirm('¿Eliminar este precio por vehiculo?');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button
-                                                    class="text-sm font-medium text-red-600 hover:text-red-800">Eliminar</button>
-                                            </form>
+                                        <div class="catalog-business-item-footer">
+                                            <span>{{ $configItem->is_default ? 'Principal' : 'Presentacion' }}</span>
+                                            @if ($configItem->active)
+                                                <span class="catalog-business-status is-active">Activa</span>
+                                            @else
+                                                <span class="catalog-business-status">Oculta</span>
+                                            @endif
                                         </div>
                                     </article>
-                                @empty
-                                    <div class="px-4 py-8 text-center text-gray-400">Este servicio aun no tiene precios por
-                                        vehiculo.</div>
-                                @endforelse
-                            </div>
-
-                            <div class="hidden md:block">
-                                <table class="min-w-full text-sm text-left">
-                                    <thead class="bg-gray-50 border-b">
-                                        <tr>
-                                            <th class="px-4 py-3">Vehiculo</th>
-                                            <th class="px-4 py-3">Precio</th>
-                                            <th class="px-4 py-3">Duracion</th>
-                                            <th class="px-4 py-3">Insumos</th>
-                                            <th class="px-4 py-3">Estado</th>
-                                            <th class="px-4 py-3">Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y">
-                                        @forelse ($catalogItem->vehicleTypePrices as $vehiclePrice)
-                                            <tr>
-                                                <td class="px-4 py-3">
-                                                    <p class="font-medium text-gray-800">
-                                                        {{ $vehiclePrice->vehicle_label }}</p>
-                                                    @if ($vehiclePrice->description)
-                                                        <p class="text-xs text-gray-400">{{ $vehiclePrice->description }}
-                                                        </p>
-                                                    @endif
-                                                </td>
-                                                <td class="px-4 py-3 font-semibold text-gray-800">
-                                                    ${{ number_format((float) $vehiclePrice->price, 2) }}
-                                                </td>
-                                                <td class="px-4 py-3 text-gray-700">
-                                                    {{ $vehiclePrice->duration_minutes ? $vehiclePrice->duration_minutes . ' min' : '-' }}
-                                                </td>
-                                                <td class="px-4 py-3 text-gray-700">
-                                                    {{ $vehiclePrice->supplies->count() }}
-                                                </td>
-                                                <td class="px-4 py-3">
-                                                    @if ($vehiclePrice->active)
-                                                        <span
-                                                            class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-medium">Activo</span>
-                                                    @else
-                                                        <span
-                                                            class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs font-medium">Oculto</span>
-                                                    @endif
-                                                </td>
-                                                <td class="px-4 py-3">
-                                                    <div class="flex flex-wrap gap-2">
-                                                        <a href="{{ route('admin.catalog-service-prices.edit', $vehiclePrice) }}"
-                                                            class="text-yellow-600 hover:text-yellow-800 text-sm font-medium">Editar</a>
-                                                        <form method="POST"
-                                                            action="{{ route('admin.catalog-service-prices.destroy', $vehiclePrice) }}"
-                                                            onsubmit="return confirm('¿Eliminar este precio por vehiculo?');">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button
-                                                                class="text-red-600 hover:text-red-800 text-sm font-medium">Eliminar</button>
-                                                        </form>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        @empty
-                                            <tr>
-                                                <td colspan="6" class="px-4 py-6 text-center text-gray-400">Este servicio
-                                                    aun no tiene precios por vehiculo.</td>
-                                            </tr>
-                                        @endforelse
-                                    </tbody>
-                                </table>
-                            </div>
+                                @endif
+                            @endforeach
                         </div>
                     </div>
                 @endif
-
-                @unless ($isServiceContext)
-                    <div class="mb-8">
-                        <div class="flex flex-col gap-3 mb-3 sm:flex-row sm:items-center sm:justify-between">
-                            <div>
-                                <p class="text-sm font-semibold text-gray-800">Presentaciones</p>
-                                <p class="text-xs text-gray-400">Gestiona formatos, precios y stock por presentacion.</p>
-                            </div>
-                            <a href="{{ route('admin.catalog-variants.create', ['catalog_item_id' => $catalogItem->id]) }}"
-                                class="w-full bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition text-sm font-medium text-center sm:w-auto">
-                                + Nueva Presentación
-                            </a>
-                        </div>
-
-                        <div class="rounded-xl border border-gray-200 overflow-hidden">
-                            <div class="md:hidden divide-y divide-gray-100">
-                                @forelse($catalogItem->variants as $variant)
-                                    <article class="p-4 space-y-3">
-                                        <div class="flex items-start justify-between gap-3">
-                                            <div class="min-w-0">
-                                                <p class="font-medium text-gray-800 break-words">{{ $variant->name }}</p>
-                                                <p class="text-xs text-gray-400 break-words">{{ $variant->sku ?: 'Sin SKU' }}
-                                                </p>
-                                            </div>
-                                            <div class="shrink-0 flex flex-wrap justify-end gap-1">
-                                                @if ($variant->active)
-                                                    <span
-                                                        class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-medium">Activa</span>
-                                                @else
-                                                    <span
-                                                        class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs font-medium">Oculta</span>
-                                                @endif
-                                                @if ($variant->is_default)
-                                                    <span
-                                                        class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-xs font-medium">Base</span>
-                                                @endif
-                                            </div>
-                                        </div>
-
-                                        <div class="grid grid-cols-2 gap-3 text-sm">
-                                            <div>
-                                                <p class="text-xs uppercase text-gray-400 font-semibold">Precio</p>
-                                                <p class="font-semibold text-gray-800">
-                                                    {{ $variant->price !== null ? '$' . number_format((float) $variant->price, 2) : '-' }}
-                                                </p>
-                                            </div>
-                                            <div>
-                                                <p class="text-xs uppercase text-gray-400 font-semibold">Stock</p>
-                                                <p class="font-semibold text-gray-800">{{ $variant->stock ?? 0 }}</p>
-                                            </div>
-                                        </div>
-
-                                        <div class="flex justify-end gap-2">
-                                            <a href="{{ route('admin.catalog-variants.edit', ['catalogVariant' => $variant, 'redirect_to_item' => 1]) }}"
-                                                class="text-yellow-600 hover:text-yellow-800 text-sm font-medium">Editar</a>
-                                        </div>
-                                    </article>
-                                @empty
-                                    <div class="px-4 py-8 text-center text-gray-400">Este producto o servicio aún no tiene
-                                        presentaciones.</div>
-                                @endforelse
-                            </div>
-
-                            <div class="hidden md:block">
-                                <table class="min-w-full text-sm text-left">
-                                    <thead class="bg-gray-50 border-b">
-                                        <tr>
-                                            <th class="px-4 py-3">Presentación</th>
-                                            <th class="px-4 py-3">SKU</th>
-                                            <th class="px-4 py-3">Precio</th>
-                                            <th class="px-4 py-3">Stock</th>
-                                            <th class="px-4 py-3">Estado</th>
-                                            <th class="px-4 py-3">Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y">
-                                        @forelse($catalogItem->variants as $variant)
-                                            <tr>
-                                                <td class="px-4 py-3">
-                                                    <p class="font-medium text-gray-800">{{ $variant->name }}</p>
-                                                </td>
-                                                <td class="px-4 py-3 text-gray-600 font-mono text-xs">
-                                                    {{ $variant->sku ?: 'Sin SKU' }}
-                                                </td>
-                                                <td class="px-4 py-3 font-semibold text-gray-800">
-                                                    {{ $variant->price !== null ? '$' . number_format((float) $variant->price, 2) : '-' }}
-                                                </td>
-                                                <td class="px-4 py-3 font-semibold text-gray-800">
-                                                    {{ $variant->stock ?? 0 }}
-                                                </td>
-                                                <td class="px-4 py-3">
-                                                    <div class="flex flex-wrap gap-1">
-                                                        @if ($variant->active)
-                                                            <span
-                                                                class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-medium">Activa</span>
-                                                        @else
-                                                            <span
-                                                                class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs font-medium">Oculta</span>
-                                                        @endif
-                                                        @if ($variant->is_default)
-                                                            <span
-                                                                class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-xs font-medium">Base</span>
-                                                        @endif
-                                                    </div>
-                                                </td>
-                                                <td class="px-4 py-3">
-                                                    <div class="flex flex-wrap gap-2">
-                                                        <a href="{{ route('admin.catalog-variants.edit', ['catalogVariant' => $variant, 'redirect_to_item' => 1]) }}"
-                                                            class="text-yellow-600 hover:text-yellow-800 text-sm font-medium">Editar</a>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        @empty
-                                            <tr>
-                                                <td colspan="6" class="px-4 py-6 text-center text-gray-400">Este producto o
-                                                    servicio aún no tiene presentaciones.</td>
-                                            </tr>
-                                        @endforelse
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                @endunless
-
-                <div class="flex flex-col gap-3 pt-2 border-t border-gray-100 sm:flex-row">
-                    <a href="{{ route('admin.catalog-items.edit', ['catalogItem' => $catalogItem, ...$returnContext]) }}"
-                        class="w-full bg-gray-900 text-white px-5 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-sm text-center sm:w-auto">
-                        Editar
-                    </a>
-                    @unless ($isServiceContext)
-                        <a href="{{ route('admin.catalog-variants.create', ['catalog_item_id' => $catalogItem->id]) }}"
-                            class="w-full bg-gray-100 text-gray-700 px-5 py-2.5 rounded-lg hover:bg-gray-200 transition font-medium text-sm text-center sm:w-auto">
-                            + Presentación
-                        </a>
-                    @endunless
-                    <form action="{{ route('admin.catalog-items.destroy', $catalogItem) }}" method="POST"
-                        onsubmit="return confirm('¿Eliminar este producto o servicio?')">
-                        @csrf
-                        @method('DELETE')
-                        <button
-                            class="w-full bg-red-50 text-red-600 px-5 py-2.5 rounded-lg hover:bg-red-100 transition font-medium text-sm border border-red-200 sm:w-auto">
-                            Eliminar
-                        </button>
-                    </form>
-                </div>
-            </div>
+            </section>
         </div>
     </div>
+
+    @push('scripts')
+        <script>
+            (() => {
+                const selectId = @json($configSearchId);
+
+                function initCatalogItemDetailSearch() {
+                    const select = document.getElementById(selectId);
+                    if (!select || !window.jQuery?.fn?.select2) return;
+
+                    const $select = window.jQuery(select);
+
+                    if ($select.hasClass('select2-hidden-accessible')) {
+                        $select.select2('destroy');
+                    }
+
+                    $select.select2({
+                        width: '100%',
+                        placeholder: select.dataset.placeholder || 'Buscar',
+                        allowClear: true,
+                    });
+
+                    $select
+                        .off('change.catalogItemDetail')
+                        .on('change.catalogItemDetail', function () {
+                            filterCatalogItemConfig(this.value || '');
+                        });
+                }
+
+                function filterCatalogItemConfig(selectedId) {
+                    document.querySelectorAll('.catalog-detail-config-card').forEach((card) => {
+                        card.hidden = Boolean(selectedId) && card.dataset.configId !== String(selectedId);
+                    });
+                }
+
+                document.addEventListener('DOMContentLoaded', initCatalogItemDetailSearch);
+                document.addEventListener('livewire:navigated', initCatalogItemDetailSearch);
+                initCatalogItemDetailSearch();
+            })();
+        </script>
+    @endpush
 @endsection

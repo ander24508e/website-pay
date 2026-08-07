@@ -1,9 +1,6 @@
 #!/bin/sh
 set -e
 
-npm install
-composer install
-
 php artisan optimize:clear
 php artisan config:clear
 php artisan cache:clear
