@@ -516,7 +516,7 @@
             function getSelectedVehicleContext() {
                 const option = detailVehicleSelect?.selectedOptions?.[0];
                 if (!option || !option.value) {
-                    return { vehicleId: null, vehicleTypeId: null, vehicleSpecificationId: null };
+                    return { vehicleId: null, vehicleTypeId: null, vehicleSpecificationId: null, vehicleLabel: null };
                 }
 
                 return {
@@ -868,7 +868,7 @@
             detailServiceAddBtn?.addEventListener('click', () => {
                 if (!currentDetailItem || currentDetailItem.tipo !== 'catalog') return;
                 const vehicleContext = getSelectedVehicleContext();
-                if (currentDetailItem.requiere_tipo_vehiculo && !vehicleContext.vehicleId && !vehicleContext.vehicleSpecificationId) {
+                if (currentDetailItem.requiere_tipo_vehiculo && !vehicleContext.vehicleId && !vehicleContext.vehicleSpecificationId && !vehicleContext.vehicleTypeId) {
                     return window.websiteNotify?.('error', 'Selecciona tu vehiculo.');
                 }
                 addToCart(Number(currentDetailItem.id), currentDetailItem.tipo, 1, null, vehicleContext.vehicleId, vehicleContext.vehicleTypeId, vehicleContext.vehicleSpecificationId);
@@ -882,7 +882,7 @@
                     nombre: currentDetailItem.nombre,
                     ...getSelectedVehicleContext(),
                 };
-                if (currentDetailItem.requiere_tipo_vehiculo && !itemForReserve.vehicleId && !itemForReserve.vehicleSpecificationId) {
+                if (currentDetailItem.requiere_tipo_vehiculo && !itemForReserve.vehicleId && !itemForReserve.vehicleSpecificationId && !itemForReserve.vehicleTypeId) {
                     return window.websiteNotify?.('error', 'Selecciona tu vehiculo.');
                 }
                 closeDetailModal();

@@ -7,6 +7,7 @@ use App\Models\CatalogItemVariant;
 use App\Models\CatalogType;
 use App\Services\ServiceVehiclePriceResolver;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class CarritoController extends Controller
 {
@@ -46,6 +47,7 @@ class CarritoController extends Controller
 
         $variantId = null;
         $variantLabel = null;
+        $variant = null;
         $price = (float) $item->display_price;
         $vehicleContext = [
             'vehicle_id' => null,
@@ -60,13 +62,18 @@ class CarritoController extends Controller
         $isProduct = !$isService;
 
         if ($isService) {
-            $vehicleContext = $priceResolver->resolve(
-                $item,
-                $request->integer('vehicle_id') ?: null,
-                $request->integer('vehicle_specification_id') ?: null,
-                auth()->id(),
-                $request->integer('vehicle_type_id') ?: null
-            );
+            try {
+                $vehicleContext = $priceResolver->resolve(
+                    $item,
+                    $request->integer('vehicle_id') ?: null,
+                    $request->integer('vehicle_specification_id') ?: null,
+                    auth()->id(),
+                    $request->integer('vehicle_type_id') ?: null
+                );
+            } catch (ValidationException $exception) {
+                return $this->cartError($request, collect($exception->errors())->flatten()->first() ?: 'No se pudo calcular el precio del servicio.');
+            }
+
             $price = $vehicleContext['price'];
         }
 

@@ -127,9 +127,9 @@
                                 <div class="item-type">{{ $item['type_label'] ?? ($item['type'] === 'product' ? 'Producto' : ($item['type'] === 'service' ? 'Servicio' : 'Catálogo')) }}
                                 </div>
                                 <div class="item-name">{{ $item['name'] }}</div>
-                                @if (!empty($item['vehicle_label']) || !empty($item['vehicle_type_label']))
+                                @if (!empty($item['vehicle_label']) || !empty($item['vehicle_specification_label']) || !empty($item['vehicle_type_label']))
                                     <div class="item-unit">
-                                        Vehículo: {{ $item['vehicle_label'] ?? $item['vehicle_type_label'] }}
+                                        Vehiculo: {{ $item['vehicle_label'] ?? ($item['vehicle_specification_label'] ?? $item['vehicle_type_label']) }}
                                     </div>
                                 @endif
                                 <div class="item-unit">${{ number_format($item['price'], 2) }} c/u</div>
