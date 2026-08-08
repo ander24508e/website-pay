@@ -30,7 +30,7 @@
 
 <div class="bg-layer"></div>
 
-@include('website.navbar')
+@include('website.navbar.index')
 
 <main class="auth-page-wrap">
 <div class="card">

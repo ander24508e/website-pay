@@ -12,6 +12,10 @@ function initSelect2(scope = document) {
     $(scope).find('select.select2').each(function () {
         const $select = $(this);
 
+        if ($select.data('select2-manual')) {
+            return;
+        }
+
         if ($select.hasClass('select2-hidden-accessible')) {
             $select.select2('destroy');
         }

@@ -264,7 +264,7 @@ class CatalogoController extends Controller
 
         $empresa = $empresaQuery->first() ?? new Empresa();
 
-        return view('website.home', [
+        return view('website.home.index', [
             'empresa'    => $empresa,
             'catalogo'   => $data['items'],
             'contactReservableItems' => collect($reservableData['items'])

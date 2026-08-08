@@ -24,11 +24,11 @@
     </div>
 
     <div id="catalogo-grid" class="catalogo-grid" aria-live="polite">
-        @include('website.catalogo-items', ['items' => $catalogo])
+        @include('website.catalogo.items', ['items' => $catalogo])
     </div>
 
     <div id="catalogo-pagination" class="pagination-wrapper">
-        @include('website.catalogo-pagination', ['pagination' => $pagination])
+        @include('website.catalogo.pagination', ['pagination' => $pagination])
     </div>
 
     <div class="catalogo-modal-overlay" id="catalogoDetailOverlay" hidden>

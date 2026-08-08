@@ -42,12 +42,12 @@
     --gold: var(--brand-secondary);
 ">
 
-    @include('website.navbar')
-    @include('website.hero')
-    @include('website.catalogo')
-    @include('website.contacto')
-    @include('website.footer')
-    @include('website.whatsapp-float')
+    @include('website.navbar.index')
+    @include('website.hero.index')
+    @include('website.catalogo.index')
+    @include('website.contacto.index')
+    @include('website.footer.index')
+    @include('website.whatsapp-float.index')
     @include('partials.website-notifications')
 
     <script>

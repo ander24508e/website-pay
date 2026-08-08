@@ -206,7 +206,7 @@
 
     </div>
 
-    @include('website.whatsapp-float')
+    @include('website.whatsapp-float.index')
     <script>
         (() => {
             const toggle = document.getElementById('cartMenuToggle');

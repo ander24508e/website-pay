@@ -181,7 +181,7 @@
 
     </main>
 
-    @include('website.whatsapp-float')
+    @include('website.whatsapp-float.index')
 
     <script>
         (() => {

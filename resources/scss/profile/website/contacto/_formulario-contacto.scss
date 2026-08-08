@@ -1,0 +1,296 @@
+.contact-form-grid {
+    display: grid;
+    gap: 0.9rem;
+}
+
+.contact-form-grid label {
+    display: block;
+    color: #fff;
+    font-size: 0.86rem;
+    font-weight: 700;
+    margin-block-end: 0.35rem;
+}
+
+.contact-form-grid label span { color: var(--brand-primary); }
+
+.contact-form-grid label small { color: rgba(255, 255, 255, 0.68); font-weight: 600; }
+
+.contact-form-grid input,
+.contact-form-grid select,
+.contact-form-grid textarea {
+    inline-size: 100%;
+    border: 1px solid var(--line-tertiary);
+    border-radius: 9px;
+    background: color-mix(in srgb, var(--dark-2) 72%, var(--brand-tertiary) 28%);
+    color: #fff;
+    padding: 0.72rem 0.8rem;
+    font-size: 0.92rem;
+}
+
+.contact-form-grid input:focus,
+.contact-form-grid select:focus,
+.contact-form-grid textarea:focus {
+    outline: none;
+    border-color: color-mix(in srgb, var(--brand-primary) 65%, white 20%);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 18%, transparent);
+}
+
+.contact-form-grid option { color: #111827; }
+
+.contact-service-select {
+    color: #fff;
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--dark-2) 72%, var(--brand-tertiary) 28%), color-mix(in srgb, var(--dark-2) 82%, black 18%));
+    border-color: color-mix(in srgb, var(--brand-tertiary) 42%, transparent);
+    font-weight: 600;
+}
+
+.contact-service-select option {
+    background: #202020;
+    color: #ffffff;
+    font-weight: 600;
+    padding-block: 0.55rem;
+}
+
+.contact-service-select option:checked,
+.contact-service-select option:hover {
+    background: color-mix(in srgb, var(--brand-tertiary) 88%, var(--brand-primary) 12%);
+    color: #111827;
+}
+
+.contact-service-select optgroup {
+    background: #1a1a1a;
+    color: var(--brand-tertiary);
+    font-weight: 700;
+}
+
+.contact-service-select optgroup option {
+    background: #202020;
+    color: #ffffff;
+    padding-inline-start: 1.2rem;
+}
+
+/* ===== SELECT2 ESTILO BASADO EN EL BUSCADOR FUNCIONAL DE CATALOGO ===== */
+#contacto .contact-form-card .select2-container {
+    width: 100% !important;
+}
+
+#contacto .contact-form-card .select2-container .select2-selection--single {
+    min-height: 2.75rem !important;
+    height: 2.75rem !important;
+    border: 1px solid color-mix(in srgb, var(--brand-primary) 72%, white 8%) !important;
+    border-radius: 9px !important;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.08),
+            rgba(255, 255, 255, 0.035)
+        ) !important;
+    box-shadow: none !important;
+}
+
+#contacto .contact-form-card .select2-container--open .select2-selection--single,
+#contacto .contact-form-card .select2-container--focus .select2-selection--single {
+    border-color: color-mix(in srgb, var(--brand-primary) 78%, white 16%) !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 22%, transparent) !important;
+}
+
+#contacto .contact-form-card .select2-selection__rendered {
+    line-height: 2.75rem !important;
+    padding-left: 0.7rem !important;
+    padding-right: 2.4rem !important;
+    color: #ffffff !important;
+    font-size: 0.9rem !important;
+    font-weight: 500 !important;
+}
+
+#contacto .contact-form-card .select2-selection__placeholder {
+    color: rgba(255, 255, 255, 0.72) !important;
+}
+
+#contacto .contact-form-card .select2-selection__arrow {
+    height: 2.75rem !important;
+    right: 0.55rem !important;
+}
+
+#contacto .contact-form-card .select2-selection__arrow b {
+    border-color: rgba(255, 255, 255, 0.8) transparent transparent transparent !important;
+}
+
+#contacto .contact-form-card .select2-container--open .select2-selection__arrow b {
+    border-color: transparent transparent rgba(255, 255, 255, 0.8) transparent !important;
+}
+
+#contacto .contact-form-card .website-vehicle-select-dropdown,
+#contacto .contact-form-card .contact-select-dropdown {
+    overflow: hidden !important;
+    border: 1px solid color-mix(in srgb, var(--brand-primary) 70%, white 8%) !important;
+    border-radius: 9px !important;
+    background: #171717 !important;
+    box-shadow: 0 18px 38px rgba(0, 0, 0, 0.42) !important;
+}
+
+#contacto .contact-form-card .website-vehicle-select-dropdown .select2-dropdown,
+#contacto .contact-form-card .contact-select-dropdown .select2-dropdown,
+#contacto .contact-form-card .website-vehicle-select-dropdown .select2-results,
+#contacto .contact-form-card .contact-select-dropdown .select2-results,
+#contacto .contact-form-card .website-vehicle-select-dropdown .select2-results > .select2-results__options,
+#contacto .contact-form-card .contact-select-dropdown .select2-results > .select2-results__options {
+    background: #171717 !important;
+    color: #ffffff !important;
+}
+
+#contacto .contact-form-card .website-vehicle-select-dropdown .select2-search--dropdown,
+#contacto .contact-form-card .contact-select-dropdown .select2-search--dropdown {
+    padding: 0.55rem !important;
+    background: #171717 !important;
+}
+
+#contacto .contact-form-card .website-vehicle-select-dropdown .select2-search__field,
+#contacto .contact-form-card .contact-select-dropdown .select2-search__field {
+    min-height: 2.4rem !important;
+    border: 1px solid color-mix(in srgb, var(--brand-primary) 70%, white 10%) !important;
+    border-radius: 7px !important;
+    background: #0d0f17 !important;
+    color: #ffffff !important;
+    padding: 0.45rem 0.65rem !important;
+    outline: none !important;
+}
+
+#contacto .contact-form-card .website-vehicle-select-dropdown .select2-search__field:focus,
+#contacto .contact-form-card .contact-select-dropdown .select2-search__field:focus {
+    border-color: color-mix(in srgb, var(--brand-primary) 80%, white 15%) !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 18%, transparent) !important;
+}
+
+#contacto .contact-form-card .website-vehicle-select-dropdown .select2-search__field::placeholder,
+#contacto .contact-form-card .contact-select-dropdown .select2-search__field::placeholder {
+    color: rgba(255, 255, 255, 0.52) !important;
+}
+
+#contacto .contact-form-card .website-vehicle-select-dropdown .select2-results__options,
+#contacto .contact-form-card .contact-select-dropdown .select2-results__options {
+    max-height: 220px !important;
+    background: #171717 !important;
+}
+
+#contacto .contact-form-card .website-vehicle-select-dropdown .select2-results__group,
+#contacto .contact-form-card .contact-select-dropdown .select2-results__group {
+    padding: 0.55rem 0.75rem 0.25rem !important;
+    color: #ffffff !important;
+    font-size: 0.82rem !important;
+    font-weight: 800 !important;
+    background: #171717 !important;
+}
+
+#contacto .contact-form-card .website-vehicle-select-dropdown .select2-results__option,
+#contacto .contact-form-card .contact-select-dropdown .select2-results__option {
+    padding: 0.52rem 0.75rem !important;
+    background: #171717 !important;
+    color: #ffffff !important;
+    font-size: 0.9rem !important;
+}
+
+#contacto .contact-form-card .website-vehicle-select-dropdown .select2-results__option .select2-results__option,
+#contacto .contact-form-card .contact-select-dropdown .select2-results__option .select2-results__option {
+    background: #171717 !important;
+    color: #ffffff !important;
+}
+
+#contacto .contact-form-card .website-vehicle-select-dropdown .select2-results__option--highlighted,
+#contacto .contact-form-card .website-vehicle-select-dropdown .select2-results__option--highlighted.select2-results__option--selectable,
+#contacto .contact-form-card .contact-select-dropdown .select2-results__option--highlighted,
+#contacto .contact-form-card .contact-select-dropdown .select2-results__option--highlighted.select2-results__option--selectable {
+    background: var(--brand-primary) !important;
+    color: #ffffff !important;
+}
+
+#contacto .contact-form-card .website-vehicle-select-dropdown .select2-results__option--selected,
+#contacto .contact-form-card .contact-select-dropdown .select2-results__option--selected {
+    background: color-mix(in srgb, var(--brand-primary) 30%, #171717 70%) !important;
+    color: #ffffff !important;
+}
+
+#contacto .contact-form-card .contact-select-dropdown .select2-results__option--placeholder,
+#contacto .contact-form-card .contact-select-dropdown .select2-results__option.select2-results__message:empty {
+    display: none !important;
+}
+
+.contact-hour-select {
+    color: #fff;
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--dark-2) 58%, var(--brand-primary) 42%), color-mix(in srgb, var(--dark-2) 80%, black 20%));
+    border-color: color-mix(in srgb, var(--brand-primary) 56%, white 10%);
+}
+
+.contact-hour-select option {
+    background: #1e1e1e;
+    color: #ffffff;
+}
+
+.contact-hour-select option:checked,
+.contact-hour-select option:hover {
+    background: var(--brand-primary);
+    color: #ffffff;
+}
+
+.contact-two-cols {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.7rem;
+}
+
+.field-hint {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.75);
+    margin-block-start: 0.3rem;
+}
+
+.contact-alert {
+    font-size: 0.85rem;
+    font-weight: 700;
+    border-radius: 8px;
+    padding: 0.7rem 0.8rem;
+}
+
+.contact-alert.error {
+    background: color-mix(in srgb, var(--brand-primary) 18%, transparent);
+    border-inline-start: 4px solid var(--brand-primary);
+    color: color-mix(in srgb, var(--brand-tertiary) 84%, var(--brand-primary) 16%);
+}
+
+.contact-alert.success {
+    background: color-mix(in srgb, var(--brand-tertiary) 10%, transparent);
+    border-inline-start: 4px solid var(--brand-tertiary);
+    color: color-mix(in srgb, var(--brand-tertiary) 92%, white 8%);
+}
+
+.contact-alert.hidden { display: none; }
+
+.contact-submit-btn {
+    border: none;
+    border-radius: 9px;
+    color: #fff;
+    background: linear-gradient(95deg, var(--brand-primary), color-mix(in srgb, var(--brand-primary) 80%, black));
+    font-size: 1.02rem;
+    font-weight: 700;
+    padding: 0.8rem 1rem;
+    cursor: pointer;
+    transition: transform .2s ease, filter .2s ease;
+}
+
+.contact-submit-btn:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+}
+
+.contact-submit-btn:disabled {
+    cursor: not-allowed;
+    opacity: .8;
+}
+
+@media (max-width: 576px) {
+    .contact-two-cols {
+        grid-template-columns: 1fr;
+    }
+}

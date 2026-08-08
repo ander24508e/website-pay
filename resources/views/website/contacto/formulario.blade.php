@@ -1,153 +1,84 @@
-<section id="contacto" class="section section-dark contact-section">
-    @php
-        $reservableItems = collect($contactReservableItems ?? []);
-        $waUrl = $empresa->whatsapp_url ?? '#';
-    @endphp
+<section class="contact-form-card">
+    <h3>Envíanos un Mensaje</h3>
 
-    <div class="section-header fade-up">
-        <h2 class="section-title">Contáctanos</h2>
-        <p class="section-sub">Estamos aquí para atenderte. Reserva tu cita o consulta lo que necesites.</p>
-    </div>
+    <form id="contact-booking-form" class="contact-form-grid" novalidate>
+        <div>
+            <label for="contact-nombre">Nombre Completo <span>*</span></label>
+            <input type="text" id="contact-nombre" required minlength="3" placeholder="Tu nombre completo">
+        </div>
 
-    <div class="contact-layout fade-up">
-        <aside class="contact-info-col">
-            <h3 class="contact-block-title">Nuestra Información de Contacto</h3>
+        <div>
+            <label for="contact-telefono">Teléfono de Contacto <span>*</span></label>
+            <input type="tel" id="contact-telefono" required pattern="[0-9+\s()-]{10,15}" placeholder="+593 98 123 4546">
+        </div>
 
-            <div class="contact-list">
-                <div class="contact-row">
-                    <div class="contact-bullet whatsapp" aria-hidden="true">
-                        <span class="contact-emoji">💬</span>
-                    </div>
-                    <div>
-                        <h4 class="warn">WhatsApp</h4>
-                        <a href="{{ $waUrl }}" target="_blank" rel="noopener noreferrer">{{ $empresa->telefono_contacto }}</a>
-                        <p>Respuesta inmediata</p>
-                    </div>
-                </div>
-
-                <div class="contact-row">
-                    <div class="contact-bullet location" aria-hidden="true">
-                        <span class="contact-emoji">📍</span>
-                    </div>
-                    <div>
-                        <h4 class="warn">Ubicación</h4>
-                        <p>{{ $empresa->direccion_completa }}</p>
-                        <p>{{ $empresa->ciudad_texto }}</p>
-                    </div>
-                </div>
-
-                <div class="contact-row">
-                    <div class="contact-bullet schedule" aria-hidden="true">
-                        <span class="contact-emoji">🗓️</span>
-                    </div>
-                    <div>
-                        <h4 class="warn">Horarios</h4>
-                        <p>{{ $empresa->horario_texto }}</p>
-                        <p class="warn">Domingos (Mantenimiento)</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="map-wrap">
-                <div class="map-head">
-                    <h3>Encuéntranos</h3>
-                    <p>Guíate por Google Maps para llegar a nuestra ubicación.</p>
-                </div>
-                <div class="map-frame">
-                    <iframe
-                        src="{{ $empresa->ubicacion_mapa_url }}"
-                        allowfullscreen
-                        loading="lazy"
-                        referrerpolicy="no-referrer-when-downgrade">
-                    </iframe>
-                </div>
-            </div>
-        </aside>
-
-        <section class="contact-form-card">
-            <h3>Envíanos un Mensaje</h3>
-
-            <form id="contact-booking-form" class="contact-form-grid" novalidate>
-                <div>
-                    <label for="contact-nombre">Nombre Completo <span>*</span></label>
-                    <input type="text" id="contact-nombre" required minlength="3" placeholder="Tu nombre completo">
-                </div>
-
-                <div>
-                    <label for="contact-telefono">Teléfono de Contacto <span>*</span></label>
-                    <input type="tel" id="contact-telefono" required pattern="[0-9+\s()-]{10,15}" placeholder="+593 98 123 4546">
-                </div>
-
-                <div>
-                    <label for="contact-servicio">Servicio que deseas agendar <span>*</span></label>
-                    <select id="contact-servicio" class="contact-service-select select2" required
-                        data-placeholder="Busca servicio">
-                        <option value=""></option>
-                        @php
-                            // Obtener items únicos y agrupar por categoría
-                            $uniqueItems = collect($reservableItems)
-                                ->unique('id')
-                                ->values()
-                                ->groupBy(function($item) {
-                                    return data_get($item, 'categoria', 'Sin categoría');
-                                })
-                                ->sortKeys();
-                        @endphp
-                        @foreach($uniqueItems as $categoria => $items)
-                            <optgroup label="{{ $categoria ?: 'Sin categoría' }}">
-                                @foreach($items as $item)
-                                    @php
-                                        $tipo = data_get($item, 'tipo_label', 'Catálogo');
-                                        $nombre = data_get($item, 'nombre', 'Sin nombre');
-                                        $displayText = trim("{$tipo} / {$nombre}");
-                                    @endphp
-                                    <option value="{{ data_get($item, 'id') }}">
-                                        {{ $displayText }}
-                                    </option>
-                                @endforeach
-                            </optgroup>
+        <div>
+            <label for="contact-servicio">Servicio que deseas agendar <span>*</span></label>
+            <select id="contact-servicio" class="contact-service-select select2" required
+                data-placeholder="Busca servicio" data-select2-manual="true">
+                <option value=""></option>
+                @php
+                    $uniqueItems = collect($reservableItems)
+                        ->unique('id')
+                        ->values()
+                        ->groupBy(function ($item) {
+                            return data_get($item, 'categoria', 'Sin categoría');
+                        })
+                        ->sortKeys();
+                @endphp
+                @foreach ($uniqueItems as $categoria => $items)
+                    <optgroup label="{{ $categoria ?: 'Sin categoría' }}">
+                        @foreach ($items as $item)
+                            @php
+                                $tipo = data_get($item, 'tipo_label', 'Catálogo');
+                                $nombre = data_get($item, 'nombre', 'Sin nombre');
+                                $displayText = trim("{$tipo} / {$nombre}");
+                            @endphp
+                            <option value="{{ data_get($item, 'id') }}">
+                                {{ $displayText }}
+                            </option>
                         @endforeach
-                    </select>
-                </div>
+                    </optgroup>
+                @endforeach
+            </select>
+        </div>
 
-                <div id="contact-vehicle-wrap" hidden>
-                    <label for="contact-vehicle">Vehículo o tipo de vehículo <span>*</span></label>
-                    <select id="contact-vehicle" class="contact-service-select select2"
-                        data-placeholder="Busca vehículo o tipo">
-                        <option value=""></option>
-                    </select>
-                    <p class="field-hint" id="contact-vehicle-hint">Selecciona el vehículo para calcular la reserva.</p>
-                </div>
+        <div id="contact-vehicle-wrap" hidden>
+            <label for="contact-vehicle">Vehículo o tipo de vehículo <span>*</span></label>
+            <select id="contact-vehicle" class="contact-service-select select2"
+                data-placeholder="Busca vehículo o tipo" data-select2-manual="true">
+                <option value=""></option>
+            </select>
+            <p class="field-hint" id="contact-vehicle-hint">Selecciona el vehículo para calcular la reserva.</p>
+        </div>
 
-                <div class="contact-two-cols">
-                    <div>
-                        <label for="contact-fecha">Fecha <span>*</span></label>
-                        <input type="date" id="contact-fecha" required>
-                        <p class="field-hint">Domingos (Mantenimiento)</p>
-                    </div>
-                    <div>
-                        <label for="contact-hora">Hora <span>*</span></label>
-                        <select id="contact-hora" class="contact-hour-select" required>
-                            <option value="">Selecciona hora</option>
-                            @for($h = 8; $h <= 17; $h++)
-                                @php($hour = str_pad((string)$h, 2, '0', STR_PAD_LEFT).':00')
-                                <option value="{{ $hour }}">{{ $hour }}</option>
-                            @endfor
-                        </select>
-                        <p class="field-hint">08:00 am - 18:00 pm</p>
-                    </div>
-                </div>
+        <div class="contact-two-cols">
+            <div>
+                <label for="contact-fecha">Fecha <span>*</span></label>
+                <input type="date" id="contact-fecha" required>
+                <p class="field-hint">Domingos (Mantenimiento)</p>
+            </div>
+            <div>
+                <label for="contact-hora">Hora <span>*</span></label>
+                <select id="contact-hora" class="contact-hour-select" required>
+                    <option value="">Selecciona hora</option>
+                    @for ($h = 8; $h <= 17; $h++)
+                        @php($hour = str_pad((string) $h, 2, '0', STR_PAD_LEFT) . ':00')
+                        <option value="{{ $hour }}">{{ $hour }}</option>
+                    @endfor
+                </select>
+                <p class="field-hint">08:00 am - 18:00 pm</p>
+            </div>
+        </div>
 
-                <div>
-                    <label for="contact-mensaje">Comentarios adicionales <small>(opcional)</small></label>
-                    <textarea id="contact-mensaje" rows="3" maxlength="500" placeholder="Ej: Necesito una mesa para 4, una camioneta, un combo o una reserva especial..."></textarea>
-                    <p class="field-hint">Escríbenos tu mensaje describiendo todo lo que necesites.</p>
-                </div>
+        <div>
+            <label for="contact-mensaje">Comentarios adicionales <small>(opcional)</small></label>
+            <textarea id="contact-mensaje" rows="3" maxlength="500" placeholder="Ej: Necesito una mesa para 4, una camioneta, un combo o una reserva especial..."></textarea>
+            <p class="field-hint">Escríbenos tu mensaje describiendo todo lo que necesites.</p>
+        </div>
 
-                <button type="button" id="contact-submit" class="contact-submit-btn">Reservar Ahora</button>
-            </form>
-        </section>
-    </div>
+        <button type="button" id="contact-submit" class="contact-submit-btn">Reservar Ahora</button>
+    </form>
 </section>
 
 @push('scripts')
@@ -265,8 +196,16 @@
             placeholder: placeholder || select.dataset.placeholder || 'Buscar',
             allowClear: true,
             dropdownParent: window.jQuery(contactCard || document.body),
-            dropdownCssClass: 'contact-select-dropdown',
-            selectionCssClass: 'contact-select-selection',
+            dropdownCssClass: 'website-vehicle-select-dropdown contact-select-dropdown',
+            selectionCssClass: 'website-vehicle-select-selection contact-select-selection',
+            escapeMarkup: (markup) => markup,
+            templateResult: (data) => {
+                if (!data.id) {
+                    return null;
+                }
+
+                return data.text;
+            },
             language: {
                 noResults: () => 'No encontramos resultados',
                 searching: () => 'Buscando...',
