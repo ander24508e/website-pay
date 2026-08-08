@@ -14,9 +14,8 @@
 
         <div id="contact-vehicle-wrap" class="contact-select-field contact-vehicle-select-field">
             <label for="contact-vehicle">Servicio<span>*</span></label>
-            <select id="contact-vehicle" class="contact-service-select contact-vehicle-select-main select2"
-                data-placeholder="Busca vehículo o tipo" data-select2-manual="true">
-                <option value=""></option>
+            <select id="contact-vehicle" class="contact-service-select contact-vehicle-select-main">
+                <option value="">Selecciona servicio y vehiculo</option>
             </select>
             <p class="field-hint" id="contact-vehicle-hint">Selecciona el vehículo para reservar.</p>
         </div>
@@ -67,7 +66,6 @@
     const mensajeInput = document.getElementById('contact-mensaje');
     const waPhone = @json((string) ($empresa->telefono_contacto ?? ''));
     const reservableItems = @json(($contactReservableItems ?? collect())->values());
-    const contactCard = form.closest('.contact-form-card');
 
     const today = new Date();
     const yyyy = today.getFullYear();
@@ -126,56 +124,6 @@
         if (mensajeInput.value.trim()) msg += `\nComentarios:\n${mensajeInput.value.trim()}`;
         return encodeURIComponent(msg);
     }
-
-    function canUseSelect2(select) {
-        return Boolean(select && window.jQuery?.fn?.select2);
-    }
-
-    function destroySelect2(select) {
-        if (!canUseSelect2(select)) return;
-
-        const $select = window.jQuery(select);
-        if ($select.hasClass('select2-hidden-accessible')) {
-            $select.select2('destroy');
-        }
-    }
-
-    function initContactSelect2(select, placeholder) {
-        if (!canUseSelect2(select)) return;
-
-        const $select = window.jQuery(select);
-        if ($select.hasClass('select2-hidden-accessible')) {
-            $select.select2('destroy');
-        }
-
-        const field = select.closest('.contact-select-field') || contactCard || document.body;
-
-        $select.select2({
-            width: '100%',
-            placeholder: placeholder || select.dataset.placeholder || 'Buscar',
-            allowClear: true,
-            minimumResultsForSearch: 0,
-            dropdownParent: window.jQuery(field),
-            dropdownCssClass: 'website-vehicle-select-dropdown contact-select-dropdown contact-vehicle-dropdown',
-            selectionCssClass: 'website-vehicle-select-selection contact-select-selection contact-vehicle-selection',
-            escapeMarkup: (markup) => markup,
-            language: {
-                noResults: () => 'No encontramos resultados',
-                searching: () => 'Buscando...',
-            },
-        });
-
-        $select.off('select2:open.contactFocus').on('select2:open.contactFocus', () => {
-            setTimeout(() => {
-                const searchField = document.querySelector('.select2-container--open .select2-search__field');
-                if (searchField) {
-                    searchField.placeholder = placeholder || select.dataset.placeholder || 'Buscar';
-                    searchField.focus();
-                }
-            }, 0);
-        });
-    }
-
     function getSelectedVehicleContext() {
         const option = vehicleInput?.selectedOptions?.[0];
         if (!option || !option.value) {
@@ -223,9 +171,8 @@
         if (!vehicleInput) return;
 
         const selectedValue = vehicleInput.value;
-        destroySelect2(vehicleInput);
         vehicleInput.required = true;
-        vehicleInput.innerHTML = '<option value=""></option>';
+        vehicleInput.innerHTML = '<option value="">Selecciona servicio y vehiculo</option>';
 
         reservableItems.forEach((item) => {
             const prices = Array.isArray(item.precios_vehiculo) ? item.precios_vehiculo : [];
@@ -254,8 +201,6 @@
         if (selectedValue && [...vehicleInput.options].some((option) => option.value === selectedValue)) {
             vehicleInput.value = selectedValue;
         }
-
-        initContactSelect2(vehicleInput, 'Busca vehiculo o tipo');
         updateVehicleHint();
     }
 
