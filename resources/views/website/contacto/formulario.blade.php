@@ -12,44 +12,13 @@
             <input type="tel" id="contact-telefono" required pattern="[0-9+\s()-]{10,15}" placeholder="+593 98 123 4546">
         </div>
 
-        <div>
-            <label for="contact-servicio">Servicio que deseas agendar <span>*</span></label>
-            <select id="contact-servicio" class="contact-service-select select2" required
-                data-placeholder="Busca servicio" data-select2-manual="true">
-                <option value=""></option>
-                @php
-                    $uniqueItems = collect($reservableItems)
-                        ->unique('id')
-                        ->values()
-                        ->groupBy(function ($item) {
-                            return data_get($item, 'categoria', 'Sin categoría');
-                        })
-                        ->sortKeys();
-                @endphp
-                @foreach ($uniqueItems as $categoria => $items)
-                    <optgroup label="{{ $categoria ?: 'Sin categoría' }}">
-                        @foreach ($items as $item)
-                            @php
-                                $tipo = data_get($item, 'tipo_label', 'Catálogo');
-                                $nombre = data_get($item, 'nombre', 'Sin nombre');
-                                $displayText = trim("{$tipo} / {$nombre}");
-                            @endphp
-                            <option value="{{ data_get($item, 'id') }}">
-                                {{ $displayText }}
-                            </option>
-                        @endforeach
-                    </optgroup>
-                @endforeach
-            </select>
-        </div>
-
-        <div id="contact-vehicle-wrap" hidden>
-            <label for="contact-vehicle">Vehículo o tipo de vehículo <span>*</span></label>
-            <select id="contact-vehicle" class="contact-service-select select2"
+        <div id="contact-vehicle-wrap" class="contact-select-field contact-vehicle-select-field">
+            <label for="contact-vehicle">Servicio<span>*</span></label>
+            <select id="contact-vehicle" class="contact-service-select contact-vehicle-select-main select2"
                 data-placeholder="Busca vehículo o tipo" data-select2-manual="true">
                 <option value=""></option>
             </select>
-            <p class="field-hint" id="contact-vehicle-hint">Selecciona el vehículo para calcular la reserva.</p>
+            <p class="field-hint" id="contact-vehicle-hint">Selecciona el vehículo para reservar.</p>
         </div>
 
         <div class="contact-two-cols">
@@ -92,17 +61,12 @@
 
     const nombreInput = document.getElementById('contact-nombre');
     const telefonoInput = document.getElementById('contact-telefono');
-    const servicioInput = document.getElementById('contact-servicio');
-    const vehicleWrap = document.getElementById('contact-vehicle-wrap');
     const vehicleInput = document.getElementById('contact-vehicle');
     const vehicleHint = document.getElementById('contact-vehicle-hint');
     const horaInput = document.getElementById('contact-hora');
     const mensajeInput = document.getElementById('contact-mensaje');
     const waPhone = @json((string) ($empresa->telefono_contacto ?? ''));
-    const catalogItems = @json($reservableItems->values());
-    const customerVehicles = @json(($customerVehicles ?? collect())->values());
-    const vehicleSpecifications = @json(($vehicleSpecifications ?? collect())->values());
-    const catalogItemsById = new Map(catalogItems.map((item) => [Number(item.id), item]));
+    const reservableItems = @json(($contactReservableItems ?? collect())->values());
     const contactCard = form.closest('.contact-form-card');
 
     const today = new Date();
@@ -125,12 +89,10 @@
     }
 
     function validate() {
-        if (!nombreInput.value || nombreInput.value.trim().length < 3) return 'Ingresa tu nombre completo (mínimo 3 caracteres).';
-        if (!telefonoInput.value.trim()) return 'Ingresa tu teléfono de contacto.';
-        if (!servicioInput.value) return 'Selecciona un ítem del catálogo.';
-        const selectedItem = getSelectedItem();
-        if (selectedItem?.requiere_tipo_vehiculo && !getSelectedVehicleContext().hasVehicleContext) {
-            return 'Selecciona el vehículo o tipo de vehículo para esta reserva.';
+        if (!nombreInput.value || nombreInput.value.trim().length < 3) return 'Ingresa tu nombre completo.';
+        if (!telefonoInput.value.trim()) return 'Ingresa tu telefono de contacto.';
+        if (!getSelectedVehicleContext().hasVehicleContext) {
+            return 'Selecciona el vehiculo o tipo de vehiculo para esta solicitud.';
         }
         if (!fechaInput.value) return 'Selecciona una fecha.';
         if (isSunday(fechaInput.value)) return 'No se agendan reservas en domingo.';
@@ -139,8 +101,8 @@
     }
 
     function formatDate(dateText) {
-        const [y, m, d] = dateText.split('-');
-        return `${d}/${m}/${y}`;
+        const [year, month, day] = dateText.split('-');
+        return `${day}/${month}/${year}`;
     }
 
     function normalizeWaPhone(phone) {
@@ -152,22 +114,17 @@
     }
 
     function buildWhatsappMessage() {
-        const selectedOption = servicioInput.options[servicioInput.selectedIndex];
-        const itemName = selectedOption?.text || 'Item';
         const vehicleContext = getSelectedVehicleContext();
-        let msg = `NUEVA CITA\n\n`;
+        let msg = `NUEVA SOLICITUD\n\n`;
         msg += `Nombre: ${nombreInput.value.trim()}\n`;
-        msg += `Teléfono: ${telefonoInput.value.trim()}\n`;
-        msg += `Item: ${itemName}\n`;
-        if (vehicleContext.vehicleLabel) msg += `Vehículo: ${vehicleContext.vehicleLabel}\n`;
+        msg += `Telefono: ${telefonoInput.value.trim()}\n`;
+        if (vehicleContext.itemLabel) msg += `Servicio: ${vehicleContext.itemLabel}\n`;
+        if (vehicleContext.vehicleLabel) msg += `Vehiculo: ${vehicleContext.vehicleLabel}\n`;
+        if (vehicleContext.priceLabel) msg += `Precio: ${vehicleContext.priceLabel}\n`;
         msg += `Fecha: ${formatDate(fechaInput.value)}\n`;
         msg += `Hora: ${horaInput.value}\n`;
         if (mensajeInput.value.trim()) msg += `\nComentarios:\n${mensajeInput.value.trim()}`;
         return encodeURIComponent(msg);
-    }
-
-    function formatCatalogPrice(value) {
-        return `$${Number(value || 0).toFixed(2)}`;
     }
 
     function canUseSelect2(select) {
@@ -191,57 +148,32 @@
             $select.select2('destroy');
         }
 
+        const field = select.closest('.contact-select-field') || contactCard || document.body;
+
         $select.select2({
             width: '100%',
             placeholder: placeholder || select.dataset.placeholder || 'Buscar',
             allowClear: true,
-            dropdownParent: window.jQuery(contactCard || document.body),
-            dropdownCssClass: 'website-vehicle-select-dropdown contact-select-dropdown',
-            selectionCssClass: 'website-vehicle-select-selection contact-select-selection',
+            minimumResultsForSearch: 0,
+            dropdownParent: window.jQuery(field),
+            dropdownCssClass: 'website-vehicle-select-dropdown contact-select-dropdown contact-vehicle-dropdown',
+            selectionCssClass: 'website-vehicle-select-selection contact-select-selection contact-vehicle-selection',
             escapeMarkup: (markup) => markup,
-            templateResult: (data) => {
-                if (!data.id) {
-                    return null;
-                }
-
-                return data.text;
-            },
             language: {
                 noResults: () => 'No encontramos resultados',
                 searching: () => 'Buscando...',
             },
         });
-    }
 
-    function getSelectedItem() {
-        return catalogItemsById.get(Number(servicioInput.value || 0)) || null;
-    }
-
-    function getVehiclePrices(item) {
-        return Array.isArray(item?.precios_vehiculo) ? item.precios_vehiculo : [];
-    }
-
-    function getVehiclePriceEntry(item, vehicleTypeId, vehicleSpecificationId = null) {
-        const prices = getVehiclePrices(item);
-
-        if (vehicleSpecificationId) {
-            const exactPrice = prices.find((price) => Number(price.vehicle_specification_id) === Number(vehicleSpecificationId));
-            if (exactPrice) return exactPrice;
-        }
-
-        return prices.find((price) => !price.vehicle_specification_id && Number(price.vehicle_type_id) === Number(vehicleTypeId)) || null;
-    }
-
-    function setVehicleOptionPriceData(option, priceEntry, fallbackPrice) {
-        const price = priceEntry?.price !== null && priceEntry?.price !== undefined
-            ? Number(priceEntry.price)
-            : Number(fallbackPrice || 0);
-
-        option.dataset.price = String(price);
-        option.dataset.durationMinutes = priceEntry?.duration_minutes ? String(priceEntry.duration_minutes) : '';
-        option.dataset.priceDescription = priceEntry?.description || '';
-
-        return price;
+        $select.off('select2:open.contactFocus').on('select2:open.contactFocus', () => {
+            setTimeout(() => {
+                const searchField = document.querySelector('.select2-container--open .select2-search__field');
+                if (searchField) {
+                    searchField.placeholder = placeholder || select.dataset.placeholder || 'Buscar';
+                    searchField.focus();
+                }
+            }, 0);
+        });
     }
 
     function getSelectedVehicleContext() {
@@ -249,6 +181,10 @@
         if (!option || !option.value) {
             return {
                 hasVehicleContext: false,
+                itemId: null,
+                itemLabel: null,
+                priceId: null,
+                priceLabel: null,
                 vehicleId: null,
                 vehicleTypeId: null,
                 vehicleSpecificationId: null,
@@ -258,6 +194,10 @@
 
         return {
             hasVehicleContext: true,
+            itemId: option.dataset.itemId ? Number(option.dataset.itemId) : null,
+            itemLabel: option.dataset.itemLabel || null,
+            priceId: option.dataset.priceId ? Number(option.dataset.priceId) : null,
+            priceLabel: option.dataset.priceLabel || null,
             vehicleId: option.dataset.vehicleId ? Number(option.dataset.vehicleId) : null,
             vehicleTypeId: option.dataset.vehicleTypeId ? Number(option.dataset.vehicleTypeId) : null,
             vehicleSpecificationId: option.dataset.vehicleSpecificationId ? Number(option.dataset.vehicleSpecificationId) : null,
@@ -268,178 +208,76 @@
     function updateVehicleHint() {
         if (!vehicleHint || !vehicleInput) return;
         const option = vehicleInput.selectedOptions[0];
-
-        if (!option?.value) {
-            vehicleHint.textContent = 'Selecciona el vehículo para calcular la reserva.';
-            return;
-        }
-
-        const price = option.dataset.price ? formatCatalogPrice(option.dataset.price) : null;
-        const duration = option.dataset.durationMinutes ? ` Duración aproximada: ${option.dataset.durationMinutes} min.` : '';
-        vehicleHint.textContent = price ? `Precio calculado: ${price}.${duration}` : 'Vehículo seleccionado.';
+        const price = option?.dataset?.priceLabel;
+        vehicleHint.textContent = option?.value
+            ? (price ? `Precio referencial: ${price}.` : 'Vehiculo seleccionado.')
+            : 'Selecciona el vehiculo o tipo de vehiculo para la solicitud.';
     }
 
-    function renderVehicleOptions(item) {
-        if (!vehicleWrap || !vehicleInput) return;
+    function money(value) {
+        const amount = Number(value || 0);
+        return `$${amount.toFixed(2)}`;
+    }
 
+    function renderVehicleOptions() {
+        if (!vehicleInput) return;
+
+        const selectedValue = vehicleInput.value;
         destroySelect2(vehicleInput);
-
-        const prices = getVehiclePrices(item);
-        const requiresVehicle = Boolean(item?.requiere_tipo_vehiculo) && prices.length > 0;
-        const basePrice = Number(item?.precio_base ?? item?.precio ?? 0);
-
-        vehicleWrap.hidden = !requiresVehicle;
-        vehicleInput.required = requiresVehicle;
+        vehicleInput.required = true;
         vehicleInput.innerHTML = '<option value=""></option>';
 
-        if (!requiresVehicle) {
-            updateVehicleHint();
-            return;
-        }
+        reservableItems.forEach((item) => {
+            const prices = Array.isArray(item.precios_vehiculo) ? item.precios_vehiculo : [];
+            if (!prices.length) return;
 
-        const pricedSpecificationIds = new Set(prices
-            .filter((price) => price.vehicle_specification_id)
-            .map((price) => Number(price.vehicle_specification_id)));
-        const fallbackTypeIds = new Set(prices
-            .filter((price) => !price.vehicle_specification_id)
-            .map((price) => Number(price.vehicle_type_id)));
-        const renderedPriceIds = new Set();
-
-        const compatibleVehicles = customerVehicles.filter((vehicle) =>
-            pricedSpecificationIds.has(Number(vehicle.vehicle_specification_id)) ||
-            fallbackTypeIds.has(Number(vehicle.vehicle_type_id))
-        );
-
-        if (compatibleVehicles.length) {
             const group = document.createElement('optgroup');
-            group.label = 'Mis vehículos';
-            compatibleVehicles.forEach((vehicle) => {
-                const priceEntry = getVehiclePriceEntry(item, vehicle.vehicle_type_id, vehicle.vehicle_specification_id);
+            group.label = `${item.tipo_label || 'Servicio'} / ${item.nombre || 'Servicio'}`;
+
+            prices.forEach((price) => {
                 const option = document.createElement('option');
-                option.value = `vehicle:${vehicle.id}`;
-                option.dataset.vehicleId = String(vehicle.id);
-                option.dataset.vehicleSpecificationId = String(vehicle.vehicle_specification_id);
-                option.dataset.vehicleTypeId = String(vehicle.vehicle_type_id || '');
-                const price = setVehicleOptionPriceData(option, priceEntry, basePrice);
-                option.textContent = `${vehicle.label} - ${formatCatalogPrice(price)}`;
-                group.appendChild(option);
-                if (priceEntry?.id) renderedPriceIds.add(Number(priceEntry.id));
-            });
-            vehicleInput.appendChild(group);
-        }
-
-        const compatibleSpecifications = vehicleSpecifications.filter((specification) =>
-            pricedSpecificationIds.has(Number(specification.id)) ||
-            fallbackTypeIds.has(Number(specification.vehicle_type_id))
-        );
-
-        if (compatibleSpecifications.length) {
-            const group = document.createElement('optgroup');
-            group.label = compatibleVehicles.length ? 'Otros vehículos' : 'Vehículos disponibles';
-            compatibleSpecifications.forEach((specification) => {
-                const priceEntry = getVehiclePriceEntry(item, specification.vehicle_type_id, specification.id);
-                const option = document.createElement('option');
-                option.value = `spec:${specification.id}`;
-                option.dataset.vehicleSpecificationId = String(specification.id);
-                option.dataset.vehicleTypeId = String(specification.vehicle_type_id || '');
-                const price = setVehicleOptionPriceData(option, priceEntry, basePrice);
-                option.textContent = `${specification.name} - ${formatCatalogPrice(price)}`;
-                group.appendChild(option);
-                if (priceEntry?.id) renderedPriceIds.add(Number(priceEntry.id));
-            });
-            vehicleInput.appendChild(group);
-        }
-
-        const directPrices = prices.filter((price) => !renderedPriceIds.has(Number(price.id)));
-        if (directPrices.length) {
-            const group = document.createElement('optgroup');
-            group.label = compatibleVehicles.length || compatibleSpecifications.length
-                ? 'Otros precios disponibles'
-                : 'Vehículos disponibles';
-
-            directPrices.forEach((priceEntry) => {
-                const vehicleTypeId = Number(priceEntry.vehicle_type_id);
-                const vehicleSpecificationId = Number(priceEntry.vehicle_specification_id || 0);
-                const option = document.createElement('option');
-                const price = setVehicleOptionPriceData(option, priceEntry, basePrice);
-                option.value = vehicleSpecificationId ? `spec:${vehicleSpecificationId}` : `type:${vehicleTypeId}`;
-                if (vehicleSpecificationId) option.dataset.vehicleSpecificationId = String(vehicleSpecificationId);
-                option.dataset.vehicleTypeId = String(vehicleTypeId);
-                option.textContent = `${priceEntry.vehicle_name || priceEntry.vehicle_type_name || 'Vehículo'} - ${formatCatalogPrice(price)}`;
+                const priceLabel = money(price.price);
+                option.value = `service-price:${item.id}:${price.id}`;
+                option.dataset.itemId = String(item.id);
+                option.dataset.itemLabel = item.nombre || '';
+                option.dataset.priceId = String(price.id);
+                option.dataset.priceLabel = priceLabel;
+                option.dataset.vehicleSpecificationId = String(price.vehicle_specification_id || '');
+                option.dataset.vehicleTypeId = String(price.vehicle_type_id || '');
+                option.textContent = `${price.vehicle_name || price.vehicle_type_name || 'Vehiculo'} - ${priceLabel}`;
                 group.appendChild(option);
             });
 
             vehicleInput.appendChild(group);
+        });
+
+        if (selectedValue && [...vehicleInput.options].some((option) => option.value === selectedValue)) {
+            vehicleInput.value = selectedValue;
         }
 
+        initContactSelect2(vehicleInput, 'Busca vehiculo o tipo');
         updateVehicleHint();
-        initContactSelect2(vehicleInput, 'Busca vehículo o tipo');
     }
 
-    btn.addEventListener('click', async () => {
+    btn.addEventListener('click', () => {
         const error = validate();
         if (error) {
             showError(error);
             return;
         }
 
-        btn.disabled = true;
-        btn.textContent = 'Enviando...';
-
         const message = buildWhatsappMessage();
         const waTargetPhone = normalizeWaPhone(waPhone || telefonoInput.value);
-        const waUrl = waTargetPhone ? `https://wa.me/${waTargetPhone}?text=${message}` : '';
 
-        let waWindow = null;
-        if (waUrl) {
-            waWindow = window.open('about:blank', '_blank');
+        if (!waTargetPhone) {
+            showError('No existe un numero de WhatsApp configurado.');
+            return;
         }
 
-        try {
-            const itemId = Number(servicioInput.value);
-            const vehicleContext = getSelectedVehicleContext();
-            const response = await fetch(@json(route('reservas.catalogo')), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': @json(csrf_token()),
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify({
-                    item_id: itemId,
-                    item_type: 'catalog',
-                    vehicle_id: vehicleContext.vehicleId,
-                    vehicle_type_id: vehicleContext.vehicleTypeId,
-                    vehicle_specification_id: vehicleContext.vehicleSpecificationId,
-                })
-            });
-
-            const data = await response.json().catch(() => ({}));
-
-            if (waWindow && waUrl) {
-                waWindow.location.href = waUrl;
-            } else if (waUrl) {
-                window.location.href = waUrl;
-            }
-
-            if (!response.ok) {
-                showError((data && data.message ? data.message : 'No se pudo crear la reserva.') + ' WhatsApp se abrió correctamente.');
-            } else {
-                showSuccess('Reserva creada exitosamente. Te contactaremos pronto.');
-                form.reset();
-                renderVehicleOptions(null);
-            }
-        } catch (e) {
-            if (waWindow && waUrl) {
-                waWindow.location.href = waUrl;
-            } else if (waUrl) {
-                window.location.href = waUrl;
-            }
-            showError('No se pudo registrar la reserva, pero WhatsApp se abrió para continuar.');
-        } finally {
-            btn.disabled = false;
-            btn.textContent = 'Reservar Ahora';
-        }
+        window.open(`https://wa.me/${waTargetPhone}?text=${message}`, '_blank');
+        showSuccess('Solicitud preparada. Te contactaremos pronto.');
+        form.reset();
+        renderVehicleOptions();
     });
 
     fechaInput.addEventListener('change', () => {
@@ -449,12 +287,8 @@
         }
     });
 
-    servicioInput.addEventListener('change', () => {
-        renderVehicleOptions(getSelectedItem());
-    });
-
     vehicleInput?.addEventListener('change', updateVehicleHint);
-    initContactSelect2(servicioInput, 'Busca servicio');
+    renderVehicleOptions();
 })();
 </script>
 @endpush

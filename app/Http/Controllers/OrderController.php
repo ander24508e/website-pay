@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CatalogItem;
 use App\Models\CatalogItemVariant;
+use App\Models\CatalogType;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Transaction;
@@ -568,7 +569,7 @@ class OrderController extends Controller
                 'vehicleTypePrices.vehicleSpecification.type',
             ])
             ->where('active', '=', true)
-            ->where('reservable', '=', true)
+            ->whereHas('type', fn (Builder $query) => $query->where('business_model', CatalogType::BUSINESS_MODEL_SERVICES))
             ->find($data['item_id']);
 
         if (!$model) {
