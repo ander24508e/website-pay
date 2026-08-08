@@ -20,7 +20,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    @vite(['resources/css/app.css', 'resources/scss/website.scss', 'resources/scss/auth.scss', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/scss/website.scss', 'resources/scss/auth/login.scss', 'resources/js/app.js'])
 </head>
 <body class="auth-login"
     data-brand-primary="{{ $primary }}"

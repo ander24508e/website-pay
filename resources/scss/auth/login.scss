@@ -1,0 +1,27 @@
+@use 'shared';
+
+body.auth-login .bg-layer {
+    background:
+        radial-gradient(ellipse 60% 60% at 70% 50%, rgba(216, 33, 40, 0.1) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 40% at 20% 80%, rgba(240, 180, 41, 0.05) 0%, transparent 60%);
+}
+
+body.auth-login .bg-layer::after {
+    content: '';
+    position: absolute;
+    inset-inline-start: 0;
+    inset-block-start: 0;
+    inset-block-end: 0;
+    inline-size: 4px;
+    background: linear-gradient(to bottom, transparent, var(--red), transparent);
+}
+
+body.auth-login .card {
+    max-inline-size: min(640px, 92vw);
+}
+
+@media (min-width: 1536px) {
+    body.auth-login .card {
+        max-inline-size: 700px;
+    }
+}

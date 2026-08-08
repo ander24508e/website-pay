@@ -44,13 +44,6 @@ body.auth-register {
     --gold: var(--brand-secondary);
 }
 
-@media (min-width: 769px) {
-    body.auth-register {
-        height: 100vh;
-        overflow-y: hidden;
-    }
-}
-
 .auth-page-wrap {
     width: 100%;
     min-height: calc(100svh - var(--auth-navbar-h));
@@ -58,25 +51,13 @@ body.auth-register {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 1.5rem 1rem;
+    padding: 2rem 1rem 2.5rem;
 }
 
 .bg-layer {
     position: fixed;
     inset: 0;
     pointer-events: none;
-}
-
-body.auth-login .bg-layer {
-    background:
-        radial-gradient(ellipse 60% 60% at 70% 50%, rgba(216, 33, 40, 0.1) 0%, transparent 70%),
-        radial-gradient(ellipse 40% 40% at 20% 80%, rgba(240, 180, 41, 0.05) 0%, transparent 60%);
-}
-
-body.auth-register .bg-layer {
-    background:
-        radial-gradient(ellipse 60% 60% at 30% 50%, rgba(216, 33, 40, 0.1) 0%, transparent 70%),
-        radial-gradient(ellipse 40% 40% at 80% 20%, rgba(240, 180, 41, 0.05) 0%, transparent 60%);
 }
 
 .bg-layer::before {
@@ -88,26 +69,6 @@ body.auth-register .bg-layer {
             transparent 40px,
             rgba(255, 255, 255, 0.01) 40px,
             rgba(255, 255, 255, 0.01) 41px);
-}
-
-body.auth-login .bg-layer::after {
-    content: '';
-    position: absolute;
-    inset-inline-start: 0;
-    inset-block-start: 0;
-    inset-block-end: 0;
-    inline-size: 4px;
-    background: linear-gradient(to bottom, transparent, var(--red), transparent);
-}
-
-body.auth-register .bg-layer::after {
-    content: '';
-    position: absolute;
-    inset-inline-end: 0;
-    inset-block-start: 0;
-    inset-block-end: 0;
-    inline-size: 4px;
-    background: linear-gradient(to bottom, transparent, var(--red), transparent);
 }
 
 .card {
@@ -123,14 +84,6 @@ body.auth-register .bg-layer::after {
     margin-inline: auto;
 }
 
-body.auth-login .card {
-    max-inline-size: min(640px, 92vw);
-}
-
-body.auth-register .card {
-    max-inline-size: min(700px, 92vw);
-}
-
 @keyframes authFadeUp {
     from {
         opacity: 0;
@@ -143,7 +96,6 @@ body.auth-register .card {
     }
 }
 
-/* ===== LOGO Y MARCA - CENTRADO Y MÁS GRANDE ===== */
 .logo-wrap {
     display: flex;
     flex-direction: column;
@@ -185,7 +137,6 @@ body.auth-register .card {
     margin-block-start: 0.4rem;
 }
 
-/* ===== FORMULARIOS ===== */
 .form-group {
     margin-block-end: 1.2rem;
 }
@@ -193,10 +144,6 @@ body.auth-register .card {
 .auth-form-grid {
     display: grid;
     gap: 1.2rem;
-}
-
-.auth-form-grid-register {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .form-label {
@@ -298,21 +245,6 @@ body.auth-register .card {
     color: var(--gold);
 }
 
-@media (max-width: 992px) {
-    .auth-page-wrap {
-        padding: 1.2rem 1rem;
-    }
-
-    .card {
-        padding: 2.4rem 2rem;
-    }
-
-    .brand {
-        font-size: 1.85rem;
-    }
-}
-
-/* ===== BOTONES ===== */
 .btn-submit {
     inline-size: 100%;
     background: var(--red);
@@ -398,7 +330,6 @@ body.auth-register .card {
     line-height: 1.6;
 }
 
-/* ===== FORTALEZA DE CONTRASEÑA (si se usa en registro) ===== */
 .strength-bar {
     block-size: 4px;
     border-radius: 2px;
@@ -440,7 +371,20 @@ body.auth-register .card {
     color: #28a745;
 }
 
-/* ===== RESPONSIVE ===== */
+@media (max-width: 992px) {
+    .auth-page-wrap {
+        padding: 1.25rem 1rem 2rem;
+    }
+
+    .card {
+        padding: 2.4rem 2rem;
+    }
+
+    .brand {
+        font-size: 1.85rem;
+    }
+}
+
 @media (max-width: 640px) {
     :root {
         --auth-navbar-h: 64px;
@@ -449,7 +393,7 @@ body.auth-register .card {
     .auth-page-wrap {
         min-height: calc(100svh - var(--auth-navbar-h));
         margin-top: var(--auth-navbar-h);
-        padding: 0.8rem 0.85rem 0.8rem;
+        padding: 0.8rem 0.85rem;
         align-items: center;
     }
 
@@ -475,10 +419,7 @@ body.auth-register .card {
     .form-input {
         padding: 0.8rem 1rem;
         font-size: 0.9rem;
-    }
-
-    .auth-form-grid-register {
-        grid-template-columns: 1fr;
+        min-block-size: 52px;
     }
 
     .btn-submit,
@@ -514,7 +455,7 @@ body.auth-register .card {
     }
 
     .card {
-        padding: 1.6rem 1rem;
+        padding: 1.6rem 0.95rem;
         border-radius: 14px;
     }
 
@@ -545,18 +486,10 @@ body.auth-register .card {
         inset-inline-end: 0.75rem;
         font-size: 1rem;
     }
-}
 
-@media (min-width: 1536px) {
-    .auth-page-wrap {
-        padding-top: 4rem;
-    }
-
-    body.auth-login .card {
-        max-inline-size: 700px;
-    }
-
-    .brand {
-        font-size: 2.2rem;
+    .btn-submit,
+    .btn-register,
+    .btn-login {
+        letter-spacing: 0.06em;
     }
 }
