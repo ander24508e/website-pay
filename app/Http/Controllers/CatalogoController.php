@@ -255,6 +255,7 @@ class CatalogoController extends Controller
         $page = (int) $request->get('page', 1);
 
         $data = $this->getCatalogItems($tipo, $search, $page);
+        $reservableData = $this->getCatalogItems('todos', '', 1, 500);
         $empresaQuery = Empresa::query();
 
         if (Schema::hasTable('landing_banners')) {
@@ -266,6 +267,10 @@ class CatalogoController extends Controller
         return view('website.home', [
             'empresa'    => $empresa,
             'catalogo'   => $data['items'],
+            'contactReservableItems' => collect($reservableData['items'])
+                ->filter(fn ($item) => (bool) data_get($item, 'reservable')
+                    && data_get($item, 'business_model') === CatalogType::BUSINESS_MODEL_SERVICES)
+                ->values(),
             'pagination' => $data['pagination'],
             'catalogFilters' => $this->getCatalogFilters(),
             'tipo'       => $tipo,

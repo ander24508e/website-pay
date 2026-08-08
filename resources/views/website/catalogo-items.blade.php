@@ -6,6 +6,14 @@
             ?? $availablePresentations->first()
             ?? $presentations->first();
         $defaultPresentationStock = (int) ($defaultPresentation['stock'] ?? ($item['stock_disponible'] ?? 0));
+        $vehiclePrices = collect($item['precios_vehiculo'] ?? [])
+            ->pluck('price')
+            ->map(fn ($price) => (float) $price)
+            ->filter(fn ($price) => $price > 0);
+        $serviceStartingPrice = $vehiclePrices->isNotEmpty()
+            ? $vehiclePrices->min()
+            : (float) ($item['precio'] ?? 0);
+        $showServiceStartingPrice = !($item['inventariable'] ?? false) && $serviceStartingPrice > 0;
     @endphp
     <div class="card item-catalogo">
         @if ($item['imagen'])
@@ -79,6 +87,12 @@
                     @endif
                 </div>
             </div>
+            @if($showServiceStartingPrice)
+                <div class="card-service-starting-price" aria-label="Precio desde ${{ number_format($serviceStartingPrice, 2) }}">
+                    <span>Desde</span>
+                    <strong>${{ number_format($serviceStartingPrice, 2) }}</strong>
+                </div>
+            @endif
             <div class="card-footer">
                 @if(($item['comprable'] ?? false) && !($item['agotado'] ?? false))
                     <button type="button"

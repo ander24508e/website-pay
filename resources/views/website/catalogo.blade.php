@@ -319,6 +319,7 @@
                 const safeImg = item.imagen ? `/storage/${item.imagen}` : '';
                 const isPurchasable = Boolean(item.comprable);
                 const isReservable = Boolean(item.reservable);
+                const startingPriceHtml = renderServiceStartingPrice(item);
                 const detailDataAttrs = `data-id="${Number(item.id)}" data-tipo="${tipo}" data-nombre="${safeName}" data-categoria="${safeCategory}" data-precio="${Number(item.precio)}" data-descripcion="${safeDesc}" data-inventariable="${item.inventariable ? '1' : '0'}" data-comprable="${item.comprable ? '1' : '0'}" data-reservable="${item.reservable ? '1' : '0'}"`;
                 const imageHtml = item.imagen ?
                     `<button type="button" class="card-image-wrap js-open-detail" ${detailDataAttrs} data-imagen="${safeImg}" aria-label="Ver detalle de ${safeName}"><img src="${safeImg}" alt="${safeName}" class="card-image"></button>` :
@@ -333,6 +334,7 @@
                         <div class="card-name">${escapeHtml(item.nombre)}</div>
                     </div>
                 </div>
+                ${startingPriceHtml}
                 <div class="card-footer">
                     ${isPurchasable ? renderPurchaseAction(item, tipo) : ''}
                     ${isReservable ? `<button type="button" class="btn-reservar btn-reservar-main ${item.requiere_tipo_vehiculo ? 'js-open-priced-service' : 'js-open-reserve'}" data-id="${Number(item.id)}" data-tipo="${tipo}" data-nombre="${safeName}" data-precio="${Number(item.precio)}" title="Reservar" aria-label="Reservar">Reservar</button>` : ''}
@@ -446,6 +448,36 @@
 
             function getVehiclePrices(item) {
                 return Array.isArray(item?.precios_vehiculo) ? item.precios_vehiculo : [];
+            }
+
+            function getServiceStartingPrice(item) {
+                if (!item || Boolean(item.inventariable)) return null;
+
+                const configuredPrices = getVehiclePrices(item)
+                    .map((price) => Number(price?.price ?? 0))
+                    .filter((price) => Number.isFinite(price) && price > 0);
+
+                if (configuredPrices.length) {
+                    return Math.min(...configuredPrices);
+                }
+
+                const fallbackPrice = Number(item.precio ?? item.precio_base ?? 0);
+                return Number.isFinite(fallbackPrice) && fallbackPrice > 0 ? fallbackPrice : null;
+            }
+
+            function renderServiceStartingPrice(item) {
+                const price = getServiceStartingPrice(item);
+
+                if (price === null) {
+                    return '';
+                }
+
+                return `
+                    <div class="card-service-starting-price" aria-label="Precio desde ${formatCatalogPrice(price)}">
+                        <span>Desde</span>
+                        <strong>${formatCatalogPrice(price)}</strong>
+                    </div>
+                `;
             }
 
             function canUseSelect2() {
