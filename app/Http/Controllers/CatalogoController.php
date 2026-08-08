@@ -268,8 +268,7 @@ class CatalogoController extends Controller
             'empresa'    => $empresa,
             'catalogo'   => $data['items'],
             'contactReservableItems' => collect($reservableData['items'])
-                ->filter(fn ($item) => (bool) data_get($item, 'reservable')
-                    && data_get($item, 'business_model') === CatalogType::BUSINESS_MODEL_SERVICES)
+                ->filter(fn ($item) => data_get($item, 'business_model') === CatalogType::BUSINESS_MODEL_SERVICES)
                 ->values(),
             'pagination' => $data['pagination'],
             'catalogFilters' => $this->getCatalogFilters(),
