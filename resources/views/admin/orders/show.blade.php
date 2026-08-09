@@ -151,16 +151,40 @@
                 @endif
             </div>
 
-            @if(($order->order_type ?? 'purchase') === 'reservation' && $order->status !== 'paid')
+            @if($order->status !== 'paid')
                 <div class="bg-white rounded-xl shadow-sm p-6">
-                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Pago manual</p>
-                    <form method="POST" action="{{ route('admin.orders.marcar-pagada', $order) }}">
-                        @csrf
-                        @method('PATCH')
-                        <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition text-sm font-semibold">
-                            Marcar reserva como pagada
-                        </button>
-                    </form>
+                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Cobro</p>
+                    @if(($order->work_status ?? \App\Models\Order::WORK_PENDING) === \App\Models\Order::WORK_READY)
+                        <p class="text-sm text-gray-500 mb-4">Registra el pago para completar la orden.</p>
+                        <form method="POST" action="{{ route('admin.orders.marcar-pagada', $order) }}" class="space-y-3" data-order-payment-form data-total="{{ (float) $order->total }}">
+                            @csrf
+                            @method('PATCH')
+                            <div>
+                                <label for="paymentMethod" class="block text-sm font-medium text-gray-700 mb-1">Método de pago</label>
+                                <select id="paymentMethod" name="payment_method" required class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                                    <option value="cash">Efectivo</option>
+                                    <option value="transfer">Transferencia</option>
+                                    <option value="card">Tarjeta</option>
+                                    <option value="payphone">PayPhone</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="receivedAmount" class="block text-sm font-medium text-gray-700 mb-1">Monto recibido</label>
+                                <input id="receivedAmount" name="received_amount" type="number" min="{{ (float) $order->total }}" step="0.01" value="{{ old('received_amount', number_format((float) $order->total, 2, '.', '')) }}" required class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                            </div>
+                            <div>
+                                <label for="paymentReference" class="block text-sm font-medium text-gray-700 mb-1">Referencia <span class="text-gray-400">(opcional)</span></label>
+                                <input id="paymentReference" name="payment_reference" type="text" value="{{ old('payment_reference') }}" class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                            </div>
+                            <div class="flex items-center justify-between text-sm border-t border-gray-100 pt-3">
+                                <span class="text-gray-500">Cambio</span>
+                                <strong data-payment-change>$0.00</strong>
+                            </div>
+                            <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition text-sm font-semibold">Cobrar y completar</button>
+                        </form>
+                    @else
+                        <p class="text-sm text-gray-500">El cobro se habilita cuando la orden esté marcada como lista.</p>
+                    @endif
                 </div>
             @endif
         </div>
@@ -211,3 +235,21 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+    <script>
+        document.querySelectorAll('[data-order-payment-form]').forEach((form) => {
+            const receivedInput = form.querySelector('[name="received_amount"]');
+            const changeOutput = form.querySelector('[data-payment-change]');
+            const total = Number(form.dataset.total || 0);
+
+            const updateChange = () => {
+                const received = Number(receivedInput.value || 0);
+                changeOutput.textContent = `$${Math.max(0, received - total).toFixed(2)}`;
+            };
+
+            receivedInput.addEventListener('input', updateChange);
+            updateChange();
+        });
+    </script>
+@endpush

@@ -6,10 +6,9 @@ use App\Data\SaleData;
 use App\Models\CatalogItem;
 use App\Models\CatalogItemVariant;
 use App\Models\CatalogType;
+use App\Models\Order;
 use App\Models\Sale;
-use App\Models\SalePayment;
 use App\Services\ServiceVehiclePriceResolver;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -17,7 +16,6 @@ class CreateSaleService
 {
     public function __construct(
         private readonly ServiceVehiclePriceResolver $priceResolver,
-        private readonly DiscountSaleInventoryService $inventoryService,
     ) {
     }
 
@@ -26,47 +24,60 @@ class CreateSaleService
         return DB::transaction(function () use ($data) {
             $resolvedItems = $this->resolveItems($data);
             $subtotal = round((float) collect($resolvedItems)->sum('subtotal'), 2);
-            $discount = 0.0;
             $taxTotal = round((float) collect($resolvedItems)->sum('tax_amount'), 2);
-            $total = round($subtotal - $discount + $taxTotal, 2);
-            $payment = $this->resolvePayment($data->payment, $total);
-            $saleStatus = $payment['sale_status'];
+            $total = round($subtotal + $taxTotal, 2);
 
             $sale = Sale::create([
                 'user_id' => $data->userId,
-                'vehicle_id' => $data->vehicleId,
+                'vehicle_id' => null,
                 'attended_by' => $data->attendedBy ?: auth()->id(),
-                'status' => $saleStatus,
-                'payment_status' => $payment['legacy_payment_status'],
-                'payment_method' => $payment['method'],
+                'status' => Sale::STATUS_PENDING,
+                'payment_status' => 'pending',
+                'payment_method' => 'unassigned',
                 'subtotal' => $subtotal,
-                'discount' => $discount,
+                'discount' => 0,
                 'tax_total' => $taxTotal,
                 'total' => $total,
                 'notes' => $data->notes,
             ]);
 
-            $sale->payments()->create($payment['payload']);
+            $order = Order::create([
+                'user_id' => $data->userId,
+                'assigned_to' => $data->attendedBy ?: auth()->id(),
+                'sale_id' => $sale->id,
+                'total' => $total,
+                'status' => 'pending',
+                'work_status' => Order::WORK_PENDING,
+                'order_type' => 'manual_sale',
+                'scheduled_at' => $data->scheduledAt,
+                'work_notes' => $data->notes,
+            ]);
 
             foreach ($resolvedItems as $item) {
-                $sale->items()->create($item['payload']);
-            }
+                $saleItem = $sale->items()->create($item['payload']);
 
-            if ($saleStatus === 'paid') {
-                $this->inventoryService->discount($sale);
+                $order->items()->create([
+                    'itemable_type' => CatalogItem::class,
+                    'itemable_id' => $saleItem->catalog_item_id,
+                    'catalog_item_variant_id' => $saleItem->catalog_item_variant_id,
+                    'vehicle_id' => $saleItem->vehicle_id,
+                    'vehicle_type_id' => $saleItem->vehicle_type_id,
+                    'quantity' => $saleItem->quantity,
+                    'unit_price' => $saleItem->unit_price,
+                ]);
             }
 
             $sale->audits()->create([
                 'user_id' => auth()->id(),
-                'action' => 'sale.created',
+                'action' => 'sale.created_pending',
                 'payload' => [
-                    'payment_method' => $payment['method'],
-                    'payment_status' => $payment['payload']['status'],
+                    'order_id' => $order->id,
+                    'scheduled_at' => $data->scheduledAt,
                     'total' => $total,
                 ],
             ]);
 
-            return $sale->load(['items', 'payments']);
+            return $sale->load(['items', 'order']);
         });
     }
 
@@ -89,18 +100,20 @@ class CreateSaleService
                 ->find((int) ($row['catalog_item_id'] ?? 0));
 
             if (!$catalogItem) {
-                throw ValidationException::withMessages(["items.{$index}.catalog_item_id" => 'El item seleccionado no esta disponible.']);
+                throw ValidationException::withMessages(["items.{$index}.catalog_item_id" => 'El ítem seleccionado no está disponible.']);
             }
 
             $quantity = max(1, (int) ($row['quantity'] ?? 1));
             $isProduct = ($catalogItem->type?->business_model ?? CatalogType::BUSINESS_MODEL_SERVICES) === CatalogType::BUSINESS_MODEL_PRODUCTS;
             $variant = null;
             $unitPrice = (float) $catalogItem->display_price;
+            $vehicleContext = [];
 
             if ($isProduct) {
                 $variant = $this->resolveVariant($catalogItem, $row['catalog_item_variant_id'] ?? null);
+
                 if (!$variant) {
-                    throw ValidationException::withMessages(["items.{$index}.catalog_item_variant_id" => 'Selecciona una presentacion activa para este producto.']);
+                    throw ValidationException::withMessages(["items.{$index}.catalog_item_variant_id" => 'Selecciona una presentación activa para este producto.']);
                 }
 
                 $unitPrice = (float) ($variant->price ?? 0);
@@ -120,83 +133,31 @@ class CreateSaleService
             }
 
             $subtotal = round($unitPrice * $quantity, 2);
-            $taxRate = 0.0;
-            $taxAmount = 0.0;
-            $discountAmount = 0.0;
-            $total = round($subtotal - $discountAmount + $taxAmount, 2);
 
             $resolved[] = [
-                'variant' => $variant,
-                'uses_inventory' => (bool) $catalogItem->uses_inventory,
                 'subtotal' => $subtotal,
-                'tax_amount' => $taxAmount,
+                'tax_amount' => 0,
                 'payload' => [
                     'catalog_item_id' => $catalogItem->id,
                     'catalog_item_variant_id' => $isProduct ? $variant->id : null,
                     'vehicle_id' => !$isProduct && !empty($row['vehicle_id']) ? (int) $row['vehicle_id'] : null,
                     'vehicle_type_id' => !$isProduct ? ($vehicleContext['vehicle_type_id'] ?? null) : null,
                     'name_snapshot' => $catalogItem->name,
-                    'type_snapshot' => $catalogItem->type?->name,
+                    'type_snapshot' => $isProduct ? 'Producto' : 'Servicio',
                     'description_snapshot' => $catalogItem->description,
                     'code_snapshot' => $variant?->sku,
                     'quantity' => $quantity,
                     'unit_price' => $unitPrice,
-                    'discount_amount' => $discountAmount,
-                    'tax_rate' => $taxRate,
-                    'tax_amount' => $taxAmount,
+                    'discount_amount' => 0,
+                    'tax_rate' => 0,
+                    'tax_amount' => 0,
                     'subtotal' => $subtotal,
-                    'total' => $total,
+                    'total' => $subtotal,
                 ],
             ];
         }
 
         return $resolved;
-    }
-
-    private function resolvePayment(array $payment, float $total): array
-    {
-        $method = $payment['method'] ?? SalePayment::METHOD_CASH;
-        $status = in_array($method, [SalePayment::METHOD_CASH, SalePayment::METHOD_TRANSFER, SalePayment::METHOD_CARD], true)
-            ? SalePayment::STATUS_APPROVED
-            : SalePayment::STATUS_PENDING;
-
-        $receivedAmount = isset($payment['received_amount']) ? (float) $payment['received_amount'] : null;
-        $changeAmount = $method === SalePayment::METHOD_CASH && $receivedAmount !== null
-            ? max(0, round($receivedAmount - $total, 2))
-            : null;
-
-        if ($method === SalePayment::METHOD_CASH && $receivedAmount !== null && $receivedAmount < $total) {
-            throw ValidationException::withMessages(['payment.received_amount' => 'El monto recibido no cubre el total de la venta.']);
-        }
-
-        return [
-            'method' => $method,
-            'sale_status' => $status === SalePayment::STATUS_APPROVED ? Sale::STATUS_PAID : Sale::STATUS_PENDING,
-            'legacy_payment_status' => $status === SalePayment::STATUS_APPROVED ? 'paid' : 'pending',
-            'payload' => [
-                'method' => $method,
-                'status' => $status,
-                'amount' => $total,
-                'received_amount' => $receivedAmount,
-                'change_amount' => $changeAmount,
-                'transaction_id' => $payment['transaction_id'] ?? null,
-                'bank' => $payment['bank'] ?? null,
-                'reference' => $payment['reference'] ?? null,
-                'proof_path' => $this->storeProof($payment['proof'] ?? null),
-                'authorization_code' => $payment['authorization_code'] ?? null,
-                'due_date' => $payment['due_date'] ?? null,
-                'notes' => trim((string) ($payment['notes'] ?? '')) ?: null,
-            ],
-        ];
-    }
-
-    private function storeProof(mixed $proof): ?string
-    {
-        if (!$proof instanceof UploadedFile) {
-            return null;
-        }
-
-        return $proof->store('sale-payment-proofs', 'public');
     }
 
     private function resolveVariant(CatalogItem $catalogItem, mixed $variantId): ?CatalogItemVariant
@@ -208,17 +169,12 @@ class CreateSaleService
                 ->find((int) $variantId);
 
             if (!$variant) {
-                throw ValidationException::withMessages([
-                    'items' => 'La presentación seleccionada no pertenece al item o no está activa.',
-                ]);
+                throw ValidationException::withMessages(['items' => 'La presentación seleccionada no pertenece al ítem o no está activa.']);
             }
 
             return $variant;
         }
 
-        return $catalogItem->activeVariants
-            ->sortByDesc('is_default')
-            ->first();
+        return $catalogItem->activeVariants->sortByDesc('is_default')->first();
     }
-
 }

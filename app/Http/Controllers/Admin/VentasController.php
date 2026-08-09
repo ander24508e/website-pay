@@ -40,6 +40,7 @@ class VentasController extends Controller
         if ($origin === '' || $origin === 'web') {
             $orders = Order::query()
                 ->with(['user', 'items', 'transaction'])
+                ->where('order_type', '!=', 'manual_sale')
                 ->when($search !== '', function ($query) use ($search) {
                     $query->where(function ($sub) use ($search) {
                         $sub->where('id', 'like', "%{$search}%")
@@ -61,7 +62,7 @@ class VentasController extends Controller
 
         if ($origin === '' || $origin === 'internal') {
             $linkedSaleIds = $ordersHaveSaleId
-                ? Order::query()->whereNotNull('sale_id')->select('sale_id')
+                ? Order::query()->where('order_type', '!=', 'manual_sale')->whereNotNull('sale_id')->select('sale_id')
                 : collect();
 
             $sales = Sale::query()
@@ -103,14 +104,14 @@ class VentasController extends Controller
         );
 
         $stats = [
-            'total_ventas' => (float) Order::query()->where('status', 'paid')->sum('total')
+            'total_ventas' => (float) Order::query()->where('order_type', '!=', 'manual_sale')->where('status', 'paid')->sum('total')
                 + (float) Sale::query()
                     ->where('status', 'paid')
-                    ->when($ordersHaveSaleId, fn ($query) => $query->whereNotIn('id', Order::query()->whereNotNull('sale_id')->select('sale_id')))
+                    ->when($ordersHaveSaleId, fn ($query) => $query->whereNotIn('id', Order::query()->where('order_type', '!=', 'manual_sale')->whereNotNull('sale_id')->select('sale_id')))
                     ->sum('total'),
-            'total_ordenes' => (int) Order::query()->count(),
+            'total_ordenes' => (int) Order::query()->where('order_type', '!=', 'manual_sale')->count(),
             'ventas_internas' => (int) Sale::query()
-                ->when($ordersHaveSaleId, fn ($query) => $query->whereNotIn('id', Order::query()->whereNotNull('sale_id')->select('sale_id')))
+                ->when($ordersHaveSaleId, fn ($query) => $query->whereNotIn('id', Order::query()->where('order_type', '!=', 'manual_sale')->whereNotNull('sale_id')->select('sale_id')))
                 ->count(),
             'ticket_promedio' => (float) $this->paidAverageTicket(),
         ];
@@ -154,8 +155,8 @@ class VentasController extends Controller
     {
         $sale = $createSaleService->create(SaleData::fromArray($request->validated()));
 
-        return redirect()->route('admin.ventas.show', 'internal-' . $sale->id)
-            ->with('success', 'Venta del sistema creada correctamente.');
+        return redirect()->route('admin.orders.show', $sale->order)
+            ->with('success', 'Venta registrada. La orden quedó pendiente de atención y cobro.');
     }
 
     public function edit(string $venta)
@@ -327,15 +328,15 @@ class VentasController extends Controller
     private function paidAverageTicket(): float
     {
         $ordersHaveSaleId = Schema::hasColumn('orders', 'sale_id');
-        $total = (float) Order::query()->where('status', 'paid')->sum('total')
+        $total = (float) Order::query()->where('order_type', '!=', 'manual_sale')->where('status', 'paid')->sum('total')
             + (float) Sale::query()
                 ->where('status', 'paid')
-                ->when($ordersHaveSaleId, fn ($query) => $query->whereNotIn('id', Order::query()->whereNotNull('sale_id')->select('sale_id')))
+                ->when($ordersHaveSaleId, fn ($query) => $query->whereNotIn('id', Order::query()->where('order_type', '!=', 'manual_sale')->whereNotNull('sale_id')->select('sale_id')))
                 ->sum('total');
-        $count = (int) Order::query()->where('status', 'paid')->count()
+        $count = (int) Order::query()->where('order_type', '!=', 'manual_sale')->where('status', 'paid')->count()
             + (int) Sale::query()
                 ->where('status', 'paid')
-                ->when($ordersHaveSaleId, fn ($query) => $query->whereNotIn('id', Order::query()->whereNotNull('sale_id')->select('sale_id')))
+                ->when($ordersHaveSaleId, fn ($query) => $query->whereNotIn('id', Order::query()->where('order_type', '!=', 'manual_sale')->whereNotNull('sale_id')->select('sale_id')))
                 ->count();
 
         return $count > 0 ? $total / $count : 0;

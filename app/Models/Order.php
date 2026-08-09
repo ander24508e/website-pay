@@ -90,9 +90,7 @@ class Order extends Model
             self::WORK_IN_PROGRESS => [
                 self::WORK_READY => 'Marcar listo',
             ],
-            self::WORK_READY => [
-                self::WORK_COMPLETED => 'Completar',
-            ],
+            self::WORK_READY => [],
             default => [],
         };
     }

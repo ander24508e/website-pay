@@ -15,6 +15,7 @@ use App\Services\ServiceVehiclePriceResolver;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
@@ -468,6 +469,10 @@ class OrderController extends Controller
             return redirect()->back()->with('error', 'No se puede aplicar ese cambio de estado a esta orden.');
         }
 
+        if ($status === Order::WORK_COMPLETED && $order->status !== 'paid') {
+            return redirect()->back()->with('error', 'Primero registra el cobro para completar la orden.');
+        }
+
         $timestampColumn = match ($status) {
             Order::WORK_ARRIVED => 'arrived_at',
             Order::WORK_IN_PROGRESS => 'started_at',
@@ -681,36 +686,60 @@ class OrderController extends Controller
     }
 
 
-    public function marcarPagada(Order $order, CreateSaleFromOrderService $createSaleFromOrderService)
+    public function marcarPagada(Request $request, Order $order, CreateSaleFromOrderService $createSaleFromOrderService)
     {
         if ($order->status === 'paid') {
-            if (!$order->sale_id) {
-                $createSaleFromOrderService->create($order);
-            }
+            $createSaleFromOrderService->create($order);
 
             return redirect()->back()->with('success', 'La orden ya estaba marcada como pagada. Venta comercial verificada.');
         }
 
-        $existingApproved = $order->transactions()->where('status', 'approved')->first();
-
-        if (!$existingApproved) {
-            Transaction::create([
-                'order_id' => $order->id,
-                'payphone_ref' => null,
-                'amount' => $order->total,
-                'status' => 'approved',
-                'response_payload' => [
-                    'source' => 'manual_admin',
-                    'note' => 'Pago confirmado manualmente desde panel admin.',
-                ],
-                'client_transaction_id' => 'manual-order-' . $order->id . '-' . now()->timestamp,
-            ]);
+        if (($order->work_status ?? Order::WORK_PENDING) !== Order::WORK_READY) {
+            return redirect()->back()->with('error', 'La orden debe estar lista antes de registrar el cobro.');
         }
 
-        $order->update(['status' => 'paid']);
-        $createSaleFromOrderService->create($order);
+        $data = $request->validate([
+            'payment_method' => ['required', Rule::in(['cash', 'transfer', 'card', 'payphone'])],
+            'received_amount' => ['required', 'numeric', 'min:' . (float) $order->total],
+            'payment_reference' => ['nullable', 'string', 'max:255'],
+        ], [
+            'received_amount.min' => 'El monto recibido no puede ser menor al total de la orden.',
+        ]);
 
-        return redirect()->back()->with('success', 'Orden marcada como pagada, transaccion registrada y venta comercial enlazada.');
+        DB::transaction(function () use ($order, $data) {
+            $lockedOrder = Order::query()->lockForUpdate()->findOrFail($order->id);
+            $receivedAmount = round((float) $data['received_amount'], 2);
+            $changeAmount = round(max(0, $receivedAmount - (float) $lockedOrder->total), 2);
+
+            if (!$lockedOrder->transactions()->where('status', 'approved')->exists()) {
+                Transaction::create([
+                    'order_id' => $lockedOrder->id,
+                    'payphone_ref' => $data['payment_method'] === 'payphone'
+                        ? ($data['payment_reference'] ?: null)
+                        : null,
+                    'amount' => $lockedOrder->total,
+                    'status' => 'approved',
+                    'response_payload' => [
+                        'source' => 'manual_admin',
+                        'payment_method' => $data['payment_method'],
+                        'received_amount' => $receivedAmount,
+                        'change_amount' => $changeAmount,
+                        'reference' => $data['payment_reference'] ?: null,
+                    ],
+                    'client_transaction_id' => 'manual-order-' . $lockedOrder->id . '-' . now()->timestamp,
+                ]);
+            }
+
+            $lockedOrder->update([
+                'status' => 'paid',
+                'work_status' => Order::WORK_COMPLETED,
+                'completed_at' => now(),
+            ]);
+        });
+
+        $createSaleFromOrderService->create($order->fresh());
+
+        return redirect()->back()->with('success', 'Cobro registrado. La orden y la venta quedaron completadas.');
     }
 
     public function destroy(Order $order)
