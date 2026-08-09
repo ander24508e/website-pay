@@ -2,6 +2,10 @@
 
 @section('title', 'Nueva Venta Sistema')
 
+@push('styles')
+    @vite('resources/scss/admin/ventas-create.scss')
+@endpush
+
 @section('content')
     @php
         $catalogPayload = $catalogItems
@@ -54,12 +58,12 @@
         </div>
 
         <form method="POST" action="{{ route('admin.ventas.store') }}" id="saleForm"
-            class="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(380px,0.85fr)] lg:overflow-hidden">
+            class="sales-create-layout grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(380px,0.85fr)] lg:overflow-hidden">
             @csrf
 
-            <div class="grid min-h-0 gap-4 lg:grid-rows-[minmax(0,1fr)_auto]">
+            <div class="sales-create-primary grid min-h-0 gap-4 lg:grid-rows-[minmax(0,1fr)_auto]">
                 <section
-                    class="min-h-0 space-y-5 rounded-xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5 lg:overflow-y-auto">
+                    class="sales-create-data min-h-0 space-y-5 rounded-xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5 lg:overflow-y-auto">
                     <div>
                         <h3 class="font-bold text-gray-800">
                             Datos de la venta
@@ -141,7 +145,8 @@
 
                 </section>
 
-                <section class="space-y-4 rounded-xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5">
+                <section
+                    class="sales-create-summary space-y-4 rounded-xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5">
                     <h3 class="font-bold text-gray-800">
                         Resumen
                     </h3>
@@ -173,7 +178,7 @@
             </div>
 
             <section
-                class="flex min-h-[420px] min-w-0 flex-col overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm lg:min-h-0">
+                class="sales-create-items flex min-h-[420px] min-w-0 flex-col overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm lg:min-h-0">
                 <div
                     class="flex shrink-0 flex-col gap-3 border-b border-gray-100 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
                     <div>
@@ -265,8 +270,8 @@
             </div>
         </div>
 
-        <div id="quickVehicleModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/50 px-4">
-            <div class="w-full max-w-2xl rounded-xl bg-white shadow-xl">
+        <div id="quickVehicleModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/50 p-3 sm:p-4">
+            <div class="flex max-h-[calc(100dvh-1.5rem)] w-full max-w-2xl flex-col overflow-hidden rounded-xl bg-white shadow-xl sm:max-h-[calc(100dvh-2rem)]">
                 <div class="flex items-center justify-between border-b border-gray-100 px-6 py-4">
                     <div>
                         <h3 class="text-lg font-bold text-gray-800">Nuevo Vehiculo</h3>
@@ -279,30 +284,62 @@
                     </button>
                 </div>
 
-                <form id="quickVehicleForm" class="space-y-4 px-6 py-5">
+                <form id="quickVehicleForm" class="space-y-4 overflow-y-auto px-4 py-5 sm:px-6">
                     @csrf
                     <input type="hidden" name="user_id" id="quickVehicleUserId">
+                    <input type="hidden" name="specification_mode" id="quickVehicleSpecificationMode" value="existing">
                     <div id="quickVehicleErrors"
                         class="hidden rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"></div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Especificacion del vehículo
-                                *</label>
-                            <select name="vehicle_specification_id"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" required>
-                                <option value="">Selecciona marca / modelo / tipo</option>
+                        <div id="quickVehicleExistingSpecification" class="md:col-span-2">
+                            <div class="mb-1 flex flex-wrap items-center justify-between gap-2">
+                                <label class="block text-sm font-medium text-gray-700">Especificación de vehículo existente *</label>
+                                <button type="button" id="showQuickVehicleNewSpecification"
+                                    class="rounded-lg bg-gray-900 px-3 py-2 text-xs font-semibold text-white hover:bg-gray-700">
+                                    + Crear nueva especificación
+                                </button>
+                            </div>
+                            <select name="vehicle_specification_id" id="quickVehicleSpecificationSelect"
+                                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" required>
+                                <option value="">Busca marca / modelo / tipo</option>
                                 @foreach ($vehicleSpecifications as $specification)
-                                    <option value="{{ $specification->id }}">
-                                        {{ $specification->brand?->name }} / {{ $specification->model?->name }} /
-                                        {{ $specification->type?->name }}
-                                    </option>
+                                    <option value="{{ $specification->id }}">{{ $specification->label }}</option>
                                 @endforeach
                             </select>
-                            <a href="{{ route('admin.vehiculos.specifications.index') }}" target="_blank"
-                                class="mt-2 inline-flex text-xs font-semibold text-blue-600 hover:underline">
-                                Administrar especificaciones
-                            </a>
+                        </div>
+
+                        <div id="quickVehicleNewSpecification" class="hidden md:col-span-2">
+                            <div class="mb-3 flex flex-wrap items-start justify-between gap-2 border-t border-gray-100 pt-4">
+                                <div>
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Crear nueva especificación</p>
+                                    <p class="mt-1 text-xs text-gray-500">Úsala únicamente cuando no encuentres la combinación de marca, modelo y tipo.</p>
+                                </div>
+                                <button type="button" id="showQuickVehicleExistingSpecification"
+                                    class="rounded-lg bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-200">
+                                    Usar especificación existente
+                                </button>
+                            </div>
+                            <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                                <div>
+                                    <label class="mb-1 block text-sm font-medium text-gray-700">Crear marca nueva *</label>
+                                    <input type="text" name="new_vehicle_brand_name" disabled
+                                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                                        placeholder="Ej: Toyota, Kia">
+                                </div>
+                                <div>
+                                    <label class="mb-1 block text-sm font-medium text-gray-700">Crear modelo nuevo *</label>
+                                    <input type="text" name="new_vehicle_model_name" disabled
+                                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                                        placeholder="Ej: Corolla, Picanto">
+                                </div>
+                                <div>
+                                    <label class="mb-1 block text-sm font-medium text-gray-700">Crear tipo nuevo *</label>
+                                    <input type="text" name="new_vehicle_type_name" disabled
+                                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                                        placeholder="Ej: Auto pequeño, SUV">
+                                </div>
+                            </div>
                         </div>
 
                         <div>
@@ -493,6 +530,13 @@
         const quickVehicleForm = document.getElementById('quickVehicleForm');
         const quickVehicleErrors = document.getElementById('quickVehicleErrors');
         const saveQuickVehicle = document.getElementById('saveQuickVehicle');
+        const quickVehicleSpecificationMode = document.getElementById('quickVehicleSpecificationMode');
+        const quickVehicleExistingSpecification = document.getElementById('quickVehicleExistingSpecification');
+        const quickVehicleNewSpecification = document.getElementById('quickVehicleNewSpecification');
+        const quickVehicleSpecificationSelect = document.getElementById('quickVehicleSpecificationSelect');
+        const quickVehicleNewSpecificationInputs = quickVehicleForm?.querySelectorAll(
+            'input[name="new_vehicle_brand_name"], input[name="new_vehicle_model_name"], input[name="new_vehicle_type_name"]'
+        ) || [];
         const businessModelProducts = @json(\App\Models\CatalogType::BUSINESS_MODEL_PRODUCTS);
         const businessModelServices = @json(\App\Models\CatalogType::BUSINESS_MODEL_SERVICES);
         let itemIndex = 0;
@@ -777,6 +821,31 @@
             quickVehicleErrors.classList.remove('hidden');
         }
 
+        function setQuickVehicleSpecificationMode(mode) {
+            const creatingNew = mode === 'new';
+
+            quickVehicleSpecificationMode.value = creatingNew ? 'new' : 'existing';
+            quickVehicleExistingSpecification.classList.toggle('hidden', creatingNew);
+            quickVehicleNewSpecification.classList.toggle('hidden', !creatingNew);
+            quickVehicleSpecificationSelect.disabled = creatingNew;
+            quickVehicleSpecificationSelect.required = !creatingNew;
+
+            quickVehicleNewSpecificationInputs.forEach((input) => {
+                input.disabled = !creatingNew;
+                input.required = creatingNew;
+            });
+
+            if (creatingNew) {
+                quickVehicleSpecificationSelect.value = '';
+                quickVehicleNewSpecificationInputs[0]?.focus();
+            } else {
+                quickVehicleNewSpecificationInputs.forEach((input) => {
+                    input.value = '';
+                });
+                quickVehicleSpecificationSelect.focus();
+            }
+        }
+
         function openQuickVehicleModal() {
             quickVehicleErrors.classList.add('hidden');
             quickVehicleErrors.innerHTML = '';
@@ -792,9 +861,10 @@
             }
 
             document.getElementById('quickVehicleUserId').value = selectedClientId;
+            setQuickVehicleSpecificationMode('existing');
             quickVehicleModal.classList.remove('hidden');
             quickVehicleModal.classList.add('flex');
-            quickVehicleForm.querySelector('select[name="vehicle_specification_id"]')?.focus();
+            quickVehicleSpecificationSelect?.focus();
         }
 
         function closeQuickVehicleModal() {
@@ -803,6 +873,7 @@
             quickVehicleErrors.classList.add('hidden');
             quickVehicleErrors.innerHTML = '';
             quickVehicleForm.reset();
+            setQuickVehicleSpecificationMode('existing');
             quickVehicleTargetRow = null;
         }
 
@@ -824,6 +895,12 @@
 
         document.getElementById('closeQuickVehicleModal')?.addEventListener('click', closeQuickVehicleModal);
         document.getElementById('cancelQuickVehicle')?.addEventListener('click', closeQuickVehicleModal);
+        document.getElementById('showQuickVehicleNewSpecification')?.addEventListener('click', () => {
+            setQuickVehicleSpecificationMode('new');
+        });
+        document.getElementById('showQuickVehicleExistingSpecification')?.addEventListener('click', () => {
+            setQuickVehicleSpecificationMode('existing');
+        });
         quickVehicleModal?.addEventListener('click', (event) => {
             if (event.target === quickVehicleModal) closeQuickVehicleModal();
         });
@@ -852,6 +929,14 @@
 
                 const vehicle = data.vehicle;
                 addVehicleToRowSelects(vehicle);
+
+                if (vehicle.vehicle_specification_id && vehicle.specification_label &&
+                    !quickVehicleSpecificationSelect.querySelector(`option[value="${vehicle.vehicle_specification_id}"]`)) {
+                    quickVehicleSpecificationSelect.add(new Option(
+                        vehicle.specification_label,
+                        vehicle.vehicle_specification_id
+                    ));
+                }
 
                 const targetVehicleSelect = quickVehicleTargetRow?.querySelector('.vehicle-select');
                 const targetSpecificationSelect = quickVehicleTargetRow?.querySelector(

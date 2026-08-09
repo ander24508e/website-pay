@@ -82,7 +82,7 @@ class VehiculosController extends Controller
 
     public function quickStore(Request $request)
     {
-        $vehicle = Vehicle::create($this->validatedData($request))
+        $vehicle = Vehicle::create($this->validatedQuickData($request))
             ->load(['client:id,name,email', 'specification.brand:id,name', 'specification.model:id,name', 'specification.type:id,name']);
 
         return response()->json([
@@ -92,6 +92,7 @@ class VehiculosController extends Controller
                 'user_id' => $vehicle->user_id,
                 'vehicle_specification_id' => $vehicle->vehicle_specification_id,
                 'vehicle_type_id' => $vehicle->resolvedType()?->id,
+                'specification_label' => $vehicle->specification?->label,
                 'plate' => $vehicle->plate,
                 'label' => trim($vehicle->plate . ' - ' . $vehicle->resolvedBrand()?->name . ' ' . $vehicle->resolvedModel()?->name),
             ],
@@ -190,5 +191,97 @@ class VehiculosController extends Controller
             'observations' => trim((string) ($data['observations'] ?? '')) ?: null,
             'active' => $request->boolean('active'),
         ];
+    }
+
+    private function validatedQuickData(Request $request): array
+    {
+        $data = $request->validate([
+            'user_id' => ['required', 'integer', 'exists:users,id'],
+            'specification_mode' => ['required', Rule::in(['existing', 'new'])],
+            'vehicle_specification_id' => ['nullable', 'integer', 'exists:vehicle_specifications,id'],
+            'new_vehicle_brand_name' => ['nullable', 'string', 'max:255'],
+            'new_vehicle_model_name' => ['nullable', 'string', 'max:255'],
+            'new_vehicle_type_name' => ['nullable', 'string', 'max:255'],
+            'plate' => ['required', 'string', 'max:20', Rule::unique('vehicles', 'plate')],
+            'color' => ['nullable', 'string', 'max:80'],
+            'year' => ['nullable', 'integer', 'min:1900', 'max:' . (now()->year + 1)],
+            'observations' => ['nullable', 'string', 'max:2000'],
+            'active' => ['nullable', 'boolean'],
+        ]);
+
+        if (!User::query()->role('cliente')->whereKey($data['user_id'])->exists()) {
+            throw ValidationException::withMessages([
+                'user_id' => 'El usuario seleccionado debe tener rol de cliente.',
+            ]);
+        }
+
+        $specification = $this->resolveQuickSpecification($data);
+
+        return [
+            'user_id' => $data['user_id'],
+            'vehicle_specification_id' => $specification->id,
+            'plate' => mb_strtoupper(trim((string) $data['plate'])),
+            'color' => trim((string) ($data['color'] ?? '')) ?: null,
+            'year' => $data['year'] ?? null,
+            'observations' => trim((string) ($data['observations'] ?? '')) ?: null,
+            'active' => $request->boolean('active'),
+        ];
+    }
+
+    private function resolveQuickSpecification(array $data): VehicleSpecification
+    {
+        if (($data['specification_mode'] ?? 'existing') === 'existing') {
+            $specification = VehicleSpecification::query()
+                ->whereKey($data['vehicle_specification_id'] ?? null)
+                ->where('active', true)
+                ->with(['brand', 'model', 'type'])
+                ->first();
+
+            if (!$specification || !$specification->brand?->active || !$specification->model?->active || !$specification->type?->active) {
+                throw ValidationException::withMessages([
+                    'vehicle_specification_id' => 'Selecciona una especificación de vehículo disponible.',
+                ]);
+            }
+
+            return $specification;
+        }
+
+        $brandName = $this->cleanSpecificationName($data['new_vehicle_brand_name'] ?? null);
+        $modelName = $this->cleanSpecificationName($data['new_vehicle_model_name'] ?? null);
+        $typeName = $this->cleanSpecificationName($data['new_vehicle_type_name'] ?? null);
+
+        $errors = [];
+        if (!$brandName) {
+            $errors['new_vehicle_brand_name'] = 'Ingresa la marca del vehículo.';
+        }
+        if (!$modelName) {
+            $errors['new_vehicle_model_name'] = 'Ingresa el modelo del vehículo.';
+        }
+        if (!$typeName) {
+            $errors['new_vehicle_type_name'] = 'Ingresa el tipo de vehículo.';
+        }
+        if ($errors) {
+            throw ValidationException::withMessages($errors);
+        }
+
+        $brand = VehicleBrand::firstOrCreate(['name' => $brandName], ['active' => true]);
+        $model = VehicleModel::firstOrCreate([
+            'vehicle_brand_id' => $brand->id,
+            'name' => $modelName,
+        ], ['active' => true]);
+        $type = VehicleType::firstOrCreate(['name' => $typeName], ['active' => true]);
+
+        return VehicleSpecification::firstOrCreate([
+            'vehicle_brand_id' => $brand->id,
+            'vehicle_model_id' => $model->id,
+            'vehicle_type_id' => $type->id,
+        ], ['active' => true]);
+    }
+
+    private function cleanSpecificationName(?string $value): ?string
+    {
+        $value = trim((string) $value);
+
+        return $value === '' ? null : $value;
     }
 }

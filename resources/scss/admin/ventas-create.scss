@@ -1,0 +1,30 @@
+.sales-create-layout,
+.sales-create-primary,
+.sales-create-data,
+.sales-create-items,
+.sales-create-summary {
+    min-width: 0;
+}
+
+@media (max-width: 1023.98px) {
+    .sales-create-layout {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .sales-create-primary {
+        display: contents;
+    }
+
+    .sales-create-data {
+        order: 1;
+    }
+
+    .sales-create-items {
+        order: 2;
+    }
+
+    .sales-create-summary {
+        order: 3;
+    }
+}

@@ -19,6 +19,7 @@ export default defineConfig({
                 'resources/scss/profile/customer-compras.scss',
                 'resources/scss/carrito.scss',
                 'resources/scss/admin/layout.scss',
+                'resources/scss/admin/ventas-create.scss',
                 'resources/js/app.js'
             ],
             refresh: true,
