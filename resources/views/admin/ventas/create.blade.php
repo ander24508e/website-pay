@@ -36,12 +36,14 @@
     @endphp
 
     <div class="max-w-6xl mx-auto space-y-6">
-        <div class="flex items-center justify-between gap-3">
-            <div>
-                <h2 class="text-2xl font-bold text-gray-800">Agregar Venta </h2>
-            </div>
+        <div class="flex items-center gap-3">
             <a href="{{ route('admin.ventas.index') }}"
-                class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium">Volver</a>
+                class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-gray-500 shadow-sm transition hover:bg-gray-50 hover:text-gray-800"
+                title="Volver" aria-label="Volver">
+                <x-heroicon-o-arrow-left class="h-5 w-5" />
+            </a>
+
+            <h2 class="text-2xl font-bold text-gray-800">Agregar Venta</h2>
         </div>
 
         <form method="POST" action="{{ route('admin.ventas.store') }}" id="saleForm"
@@ -90,8 +92,28 @@
                             </select>
                         </div>
 
-                        {{-- Vehículo --}}
+                        {{-- Tipo de venta --}}
                         <div class="flex min-w-0 flex-col">
+                            <div class="mb-1 flex min-h-8 items-center">
+                                <label for="saleKindSelect" class="block text-sm font-medium text-gray-700">
+                                    Tipo de venta
+                                </label>
+                            </div>
+
+                            <select id="saleKindSelect"
+                                class="h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-200">
+                                <option value="{{ \App\Models\CatalogType::BUSINESS_MODEL_SERVICES }}">
+                                    Servicios
+                                </option>
+
+                                <option value="{{ \App\Models\CatalogType::BUSINESS_MODEL_PRODUCTS }}">
+                                    Productos
+                                </option>
+                            </select>
+                        </div>
+
+                        {{-- Vehículo --}}
+                        <div class="flex min-w-0 flex-col" data-sale-kind-dependent="service">
                             <div class="mb-1 flex min-h-8 items-center justify-between gap-2">
                                 <label for="mainVehicleSelect" class="block text-sm font-medium text-gray-700">
                                     Vehículo
@@ -122,27 +144,6 @@
                                 @endforeach
                             </select>
                         </div>
-
-                        {{-- Tipo de venta --}}
-                        <div class="flex min-w-0 flex-col">
-                            <div class="mb-1 flex min-h-8 items-center">
-                                <label for="saleKindSelect" class="block text-sm font-medium text-gray-700">
-                                    Tipo de venta
-                                </label>
-                            </div>
-
-                            <select id="saleKindSelect"
-                                class="h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-200">
-                                <option value="{{ \App\Models\CatalogType::BUSINESS_MODEL_SERVICES }}">
-                                    Servicios
-                                </option>
-
-                                <option value="{{ \App\Models\CatalogType::BUSINESS_MODEL_PRODUCTS }}">
-                                    Productos
-                                </option>
-                            </select>
-                        </div>
-
                         {{-- Trabajador --}}
                         <div class="flex min-w-0 flex-col">
                             <div class="mb-1 flex min-h-8 items-center">
@@ -440,7 +441,7 @@
             <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-12 xl:items-end">
 
                 {{-- Producto o servicio --}}
-                <div class="min-w-0 xl:col-span-3">
+                <div class="min-w-0 xl:col-span-4">
                     <label class="mb-1 flex min-h-8 items-end text-[11px] font-semibold uppercase text-gray-500">
                         Producto/Servicio
                     </label>
@@ -462,7 +463,7 @@
                 </div>
 
                 {{-- Presentación --}}
-                <div class="item-product-field min-w-0 xl:col-span-2">
+                <div class="item-product-field min-w-0 xl:col-span-3">
                     <label class="mb-1 flex min-h-8 items-end text-[11px] font-semibold uppercase text-gray-500">
                         Presentación
                     </label>
@@ -476,7 +477,7 @@
                 </div>
 
                 {{-- Vehículo --}}
-                <div class="item-service-field min-w-0 xl:col-span-2">
+                <div class="item-service-field min-w-0 xl:col-span-3">
                     <label class="mb-1 flex min-h-8 items-end text-[11px] font-semibold uppercase text-gray-500">
                         Vehículo
                     </label>
@@ -498,7 +499,7 @@
                 </div>
 
                 {{-- Tipo de vehículo --}}
-                <div class="item-service-field min-w-0 xl:col-span-2">
+                <div class="item-service-field min-w-0 xl:col-span-3">
                     <label class="mb-1 flex min-h-8 items-end text-[11px] font-semibold uppercase text-gray-500">
                         Tipo de vehículo
                     </label>
@@ -511,7 +512,8 @@
 
                         @foreach ($vehicleSpecifications as $specification)
                             <option value="{{ $specification->id }}" data-type="{{ $specification->type?->id }}">
-                                {{ $specification->brand?->name }} / {{ $specification->model?->name }} / {{ $specification->type?->name }}
+                                {{ $specification->brand?->name }} / {{ $specification->model?->name }} /
+                                {{ $specification->type?->name }}
                             </option>
                         @endforeach
                     </select>
@@ -593,6 +595,20 @@
 
         function isProductKind(kind) {
             return kind === businessModelProducts;
+        }
+
+        function syncSaleKindFields() {
+            const isProduct = isProductKind(currentSaleKind());
+
+            document.querySelectorAll('[data-sale-kind-dependent="service"]').forEach((field) => {
+                field.classList.toggle('hidden', isProduct);
+                field.querySelectorAll('input, select, textarea, button').forEach((input) => {
+                    input.disabled = isProduct;
+                    if (isProduct && ['INPUT', 'SELECT', 'TEXTAREA'].includes(input.tagName)) {
+                        input.value = '';
+                    }
+                });
+            });
         }
 
         function refreshNames(row) {
@@ -755,6 +771,7 @@
 
         document.getElementById('addSaleItem')?.addEventListener('click', addRow);
         saleKindSelect?.addEventListener('change', () => {
+            syncSaleKindFields();
             saleItems.querySelectorAll('.sale-item-row').forEach((row) => {
                 syncRowMode(row);
             });
@@ -790,6 +807,7 @@
         });
 
         addRow();
+        syncSaleKindFields();
 
         document.getElementById('paymentMethod')?.addEventListener('change', refreshPaymentFields);
         document.getElementById('receivedAmount')?.addEventListener('input', refreshPaymentFields);
@@ -971,7 +989,8 @@
                     const vehicleSelect = row.querySelector('.vehicle-select');
                     if (vehicleSelect && !vehicleSelect.value && !vehicleSelect.disabled) {
                         vehicleSelect.value = vehicle.id;
-                        row.querySelector('.vehicle-specification-select').value = vehicle.vehicle_specification_id || '';
+                        row.querySelector('.vehicle-specification-select').value = vehicle
+                            .vehicle_specification_id || '';
                     }
                 });
 

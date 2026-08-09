@@ -229,6 +229,18 @@ class VentasController extends Controller
 
     private function formData(): array
     {
+        $vehiclePriceColumns = [
+            'id',
+            'catalog_item_id',
+            'vehicle_type_id',
+            'price',
+            'active',
+        ];
+
+        if (Schema::hasColumn('service_vehicle_type_prices', 'vehicle_specification_id')) {
+            $vehiclePriceColumns[] = 'vehicle_specification_id';
+        }
+
         return [
             'clientes' => User::query()->role('cliente')->orderBy('name')->get(['id', 'name', 'email']),
             'usuarios' => User::query()->orderBy('name')->get(['id', 'name', 'email']),
@@ -247,7 +259,7 @@ class VentasController extends Controller
                 ->with([
                     'type:id,name,business_model',
                     'activeVariants:id,catalog_item_id,name,sku,price,stock,active,is_default',
-                    'vehicleTypePrices:id,catalog_item_id,vehicle_specification_id,vehicle_type_id,price,active',
+                    'vehicleTypePrices:' . implode(',', $vehiclePriceColumns),
                 ])
                 ->where('active', true)
                 ->where('purchasable', true)
