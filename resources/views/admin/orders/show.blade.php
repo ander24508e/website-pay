@@ -33,6 +33,18 @@
         ];
 
         $hasWorkDates = collect($workDates)->filter()->isNotEmpty();
+        $latestPayment = $order->sale?->payments?->sortByDesc('id')->first();
+        $paymentPayload = $order->transaction?->response_payload ?? [];
+        $paymentMethodLabels = [
+            'cash' => 'Efectivo',
+            'transfer' => 'Transferencia',
+            'card' => 'Tarjeta',
+            'payphone' => 'PayPhone',
+        ];
+        $paymentMethod = $latestPayment?->method ?? data_get($paymentPayload, 'payment_method');
+        $paymentReference = $latestPayment?->reference ?? data_get($paymentPayload, 'reference');
+        $paymentBank = $latestPayment?->bank ?? data_get($paymentPayload, 'bank');
+        $paymentProofPath = $latestPayment?->proof_path ?? data_get($paymentPayload, 'proof_path');
     @endphp
 
     <div class="order-show-page">
@@ -294,24 +306,51 @@
                             @if ($order->status === 'paid')
                                 <div class="order-show-payment-state order-show-payment-state--paid">
                                     <x-heroicon-o-check-circle class="h-8 w-8" />
-                                    <div>
+                                    <div class="min-w-0">
                                         <strong>Orden pagada</strong>
                                         <p>El ingreso ya fue registrado en ventas.</p>
+                                        @if ($paymentMethod || $paymentReference || $paymentBank || $paymentProofPath)
+                                            <dl class="order-show-payment-details">
+                                                @if ($paymentMethod)
+                                                    <div>
+                                                        <dt>Método</dt>
+                                                        <dd>{{ $paymentMethodLabels[$paymentMethod] ?? ucfirst((string) $paymentMethod) }}</dd>
+                                                    </div>
+                                                @endif
+                                                @if ($paymentBank)
+                                                    <div>
+                                                        <dt>Banco</dt>
+                                                        <dd>{{ $paymentBank }}</dd>
+                                                    </div>
+                                                @endif
+                                                @if ($paymentReference)
+                                                    <div>
+                                                        <dt>Referencia</dt>
+                                                        <dd>{{ $paymentReference }}</dd>
+                                                    </div>
+                                                @endif
+                                            </dl>
+                                            @if ($paymentProofPath)
+                                                <a href="{{ asset('storage/' . $paymentProofPath) }}" target="_blank" class="order-show-proof-link">
+                                                    Ver comprobante
+                                                </a>
+                                            @endif
+                                        @endif
                                     </div>
                                 </div>
                             @elseif (($order->work_status ?? \App\Models\Order::WORK_PENDING) === \App\Models\Order::WORK_READY)
                                 <form method="POST" action="{{ route('admin.orders.marcar-pagada', $order) }}"
-                                    class="order-show-payment-form" data-order-payment-form data-total="{{ (float) $order->total }}">
+                                    class="order-show-payment-form" enctype="multipart/form-data" data-order-payment-form data-total="{{ (float) $order->total }}">
                                     @csrf
                                     @method('PATCH')
 
                                     <div>
                                         <label for="paymentMethod">Método de pago</label>
                                         <select id="paymentMethod" name="payment_method" required>
-                                            <option value="cash">Efectivo</option>
-                                            <option value="transfer">Transferencia</option>
-                                            <option value="card">Tarjeta</option>
-                                            <option value="payphone">PayPhone</option>
+                                            <option value="cash" @selected(old('payment_method', 'cash') === 'cash')>Efectivo</option>
+                                            <option value="transfer" @selected(old('payment_method') === 'transfer')>Transferencia</option>
+                                            <option value="card" @selected(old('payment_method') === 'card')>Tarjeta</option>
+                                            <option value="payphone" @selected(old('payment_method') === 'payphone')>PayPhone</option>
                                         </select>
                                     </div>
                                     <div>
@@ -320,10 +359,20 @@
                                             min="{{ (float) $order->total }}" step="0.01"
                                             value="{{ old('received_amount', number_format((float) $order->total, 2, '.', '')) }}" required>
                                     </div>
+                                    <div class="order-show-transfer-field" data-transfer-field>
+                                        <label for="paymentBank">Banco</label>
+                                        <input id="paymentBank" name="payment_bank" type="text"
+                                            value="{{ old('payment_bank') }}" placeholder="Banco de la transferencia">
+                                    </div>
                                     <div>
-                                        <label for="paymentReference">Referencia <span>(opcional)</span></label>
+                                        <label for="paymentReference">Referencia</label>
                                         <input id="paymentReference" name="payment_reference" type="text"
-                                            value="{{ old('payment_reference') }}">
+                                            value="{{ old('payment_reference') }}" placeholder="Número o detalle del pago">
+                                    </div>
+                                    <div class="order-show-transfer-field order-show-proof-field" data-transfer-field>
+                                        <label for="paymentProof">Comprobante</label>
+                                        <input id="paymentProof" name="payment_proof" type="file" accept="image/*,.pdf">
+                                        <p>Foto, captura o PDF de la transferencia.</p>
                                     </div>
                                     <div class="order-show-change">
                                         <span>Cambio</span>
@@ -353,15 +402,30 @@
         document.querySelectorAll('[data-order-payment-form]').forEach((form) => {
             const receivedInput = form.querySelector('[name="received_amount"]');
             const changeOutput = form.querySelector('[data-payment-change]');
+            const methodInput = form.querySelector('[name="payment_method"]');
             const total = Number(form.dataset.total || 0);
 
             const updateChange = () => {
                 const received = Number(receivedInput.value || 0);
                 changeOutput.textContent = `$${Math.max(0, received - total).toFixed(2)}`;
             };
+            const updateTransferFields = () => {
+                const isTransfer = methodInput?.value === 'transfer';
+                form.querySelectorAll('[data-transfer-field]').forEach((field) => {
+                    field.hidden = !isTransfer;
+                    field.querySelectorAll('input').forEach((input) => {
+                        input.required = isTransfer;
+                        if (!isTransfer && input.type === 'file') {
+                            input.value = '';
+                        }
+                    });
+                });
+            };
 
             receivedInput.addEventListener('input', updateChange);
+            methodInput?.addEventListener('change', updateTransferFields);
             updateChange();
+            updateTransferFields();
         });
     </script>
 @endpush

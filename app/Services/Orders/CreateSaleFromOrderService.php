@@ -88,7 +88,9 @@ class CreateSaleFromOrderService
                 'received_amount' => $payment['received_amount'],
                 'change_amount' => $payment['change_amount'],
                 'transaction_id' => $payment['transaction_id'],
+                'bank' => $payment['bank'],
                 'reference' => $payment['reference'],
+                'proof_path' => $payment['proof_path'],
                 'metadata' => $payment['metadata'],
             ]);
 
@@ -145,15 +147,21 @@ class CreateSaleFromOrderService
             'payment_method' => $payment['method'],
         ]);
 
-        $paymentExists = $sale->payments()
+        $existingPayment = $sale->payments()
             ->where('status', SalePayment::STATUS_APPROVED)
             ->when(
                 $payment['transaction_id'],
                 fn ($query) => $query->where('transaction_id', $payment['transaction_id'])
             )
-            ->exists();
+            ->first();
 
-        if (!$paymentExists) {
+        if ($existingPayment) {
+            $existingPayment->update(array_filter([
+                'bank' => $payment['bank'],
+                'reference' => $payment['reference'],
+                'proof_path' => $payment['proof_path'],
+            ], fn ($value) => $value !== null && $value !== ''));
+        } else {
             $sale->payments()->create([
                 'method' => $payment['method'],
                 'status' => SalePayment::STATUS_APPROVED,
@@ -161,7 +169,9 @@ class CreateSaleFromOrderService
                 'received_amount' => $payment['received_amount'],
                 'change_amount' => $payment['change_amount'],
                 'transaction_id' => $payment['transaction_id'],
+                'bank' => $payment['bank'],
                 'reference' => $payment['reference'],
+                'proof_path' => $payment['proof_path'],
                 'metadata' => $payment['metadata'],
             ]);
         }
@@ -211,7 +221,9 @@ class CreateSaleFromOrderService
             'received_amount' => $receivedAmount,
             'change_amount' => $changeAmount,
             'transaction_id' => $transaction?->payphone_ref ?: $transaction?->client_transaction_id,
+            'bank' => data_get($metadata, 'bank'),
             'reference' => data_get($metadata, 'reference') ?: $transaction?->client_transaction_id,
+            'proof_path' => data_get($metadata, 'proof_path'),
             'metadata' => [
                 'order_id' => $order->id,
                 'order_type' => $order->order_type,

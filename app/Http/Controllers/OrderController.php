@@ -278,7 +278,7 @@ class OrderController extends Controller
     public function show(Order $order)
     {
         $this->authorize('view', $order);
-        $order->load('items.itemable', 'items.variant', 'items.vehicle.specification.brand', 'items.vehicle.specification.model', 'items.vehicle.specification.type', 'items.vehicleType', 'transaction', 'user', 'assignedTo', 'sale');
+        $order->load('items.itemable', 'items.variant', 'items.vehicle.specification.brand', 'items.vehicle.specification.model', 'items.vehicle.specification.type', 'items.vehicleType', 'transaction', 'user', 'assignedTo', 'sale.payments');
         $this->inheritSaleWorker($order);
         $workers = $this->workers();
 
@@ -711,17 +711,37 @@ class OrderController extends Controller
         $data = $request->validate([
             'payment_method' => ['required', Rule::in(['cash', 'transfer', 'card', 'payphone'])],
             'received_amount' => ['required', 'numeric', 'min:' . (float) $order->total],
-            'payment_reference' => ['nullable', 'string', 'max:255'],
+            'payment_bank' => ['nullable', 'string', 'max:255', Rule::requiredIf($request->input('payment_method') === 'transfer')],
+            'payment_reference' => ['nullable', 'string', 'max:255', Rule::requiredIf($request->input('payment_method') === 'transfer')],
+            'payment_proof' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf,webp', 'max:4096', Rule::requiredIf($request->input('payment_method') === 'transfer')],
         ], [
             'received_amount.min' => 'El monto recibido no puede ser menor al total de la orden.',
+            'payment_bank.required_if' => 'Ingresa el banco de la transferencia.',
+            'payment_reference.required_if' => 'Ingresa la referencia de la transferencia.',
+            'payment_proof.required_if' => 'Adjunta el comprobante de la transferencia.',
+            'payment_proof.mimes' => 'El comprobante debe ser una imagen o PDF.',
+            'payment_proof.max' => 'El comprobante no debe superar los 4 MB.',
         ]);
 
-        DB::transaction(function () use ($order, $data) {
+        $proofPath = $request->file('payment_proof')?->store('sale-payment-proofs', 'public');
+
+        DB::transaction(function () use ($order, $data, $proofPath) {
             $lockedOrder = Order::query()->lockForUpdate()->findOrFail($order->id);
             $receivedAmount = round((float) $data['received_amount'], 2);
             $changeAmount = round(max(0, $receivedAmount - (float) $lockedOrder->total), 2);
+            $paymentPayload = [
+                'source' => 'manual_admin',
+                'payment_method' => $data['payment_method'],
+                'received_amount' => $receivedAmount,
+                'change_amount' => $changeAmount,
+                'bank' => $data['payment_bank'] ?? null,
+                'reference' => $data['payment_reference'] ?: null,
+                'proof_path' => $proofPath,
+            ];
 
-            if (!$lockedOrder->transactions()->where('status', 'approved')->exists()) {
+            $approvedTransaction = $lockedOrder->transactions()->where('status', 'approved')->latest('id')->first();
+
+            if (!$approvedTransaction) {
                 Transaction::create([
                     'order_id' => $lockedOrder->id,
                     'payphone_ref' => $data['payment_method'] === 'payphone'
@@ -729,14 +749,18 @@ class OrderController extends Controller
                         : null,
                     'amount' => $lockedOrder->total,
                     'status' => 'approved',
-                    'response_payload' => [
-                        'source' => 'manual_admin',
-                        'payment_method' => $data['payment_method'],
-                        'received_amount' => $receivedAmount,
-                        'change_amount' => $changeAmount,
-                        'reference' => $data['payment_reference'] ?: null,
-                    ],
+                    'response_payload' => $paymentPayload,
                     'client_transaction_id' => 'manual-order-' . $lockedOrder->id . '-' . now()->timestamp,
+                ]);
+            } else {
+                $approvedTransaction->update([
+                    'payphone_ref' => $data['payment_method'] === 'payphone'
+                        ? ($data['payment_reference'] ?: $approvedTransaction->payphone_ref)
+                        : $approvedTransaction->payphone_ref,
+                    'response_payload' => array_filter(array_merge(
+                        $approvedTransaction->response_payload ?? [],
+                        $paymentPayload
+                    ), fn ($value) => $value !== null && $value !== ''),
                 ]);
             }
 

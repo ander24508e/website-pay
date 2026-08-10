@@ -226,6 +226,22 @@
     padding: 0 0.75rem;
 }
 
+.order-show-payment-form input[type='file'] {
+    padding: 0.5rem 0.65rem;
+    line-height: 1.35;
+}
+
+.order-show-payment-form input[type='file']::file-selector-button {
+    margin-right: 0.75rem;
+    border: 0;
+    border-radius: 0.4rem;
+    background: #111827;
+    color: #fff;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
 .order-show-operational-form textarea {
     min-height: 4.4rem;
     padding: 0.65rem 0.75rem;
@@ -235,8 +251,19 @@
 .order-show-notes-field,
 .order-show-operational-form > button,
 .order-show-payment-form > button,
-.order-show-change {
+.order-show-change,
+.order-show-proof-field {
     grid-column: 1 / -1;
+}
+
+.order-show-transfer-field[hidden] {
+    display: none;
+}
+
+.order-show-proof-field p {
+    margin-top: 0.35rem;
+    color: #9ca3af;
+    font-size: 0.7rem;
 }
 
 .order-show-operational-form > button,
@@ -348,6 +375,46 @@
 
 .order-show-payment-state--paid strong {
     color: #15803d;
+}
+
+.order-show-payment-details {
+    display: grid;
+    gap: 0.4rem;
+    margin-top: 0.75rem;
+    color: #374151;
+}
+
+.order-show-payment-details > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.order-show-payment-details dt {
+    color: #6b7280;
+    font-size: 0.72rem;
+}
+
+.order-show-payment-details dd {
+    min-width: 0;
+    color: #14532d;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-align: right;
+    word-break: break-word;
+}
+
+.order-show-proof-link {
+    display: inline-flex;
+    margin-top: 0.75rem;
+    color: #2563eb;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.order-show-proof-link:hover {
+    text-decoration: underline;
 }
 
 @media (min-width: 1024px) {
