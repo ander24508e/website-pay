@@ -231,6 +231,25 @@ class TransactionController extends Controller
     public function show(Transaction $transaction)
     {
         $transaction->load('order.user');
-        return view('admin.transactions.show', compact('transaction'));
+
+        $payload = $transaction->response_payload ?? [];
+        $processingDetails = collect([
+            'Origen' => match (data_get($payload, 'source')) {
+                'payphone_box' => 'PayPhone Box',
+                'payphone_button' => 'Botón PayPhone',
+                null, '' => null,
+                default => (string) data_get($payload, 'source'),
+            },
+            'Código de autorización' => data_get($payload, 'authorizationCode')
+                ?? data_get($payload, 'authorization_code'),
+            'Método procesado' => data_get($payload, 'paymentMethod')
+                ?? data_get($payload, 'payment_method'),
+            'Tipo de tarjeta' => data_get($payload, 'cardType')
+                ?? data_get($payload, 'card_type'),
+            'Últimos dígitos' => data_get($payload, 'lastDigits')
+                ?? data_get($payload, 'last_digits'),
+        ])->filter(fn ($value) => $value !== null && $value !== '');
+
+        return view('admin.transactions.show', compact('transaction', 'processingDetails'));
     }
 }

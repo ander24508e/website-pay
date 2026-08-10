@@ -279,7 +279,8 @@ class OrderController extends Controller
     {
         $this->authorize('view', $order);
         $order->load('items.itemable', 'items.variant', 'items.vehicle.specification.brand', 'items.vehicle.specification.model', 'items.vehicle.specification.type', 'items.vehicleType', 'transaction', 'user', 'assignedTo', 'sale');
-        $workers = $this->adminWorkers();
+        $this->inheritSaleWorker($order);
+        $workers = $this->workers();
 
         if (request()->routeIs('admin.orders.show')) {
             return view('admin.orders.show', compact('order', 'workers'));
@@ -407,7 +408,7 @@ class OrderController extends Controller
         $dateFrom = trim((string) $request->query('date_from', ''));
         $dateTo = trim((string) $request->query('date_to', ''));
         $hasWorkStatus = Schema::hasColumn('orders', 'work_status');
-        $workers = $this->adminWorkers();
+        $workers = $this->workers();
         $stats = [
             'total' => Order::query()->count('*'),
             'pending' => $hasWorkStatus
@@ -501,15 +502,24 @@ class OrderController extends Controller
 
     public function updateOperationalDetails(Request $request, Order $order)
     {
+        $workers = $this->workers();
         $data = $request->validate([
-            'assigned_to' => ['nullable', 'integer', 'exists:users,id'],
+            'assigned_to' => ['nullable', 'integer', Rule::in($workers->pluck('id')->all())],
             'scheduled_at' => ['nullable', 'date'],
             'work_notes' => ['nullable', 'string', 'max:1500'],
         ]);
 
+        $order->loadMissing('sale');
+        $assignedTo = !empty($data['assigned_to'])
+            ? (int) $data['assigned_to']
+            : ($order->assigned_to ?: $order->sale?->attended_by);
+        $scheduledAt = !empty($data['scheduled_at'])
+            ? $data['scheduled_at']
+            : ($order->scheduled_at ?: now());
+
         $order->update([
-            'assigned_to' => $data['assigned_to'] ?? null,
-            'scheduled_at' => $data['scheduled_at'] ?? null,
+            'assigned_to' => $assignedTo,
+            'scheduled_at' => $scheduledAt,
             'work_notes' => $data['work_notes'] ?? null,
         ]);
 
@@ -755,10 +765,20 @@ class OrderController extends Controller
         return redirect()->route('admin.orders.index')->with('success', 'Orden eliminada correctamente.');
     }
 
-    private function adminWorkers(): \Illuminate\Support\Collection
+    private function inheritSaleWorker(Order $order): void
+    {
+        if ($order->assigned_to || !$order->sale?->attended_by) {
+            return;
+        }
+
+        $order->update(['assigned_to' => $order->sale->attended_by]);
+        $order->load('assignedTo');
+    }
+
+    private function workers(): \Illuminate\Support\Collection
     {
         return User::query()
-            ->whereHas('roles', fn (Builder $query) => $query->where('name', '=', 'admin'))
+            ->whereHas('roles', fn (Builder $query) => $query->whereIn('name', ['admin', 'empleado']))
             ->orderBy('name', 'asc')
             ->get(['id', 'name']);
     }
