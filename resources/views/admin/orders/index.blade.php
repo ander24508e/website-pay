@@ -1,28 +1,43 @@
 @extends('layouts.admin')
 
-@section('title', 'Ordenes')
+@section('title', 'Órdenes')
+
+@push('styles')
+    @vite('resources/scss/admin/orders-index.scss')
+@endpush
 
 @section('content')
-<div class="space-y-6">
-    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+@php
+    $activeFilterCount = collect(['q', 'work_status', 'assigned_to', 'date_filter', 'date_from', 'date_to'])
+        ->filter(fn ($filter) => request()->filled($filter))
+        ->count();
+@endphp
+
+<div class="orders-index-page" x-data="{ filtersOpen: false, dateFilter: @js($dateFilter ?? '') }">
+    <div class="orders-index-header flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div class="min-w-0">
             <div class="flex items-center gap-2">
                 <x-heroicon-o-shopping-bag class="w-8 h-8 text-gray-800" />
-                <h2 class="text-2xl font-bold text-gray-800">Ordenes</h2>
+                <h2 class="text-2xl font-bold text-gray-800">Órdenes</h2>
             </div>
             <p class="text-gray-500 text-sm mt-1">Agenda operativa: pagos, reservas y trabajos del negocio.</p>
         </div>
 
-        <a href="{{ route('admin.orders.index') }}"
-            class="inline-flex items-center justify-center bg-white border border-gray-200 text-gray-700 w-11 h-11 rounded-lg hover:bg-gray-50 transition"
-            title="Limpiar filtros" aria-label="Limpiar filtros">
-            <x-heroicon-o-adjustments-horizontal class="w-5 h-5" />
-        </a>
+        <button type="button" @click="filtersOpen = !filtersOpen"
+            class="orders-filter-toggle relative items-center justify-center bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+            :aria-expanded="filtersOpen.toString()"
+            :title="filtersOpen ? 'Ocultar filtros' : 'Mostrar filtros'"
+            :aria-label="filtersOpen ? 'Ocultar filtros' : 'Mostrar filtros'">
+            <span x-text="filtersOpen ? 'Ocultar filtros' : 'Mostrar filtros'">Mostrar filtros</span>
+            @if($activeFilterCount > 0)
+                <span class="orders-filter-count">{{ $activeFilterCount }}</span>
+            @endif
+        </button>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+    <div class="orders-index-stats grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
         <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-            <p class="text-xs text-gray-400 uppercase font-semibold">Ordenes</p>
+            <p class="text-xs text-gray-400 uppercase font-semibold">Órdenes</p>
             <p class="text-2xl font-bold text-gray-800 mt-1">{{ $stats['total'] }}</p>
         </div>
         <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
@@ -39,48 +54,64 @@
         </div>
     </div>
 
-    <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-        <form method="GET" action="{{ route('admin.orders.index') }}" class="grid grid-cols-1 md:grid-cols-6 gap-3">
-            <div class="relative md:col-span-2">
+    <div class="orders-index-filters bg-white rounded-xl border border-gray-100 p-4 shadow-sm"
+        :class="{ 'is-open': filtersOpen }">
+        <form method="GET" action="{{ route('admin.orders.index') }}" class="orders-filter-form">
+            <div class="orders-filter-search relative">
                 <x-heroicon-o-magnifying-glass class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input type="search" name="q" value="{{ request('q') }}"
                     placeholder="Buscar por orden, cliente, correo, tipo o estado"
                     class="w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-10 pr-4 text-sm">
             </div>
-            <select name="work_status" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm">
-                <option value="">Todos los trabajos</option>
-                @foreach(\App\Models\Order::workStatusLabels() as $statusKey => $statusLabel)
-                    <option value="{{ $statusKey }}" @selected(($workStatus ?? '') === $statusKey)>{{ $statusLabel }}</option>
-                @endforeach
-            </select>
-            <select name="assigned_to" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm">
-                <option value="">Todos los responsables</option>
-                @foreach($workers as $worker)
-                    <option value="{{ $worker->id }}" @selected(($assignedTo ?? '') == $worker->id)>{{ $worker->name }}</option>
-                @endforeach
-            </select>
-            <select name="date_filter" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm">
-                <option value="">Todas las fechas</option>
-                <option value="today" @selected(($dateFilter ?? '') === 'today')>Hoy</option>
-                <option value="tomorrow" @selected(($dateFilter ?? '') === 'tomorrow')>Ma�ana</option>
-                <option value="week" @selected(($dateFilter ?? '') === 'week')>Esta semana</option>
-                <option value="range" @selected(($dateFilter ?? '') === 'range')>Rango</option>
-            </select>
-            <div class="flex gap-2">
+
+            <div class="orders-filter-secondary">
+                <select name="work_status" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm">
+                    <option value="">Estado operativo</option>
+                    @foreach(\App\Models\Order::workStatusLabels() as $statusKey => $statusLabel)
+                        <option value="{{ $statusKey }}" @selected(($workStatus ?? '') === $statusKey)>{{ $statusLabel }}</option>
+                    @endforeach
+                </select>
+                <select name="assigned_to" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm">
+                    <option value="">Responsable</option>
+                    @foreach($workers as $worker)
+                        <option value="{{ $worker->id }}" @selected(($assignedTo ?? '') == $worker->id)>{{ $worker->name }}</option>
+                    @endforeach
+                </select>
+                <select name="date_filter" x-model="dateFilter"
+                    class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm">
+                    <option value="">Fecha</option>
+                    <option value="today" @selected(($dateFilter ?? '') === 'today')>Hoy</option>
+                    <option value="tomorrow" @selected(($dateFilter ?? '') === 'tomorrow')>Mañana</option>
+                    <option value="week" @selected(($dateFilter ?? '') === 'week')>Esta semana</option>
+                    <option value="range" @selected(($dateFilter ?? '') === 'range')>Rango personalizado</option>
+                </select>
+            </div>
+
+            <div class="orders-filter-actions flex gap-2">
                 <button class="inline-flex items-center justify-center w-11 h-11 rounded-lg bg-gray-900 text-white hover:bg-gray-700 transition"
                     title="Buscar" aria-label="Buscar">
                     <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                 </button>
-                <a href="{{ route('admin.orders.index') }}"
-                    class="inline-flex items-center justify-center w-11 h-11 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
-                    title="Limpiar" aria-label="Limpiar">
-                    <x-heroicon-o-x-mark class="w-5 h-5" />
-                </a>
+                @if($activeFilterCount > 0)
+                    <a href="{{ route('admin.orders.index') }}"
+                        class="inline-flex items-center justify-center w-11 h-11 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
+                        title="Limpiar" aria-label="Limpiar">
+                        <x-heroicon-o-x-mark class="w-5 h-5" />
+                    </a>
+                @endif
             </div>
 
-            <div class="md:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <input type="date" name="date_from" value="{{ $dateFrom ?? '' }}" class="rounded-lg border border-gray-300 bg-white py-2.5 px-3 text-sm">
-                <input type="date" name="date_to" value="{{ $dateTo ?? '' }}" class="rounded-lg border border-gray-300 bg-white py-2.5 px-3 text-sm">
+            <div class="orders-filter-range" x-show="dateFilter === 'range'" x-cloak>
+                <label>
+                    <span>Desde</span>
+                    <input type="date" name="date_from" value="{{ $dateFrom ?? '' }}"
+                        class="w-full rounded-lg border border-gray-300 bg-white py-2.5 px-3 text-sm">
+                </label>
+                <label>
+                    <span>Hasta</span>
+                    <input type="date" name="date_to" value="{{ $dateTo ?? '' }}"
+                        class="w-full rounded-lg border border-gray-300 bg-white py-2.5 px-3 text-sm">
+                </label>
             </div>
         </form>
     </div>
@@ -101,7 +132,7 @@
         ];
     @endphp
 
-    <div class="md:hidden space-y-3">
+    <div class="orders-mobile-list md:hidden space-y-3">
         @forelse($orders as $order)
             <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 space-y-4">
                 <div class="flex items-start justify-between gap-3">
@@ -175,7 +206,7 @@
                             </button>
                         </form>
                     @endif
-                    <form method="POST" action="{{ route('admin.orders.destroy', $order) }}" onsubmit="return confirm('¿Eliminar esta orden? Esta accion no se puede deshacer.');">
+                    <form method="POST" action="{{ route('admin.orders.destroy', $order) }}" onsubmit="return confirm('¿Eliminar esta orden? Esta acción no se puede deshacer.');">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition" title="Eliminar orden" aria-label="Eliminar orden">
@@ -185,12 +216,12 @@
                 </div>
             </div>
         @empty
-            <div class="bg-white rounded-xl border border-gray-100 px-4 py-8 text-center text-gray-400">No hay ordenes registradas</div>
+            <div class="bg-white rounded-xl border border-gray-100 px-4 py-8 text-center text-gray-400">No hay órdenes registradas</div>
         @endforelse
     </div>
 
-    <div class="hidden md:block bg-white rounded-xl shadow-sm overflow-hidden">
-        <div class="overflow-x-hidden overflow-y-auto max-h-[70vh]">
+    <div class="orders-table-shell hidden md:block bg-white rounded-xl shadow-sm overflow-hidden">
+        <div class="orders-table-scroll">
             <table class="w-full table-fixed text-sm text-left">
                 <thead class="bg-gray-50 border-b sticky top-0 z-10 text-xs uppercase text-gray-500">
                     <tr>
@@ -274,7 +305,7 @@
                                             </button>
                                         </form>
                                     @endif
-                                    <form method="POST" action="{{ route('admin.orders.destroy', $order) }}" onsubmit="return confirm('¿Eliminar esta orden? Esta accion no se puede deshacer.');">
+                                    <form method="POST" action="{{ route('admin.orders.destroy', $order) }}" onsubmit="return confirm('¿Eliminar esta orden? Esta acción no se puede deshacer.');">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-red-600 hover:bg-red-50 transition" title="Eliminar orden" aria-label="Eliminar orden">
@@ -286,7 +317,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center py-12 text-gray-400">No hay ordenes registradas</td>
+                            <td colspan="8" class="text-center py-12 text-gray-400">No hay órdenes registradas</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -295,7 +326,7 @@
     </div>
 
     @if($orders->hasPages())
-        <div class="mt-4">
+        <div class="orders-index-pagination">
             {{ $orders->links() }}
         </div>
     @endif

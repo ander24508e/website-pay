@@ -2,11 +2,15 @@
 
 @section('title', 'Clientes')
 
+@push('styles')
+    @vite('resources/scss/admin/admin-data-tables.scss')
+@endpush
+
 @section('content')
-    <div class="space-y-6">
+    <div class="admin-data-page">
 
         {{-- Encabezado --}}
-        <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="admin-data-page__header flex flex-wrap items-center justify-between gap-3">
             <div>
                 <div class="flex items-center gap-2">
                     <x-heroicon-o-users class="h-8 w-8 text-gray-800" />
@@ -36,7 +40,7 @@
         </div>
 
         {{-- Estadísticas --}}
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div class="admin-data-page__stats grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
 
             <article class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
                 <p class="text-xs font-semibold uppercase text-gray-400">
@@ -81,7 +85,7 @@
         </div>
 
         {{-- Buscador --}}
-        <div class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+        <div class="admin-data-page__toolbar rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
             <form
                 method="GET"
                 action="{{ route('admin.clientes.index') }}"
@@ -125,8 +129,63 @@
         </div>
 
         {{-- Tabla --}}
-        <div class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
-            <div class="overflow-x-auto">
+        <div class="admin-data-page__list overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
+            <div class="admin-data-page__mobile-scroll md:hidden divide-y divide-gray-100">
+                @forelse ($clientes as $cliente)
+                    <article class="p-4 space-y-4">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0">
+                                <p class="text-xs font-semibold text-gray-400">#{{ $cliente->id }}</p>
+                                <h3 class="font-semibold text-gray-800 break-words">{{ $cliente->name }}</h3>
+                                <p class="text-sm text-gray-500 break-all">{{ $cliente->email }}</p>
+                            </div>
+                            <p class="shrink-0 font-semibold text-gray-900">${{ number_format((float) ($cliente->total_compras ?? 0), 2) }}</p>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3 text-sm">
+                            <div>
+                                <p class="text-xs uppercase text-gray-400 font-semibold">Teléfono</p>
+                                <p class="text-gray-700 break-words">{{ $cliente->telefono ?? '-' }}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs uppercase text-gray-400 font-semibold">Órdenes</p>
+                                <p class="text-gray-700">{{ $cliente->orders_count }}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs uppercase text-gray-400 font-semibold">Registro</p>
+                                <p class="text-gray-700">{{ $cliente->created_at?->format('d/m/Y') ?? '-' }}</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-end gap-1">
+                            <a href="{{ route('admin.clientes.show', $cliente) }}"
+                                class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-blue-600 transition hover:bg-blue-50"
+                                title="Ver cliente" aria-label="Ver cliente">
+                                <x-heroicon-o-eye class="h-5 w-5" />
+                            </a>
+                            <a href="{{ route('admin.clientes.edit', $cliente) }}"
+                                class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-yellow-600 transition hover:bg-yellow-50"
+                                title="Editar cliente" aria-label="Editar cliente">
+                                <x-heroicon-o-pencil-square class="h-5 w-5" />
+                            </a>
+                            <form method="POST" action="{{ route('admin.clientes.destroy', $cliente) }}"
+                                onsubmit="return confirm('¿Eliminar cliente?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit"
+                                    class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-red-600 transition hover:bg-red-50"
+                                    title="Eliminar cliente" aria-label="Eliminar cliente">
+                                    <x-heroicon-o-trash class="h-5 w-5" />
+                                </button>
+                            </form>
+                        </div>
+                    </article>
+                @empty
+                    <div class="px-4 py-10 text-center text-gray-400">No hay clientes registrados.</div>
+                @endforelse
+            </div>
+
+            <div class="admin-data-page__scroll hidden md:block">
                 <table class="min-w-[1000px] w-full text-sm">
 
                     <thead class="border-b border-gray-100 bg-gray-50">
@@ -312,7 +371,7 @@
         </div>
         {{-- Paginación --}}
         @if ($clientes->hasPages())
-            <div>
+            <div class="admin-data-page__pagination">
                 {{ $clientes->links() }}
             </div>
         @endif

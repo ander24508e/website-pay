@@ -2,6 +2,10 @@
 
 @section('title', 'Ventas')
 
+@push('styles')
+    @vite('resources/scss/admin/admin-data-tables.scss')
+@endpush
+
 @section('content')
     @php
         $statusClasses = [
@@ -20,8 +24,8 @@
         ];
     @endphp
 
-    <div class="space-y-5">
-        <div class="flex items-start justify-between gap-3 flex-wrap">
+    <div class="admin-data-page">
+        <div class="admin-data-page__header flex items-start justify-between gap-3 flex-wrap">
             <div>
                 <div class="flex items-center gap-2">
                     <x-heroicon-o-banknotes class="w-7 h-7 text-gray-800" />
@@ -29,14 +33,21 @@
                 </div>
                 <p class="text-gray-500 text-sm mt-1">Vista comercial unificada: ventas del sistema y compras web.</p>
             </div>
-            <a href="{{ route('admin.ventas.create') }}"
-                class="inline-flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-gray-700 transition">
-                <x-heroicon-o-plus class="w-5 h-5" />
-                Nueva Venta
-            </a>
+            <div class="flex flex-wrap items-center gap-2">
+                <a href="{{ route('admin.transactions.index') }}"
+                    class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50">
+                    <x-heroicon-o-credit-card class="w-5 h-5" />
+                    Transacciones
+                </a>
+                <a href="{{ route('admin.ventas.create') }}"
+                    class="inline-flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-gray-700 transition">
+                    <x-heroicon-o-plus class="w-5 h-5" />
+                    Nueva Venta
+                </a>
+            </div>
         </div>
 
-        <div class="inline-flex rounded-full border border-gray-200 bg-white p-1 shadow-sm">
+        <div class="admin-data-page__segments inline-flex rounded-full border border-gray-200 bg-white p-1 shadow-sm">
             <a href="{{ route('admin.ventas.index', array_filter(['q' => $search, 'status' => $status, 'date_from' => $dateFrom, 'date_to' => $dateTo])) }}"
                 class="px-5 py-2 rounded-full text-sm font-semibold transition {{ $origin === '' ? 'bg-gray-900 text-white' : 'text-gray-700 hover:bg-gray-100' }}">
                 Todos
@@ -51,7 +62,7 @@
             </a>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div class="admin-data-page__stats grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
             <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm min-h-[110px]">
                 <div class="flex items-start justify-between gap-3">
                     <div>
@@ -76,7 +87,7 @@
             </div>
         </div>
 
-        <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+        <div class="admin-data-page__toolbar bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
             <form method="GET" class="grid grid-cols-1 md:grid-cols-12 gap-3">
                 @if ($origin !== '')
                     <input type="hidden" name="origin" value="{{ $origin }}">
@@ -97,7 +108,7 @@
             </form>
         </div>
 
-        <div class="md:hidden space-y-3">
+        <div class="admin-data-page__list admin-data-page__mobile-scroll md:hidden space-y-3">
             @forelse($ventas as $venta)
                 @php
                     $statusClass = $statusClasses[$venta->status] ?? 'bg-gray-100 text-gray-600';
@@ -154,8 +165,8 @@
             @endforelse
         </div>
 
-        <div class="hidden md:block bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-            <div class="overflow-x-hidden overflow-y-auto max-h-[58vh]">
+        <div class="admin-data-page__list hidden md:block bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="admin-data-page__scroll">
                 <table class="w-full table-fixed text-sm">
                     <thead class="bg-gray-50 border-b sticky top-0 z-10 text-xs uppercase text-gray-500">
                         <tr>
@@ -213,7 +224,7 @@
         </div>
 
         @if($ventas->hasPages())
-            <div>{{ $ventas->links() }}</div>
+            <div class="admin-data-page__pagination">{{ $ventas->links() }}</div>
         @endif
     </div>
 @endsection

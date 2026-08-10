@@ -54,7 +54,7 @@
 
             <p class="px-4 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">Comercial</p>
             <a href="{{ route('admin.ventas.index') }}"
-                class="{{ request()->routeIs('admin.ventas.*') ? 'active' : '' }}">
+                class="{{ request()->routeIs('admin.ventas.*') || request()->routeIs('admin.transactions.*') ? 'active' : '' }}">
                 <span><x-heroicon-o-banknotes class="w-5 h-5" /></span>
                 <span>Ventas</span>
             </a>
@@ -63,12 +63,6 @@
                 <span><x-heroicon-o-shopping-bag class="w-5 h-5" /></span>
                 <span>Órdenes</span>
             </a>
-            <a href="{{ route('admin.transactions.index') }}"
-                class="{{ request()->routeIs('admin.transactions.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-credit-card class="w-5 h-5" /></span>
-                <span>Transacciones</span>
-            </a>
-
             <p class="px-3 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">Activos
                 Operacionales</p>
 
@@ -183,7 +177,7 @@
 
             <p class="px-3 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">Comercial</p>
             <a href="{{ route('admin.ventas.index') }}"
-                class="{{ request()->routeIs('admin.ventas.*') ? 'active' : '' }}">
+                class="{{ request()->routeIs('admin.ventas.*') || request()->routeIs('admin.transactions.*') ? 'active' : '' }}">
                 <span><x-heroicon-o-banknotes class="w-5 h-5" /></span>
                 <span>Ventas</span>
             </a>
@@ -192,12 +186,6 @@
                 class="{{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
                 <span><x-heroicon-o-shopping-bag class="w-5 h-5" /></span>
                 <span>Órdenes</span>
-            </a>
-
-            <a href="{{ route('admin.transactions.index') }}"
-                class="{{ request()->routeIs('admin.transactions.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-credit-card class="w-5 h-5" /></span>
-                <span>Transacciones</span>
             </a>
 
             <p class="px-3 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">Activos

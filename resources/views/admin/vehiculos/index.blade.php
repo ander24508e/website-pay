@@ -2,9 +2,13 @@
 
 @section('title', 'Vehiculos')
 
+@push('styles')
+    @vite('resources/scss/admin/admin-data-tables.scss')
+@endpush
+
 @section('content')
-    <div class="space-y-6">
-        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+    <div class="admin-data-page">
+        <div class="admin-data-page__header flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div class="min-w-0">
                 <div class="flex items-center gap-2">
                     <x-heroicon-o-truck class="w-8 h-8 text-gray-800" />
@@ -27,7 +31,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div class="admin-data-page__stats grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
             <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
                 <p class="text-xs text-gray-400 uppercase font-semibold">Vehiculos</p>
                 <p class="text-2xl font-bold text-gray-800 mt-1">{{ $stats['total'] }}</p>
@@ -46,7 +50,7 @@
             </div>
         </div>
 
-        <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+        <div class="admin-data-page__toolbar bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
             <form method="GET" class="grid grid-cols-1 md:grid-cols-5 gap-3">
                 <div class="relative md:col-span-2">
                     <x-heroicon-o-magnifying-glass class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -85,8 +89,8 @@
             </form>
         </div>
 
-        <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-            <div class="md:hidden divide-y divide-gray-100">
+        <div class="admin-data-page__list bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="admin-data-page__mobile-scroll md:hidden divide-y divide-gray-100">
                 @forelse ($vehicles as $vehicle)
                     <article class="p-4 space-y-4">
                         <div class="flex items-start justify-between gap-3">
@@ -151,7 +155,7 @@
                 @endforelse
             </div>
 
-            <div class="hidden md:block overflow-x-hidden">
+            <div class="admin-data-page__scroll hidden md:block">
                 <table class="w-full table-fixed text-sm">
                     <thead class="bg-gray-50 text-xs uppercase text-gray-500">
                         <tr>
@@ -217,6 +221,6 @@
             </div>
         </div>
 
-        <div>{{ $vehicles->links() }}</div>
+        <div class="admin-data-page__pagination">{{ $vehicles->links() }}</div>
     </div>
 @endsection

@@ -141,6 +141,8 @@ Route::middleware(['auth', 'role:admin'])
     ->name('admin.')
     ->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/ventas/pagos', [TransactionController::class, 'index'])->name('transactions.index');
+        Route::get('/ventas/pagos/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
         Route::resource('/ventas', VentasController::class)
             ->parameters(['ventas' => 'venta'])
             ->only(['index', 'show', 'create', 'store', 'edit', 'update', 'destroy']);
@@ -250,7 +252,6 @@ Route::middleware(['auth', 'role:admin'])
         Route::patch('/orders/{order}/marcar-pagada', [OrderController::class, 'marcarPagada'])->name('orders.marcar-pagada');
         Route::patch('/orders/{order}/estado-operativo', [OrderController::class, 'updateWorkStatus'])->name('orders.work-status');
         Route::patch('/orders/{order}/datos-operativos', [OrderController::class, 'updateOperationalDetails'])->name('orders.operational-details');
-        Route::resource('/transactions', TransactionController::class)->only(['index', 'show']);
     });
 
 require __DIR__ . '/auth.php';

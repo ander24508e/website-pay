@@ -2,9 +2,13 @@
 
 @section('title', 'Transacciones')
 
+@push('styles')
+    @vite('resources/scss/admin/admin-data-tables.scss')
+@endpush
+
 @section('content')
-<div class="mx-auto w-full max-w-full overflow-x-hidden px-3 pb-4 sm:px-6">
-    <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 mb-6">
+<div class="admin-data-page mx-auto w-full max-w-full overflow-x-hidden">
+    <div class="admin-data-page__header flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
         <div class="min-w-0">
             <div class="flex items-center gap-2">
                 <x-heroicon-o-credit-card class="w-8 h-8 text-gray-800" />
@@ -43,7 +47,7 @@
         ];
     @endphp
 
-    <div class="md:hidden space-y-3">
+    <div class="admin-data-page__list admin-data-page__mobile-scroll md:hidden space-y-3">
         @forelse($transactions as $transaction)
             <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 space-y-4">
                 <div class="flex items-start justify-between gap-3">
@@ -90,8 +94,8 @@
         @endforelse
     </div>
 
-    <div class="hidden md:block bg-white rounded-xl shadow-sm overflow-hidden">
-        <div class="overflow-x-hidden overflow-y-auto max-h-[70vh]">
+    <div class="admin-data-page__list hidden md:block bg-white rounded-xl shadow-sm overflow-hidden">
+        <div class="admin-data-page__scroll">
             <table class="w-full table-fixed text-sm text-left">
                 <thead class="bg-gray-50 border-b sticky top-0 z-10 text-xs uppercase text-gray-500">
                     <tr>
@@ -147,7 +151,7 @@
     </div>
 
     @if($transactions->hasPages())
-        <div class="mt-4">
+        <div class="admin-data-page__pagination">
             {{ $transactions->links() }}
         </div>
     @endif
