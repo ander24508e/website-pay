@@ -20,6 +20,7 @@ export default defineConfig({
                 'resources/scss/carrito.scss',
                 'resources/scss/admin/layout.scss',
                 'resources/scss/admin/ventas-create.scss',
+                'resources/scss/admin/orders-show.scss',
                 'resources/js/app.js'
             ],
             refresh: true,
