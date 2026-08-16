@@ -1,28 +1,36 @@
 <?php
 
-use App\Http\Controllers\BannerController;
-use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ClientesController;
-use App\Http\Controllers\Admin\VentasController;
-use App\Http\Controllers\Admin\UsuariosController;
-use App\Http\Controllers\Admin\VehiculosController;
-use App\Http\Controllers\Admin\VehicleSpecificationsController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\InventarioController;
 use App\Http\Controllers\Admin\InventoryOperationsController;
-use App\Http\Controllers\CatalogTypeController;
+use App\Http\Controllers\Admin\UsuariosController;
+use App\Http\Controllers\Admin\VehicleSpecificationsController;
+use App\Http\Controllers\Admin\VehiculosController;
+use App\Http\Controllers\Admin\VentasController;
+use App\Http\Controllers\BannerController;
+use App\Http\Controllers\CarritoController;
 use App\Http\Controllers\CatalogCategoryController;
 use App\Http\Controllers\CatalogItemController;
 use App\Http\Controllers\CatalogItemVariantController;
-use App\Http\Controllers\CarritoController;
 use App\Http\Controllers\CatalogoController;
+use App\Http\Controllers\CatalogTypeController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\EmpresaController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ServiceVehicleTypePriceController;
 use App\Http\Controllers\TransactionController;
+use App\Models\CatalogItem;
+use App\Models\CatalogItemVariant;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\Transaction;
+use App\Services\CheckoutReceiptService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 
 // Rutas publicas
 Route::get('/', [CatalogoController::class, 'index'])->name('home');
@@ -50,13 +58,13 @@ Route::get('/payphone/cancel', [TransactionController::class, 'cancel'])->name('
 
 if (app()->environment('local')) {
     Route::get('/dev/preview/confirmacion', function () {
-        $order = \App\Models\Order::query()
+        $order = Order::query()
             ->with(['items.itemable', 'transaction', 'user'])
             ->latest()
             ->first();
 
-        if (!$order) {
-            $order = new \App\Models\Order([
+        if (! $order) {
+            $order = new Order([
                 'user_id' => null,
                 'total' => 15.00,
                 'status' => 'paid',
@@ -66,17 +74,17 @@ if (app()->environment('local')) {
             $order->created_at = now();
             $order->updated_at = now();
 
-            $item = new \App\Models\OrderItem([
+            $item = new OrderItem([
                 'quantity' => 1,
                 'unit_price' => 15.00,
             ]);
-            $item->setRelation('itemable', new \App\Models\CatalogItem(['name' => 'Lavada Completa']));
+            $item->setRelation('itemable', new CatalogItem(['name' => 'Lavada Completa']));
 
-            $transaction = new \App\Models\Transaction([
-                'payphone_ref' => 'PREVIEW-' . now()->format('YmdHis'),
+            $transaction = new Transaction([
+                'payphone_ref' => 'PREVIEW-'.now()->format('YmdHis'),
                 'amount' => 15.00,
                 'status' => 'approved',
-                'client_transaction_id' => 'preview-' . \Illuminate\Support\Str::uuid(),
+                'client_transaction_id' => 'preview-'.Str::uuid(),
             ]);
 
             $order->setRelation('items', collect([$item]));
@@ -84,22 +92,22 @@ if (app()->environment('local')) {
             $order->setRelation('user', auth()->user());
         }
 
-        $receipt = app(\App\Services\CheckoutReceiptService::class)->build($order);
+        $receipt = app(CheckoutReceiptService::class)->build($order);
 
         return view('checkout.confirmacion', ['order' => $order, ...$receipt]);
     })->name('dev.preview.confirmacion');
 
     Route::get('/dev/preview/comprobante', function () {
-        $order = \App\Models\Order::query()
+        $order = Order::query()
             ->with(['items.itemable', 'transaction', 'user'])
             ->latest()
             ->first();
 
-        if (!$order) {
+        if (! $order) {
             abort(404, 'Crea una orden o usa primero la previsualizacion de confirmacion.');
         }
 
-        $receipt = app(\App\Services\CheckoutReceiptService::class)->build($order);
+        $receipt = app(CheckoutReceiptService::class)->build($order);
 
         return view('checkout.comprobante', ['order' => $order, ...$receipt]);
     })->name('dev.preview.comprobante');
@@ -107,15 +115,23 @@ if (app()->environment('local')) {
 
 // Redireccion post-login segun rol
 Route::get('/dashboard', function () {
-    if (Auth::user()->hasRole('admin')) {
+    if (Auth::user()->hasAnyRole(['admin', 'gerente', 'empleado']) && Auth::user()->can('dashboard.view')) {
         return redirect()->route('admin.dashboard');
     }
 
+    if (Auth::user()->can('sales.create')) {
+        return redirect()->route('admin.ventas.create');
+    }
+
+    if (Auth::user()->can('users.create_employees')) {
+        return redirect()->route('admin.usuarios.create');
+    }
+
     return redirect()->route('home');
-})->middleware('auth')->name('dashboard');
+})->middleware(['auth', 'active'])->name('dashboard');
 
 // Rutas autenticadas
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'active'])->group(function () {
     // Perfil
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -128,7 +144,7 @@ Route::middleware('auth')->group(function () {
 });
 
 // Panel cliente
-Route::middleware(['auth', 'role:cliente'])
+Route::middleware(['auth', 'active', 'role:cliente'])
     ->prefix('/customer')
     ->name('customer.')
     ->group(function () {
@@ -136,122 +152,138 @@ Route::middleware(['auth', 'role:cliente'])
     });
 
 // Panel admin
-Route::middleware(['auth', 'role:admin'])
+Route::middleware(['auth', 'active', 'role:admin|gerente|empleado'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-        Route::get('/ventas/pagos', [TransactionController::class, 'index'])->name('transactions.index');
-        Route::get('/ventas/pagos/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
-        Route::resource('/ventas', VentasController::class)
-            ->parameters(['ventas' => 'venta'])
-            ->only(['index', 'show', 'create', 'store', 'edit', 'update', 'destroy']);
-        Route::post('/clientes/quick-store', [ClientesController::class, 'quickStore'])->name('clientes.quick-store');
+        Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('permission:dashboard.view')->name('dashboard');
+        Route::get('/ventas/pagos', [TransactionController::class, 'index'])->middleware('permission:transactions.view')->name('transactions.index');
+        Route::get('/ventas/pagos/{transaction}', [TransactionController::class, 'show'])->middleware('permission:transactions.view')->name('transactions.show');
+        Route::get('/ventas', [VentasController::class, 'index'])->middleware('permission:sales.view')->name('ventas.index');
+        Route::get('/ventas/create', [VentasController::class, 'create'])->middleware('permission:sales.create')->name('ventas.create');
+        Route::post('/ventas', [VentasController::class, 'store'])->middleware('permission:sales.create')->name('ventas.store');
+        Route::get('/ventas/{venta}', [VentasController::class, 'show'])->middleware('permission:sales.view')->name('ventas.show');
+        Route::get('/ventas/{venta}/edit', [VentasController::class, 'edit'])->middleware('permission:sales.update')->name('ventas.edit');
+        Route::match(['put', 'patch'], '/ventas/{venta}', [VentasController::class, 'update'])->middleware('permission:sales.update')->name('ventas.update');
+        Route::delete('/ventas/{venta}', [VentasController::class, 'destroy'])->middleware('permission:sales.delete')->name('ventas.destroy');
+        Route::post('/clientes/quick-store', [ClientesController::class, 'quickStore'])->middleware('permission:clients.manage')->name('clientes.quick-store');
         Route::resource('/clientes', ClientesController::class)
             ->parameters(['clientes' => 'cliente'])
-            ->only(['index', 'show', 'create', 'store', 'edit', 'update', 'destroy']);
-        Route::post('/vehiculos/quick-store', [VehiculosController::class, 'quickStore'])->name('vehiculos.quick-store');
+            ->only(['index', 'show'])->middleware('permission:clients.view');
+        Route::resource('/clientes', ClientesController::class)
+            ->parameters(['clientes' => 'cliente'])
+            ->only(['create', 'store', 'edit', 'update', 'destroy'])->middleware('permission:clients.manage');
+        Route::post('/vehiculos/quick-store', [VehiculosController::class, 'quickStore'])->middleware('permission:vehicles.manage')->name('vehiculos.quick-store');
         Route::get('/vehiculos/especificaciones', [VehicleSpecificationsController::class, 'index'])
-            ->name('vehiculos.specifications.index');
+            ->middleware('permission:vehicles.view')->name('vehiculos.specifications.index');
         Route::post('/vehiculos/especificaciones/relaciones', [VehicleSpecificationsController::class, 'storeSpecification'])
-            ->name('vehiculos.specifications.store');
+            ->middleware('permission:vehicles.manage')->name('vehiculos.specifications.store');
         Route::put('/vehiculos/especificaciones/relaciones/{vehicleSpecification}', [VehicleSpecificationsController::class, 'updateSpecification'])
-            ->name('vehiculos.specifications.update');
+            ->middleware('permission:vehicles.manage')->name('vehiculos.specifications.update');
         Route::delete('/vehiculos/especificaciones/relaciones/{vehicleSpecification}', [VehicleSpecificationsController::class, 'destroySpecification'])
-            ->name('vehiculos.specifications.destroy');
+            ->middleware('permission:vehicles.manage')->name('vehiculos.specifications.destroy');
         Route::post('/vehiculos/especificaciones/tipos', [VehicleSpecificationsController::class, 'storeType'])
-            ->name('vehiculos.specifications.types.store');
+            ->middleware('permission:vehicles.manage')->name('vehiculos.specifications.types.store');
         Route::put('/vehiculos/especificaciones/tipos/{vehicleType}', [VehicleSpecificationsController::class, 'updateType'])
-            ->name('vehiculos.specifications.types.update');
+            ->middleware('permission:vehicles.manage')->name('vehiculos.specifications.types.update');
         Route::delete('/vehiculos/especificaciones/tipos/{vehicleType}', [VehicleSpecificationsController::class, 'destroyType'])
-            ->name('vehiculos.specifications.types.destroy');
+            ->middleware('permission:vehicles.manage')->name('vehiculos.specifications.types.destroy');
         Route::post('/vehiculos/especificaciones/marcas', [VehicleSpecificationsController::class, 'storeBrand'])
-            ->name('vehiculos.specifications.brands.store');
+            ->middleware('permission:vehicles.manage')->name('vehiculos.specifications.brands.store');
         Route::put('/vehiculos/especificaciones/marcas/{vehicleBrand}', [VehicleSpecificationsController::class, 'updateBrand'])
-            ->name('vehiculos.specifications.brands.update');
+            ->middleware('permission:vehicles.manage')->name('vehiculos.specifications.brands.update');
         Route::delete('/vehiculos/especificaciones/marcas/{vehicleBrand}', [VehicleSpecificationsController::class, 'destroyBrand'])
-            ->name('vehiculos.specifications.brands.destroy');
+            ->middleware('permission:vehicles.manage')->name('vehiculos.specifications.brands.destroy');
         Route::post('/vehiculos/especificaciones/modelos', [VehicleSpecificationsController::class, 'storeModel'])
-            ->name('vehiculos.specifications.models.store');
+            ->middleware('permission:vehicles.manage')->name('vehiculos.specifications.models.store');
         Route::put('/vehiculos/especificaciones/modelos/{vehicleModel}', [VehicleSpecificationsController::class, 'updateModel'])
-            ->name('vehiculos.specifications.models.update');
+            ->middleware('permission:vehicles.manage')->name('vehiculos.specifications.models.update');
         Route::delete('/vehiculos/especificaciones/modelos/{vehicleModel}', [VehicleSpecificationsController::class, 'destroyModel'])
-            ->name('vehiculos.specifications.models.destroy');
+            ->middleware('permission:vehicles.manage')->name('vehiculos.specifications.models.destroy');
         Route::resource('/vehiculos', VehiculosController::class)
             ->parameters(['vehiculos' => 'vehiculo'])
-            ->only(['index', 'show', 'create', 'store', 'edit', 'update', 'destroy']);
-        Route::resource('/usuarios', UsuariosController::class)
-            ->parameters(['usuarios' => 'usuario'])
-            ->only(['index', 'show', 'create', 'store', 'edit', 'update', 'destroy']);
-        Route::get('/inventario', [InventarioController::class, 'index'])->name('inventario.index');
+            ->only(['index', 'show'])->middleware('permission:vehicles.view');
+        Route::resource('/vehiculos', VehiculosController::class)
+            ->parameters(['vehiculos' => 'vehiculo'])
+            ->only(['create', 'store', 'edit', 'update', 'destroy'])->middleware('permission:vehicles.manage');
+        Route::get('/usuarios', [UsuariosController::class, 'index'])->middleware('permission:users.view')->name('usuarios.index');
+        Route::get('/usuarios/create', [UsuariosController::class, 'create'])->middleware('permission:users.create_employees|users.create_managers')->name('usuarios.create');
+        Route::post('/usuarios', [UsuariosController::class, 'store'])->middleware('permission:users.create_employees|users.create_managers')->name('usuarios.store');
+        Route::get('/usuarios/{usuario}', [UsuariosController::class, 'show'])->middleware('permission:users.view')->name('usuarios.show');
+        Route::get('/usuarios/{usuario}/edit', [UsuariosController::class, 'edit'])->middleware('permission:users.update')->name('usuarios.edit');
+        Route::match(['put', 'patch'], '/usuarios/{usuario}', [UsuariosController::class, 'update'])->middleware('permission:users.update')->name('usuarios.update');
+        Route::delete('/usuarios/{usuario}', [UsuariosController::class, 'destroy'])->middleware('permission:users.deactivate')->name('usuarios.destroy');
+        Route::get('/inventario', [InventarioController::class, 'index'])->middleware('permission:inventory.view')->name('inventario.index');
         Route::get('/inventario/exportar', [InventarioController::class, 'export'])->name('inventario.export');
         Route::get('/inventario/importar', [InventarioController::class, 'import'])->name('inventario.import');
         Route::post('/inventario/importar/preview', [InventarioController::class, 'previewImport'])->name('inventario.import.preview');
         Route::post('/inventario/importar', [InventarioController::class, 'storeImport'])->name('inventario.import.store');
-        Route::get('/inventario/reportes', [InventoryOperationsController::class, 'reports'])->name('inventario.reports');
+        Route::get('/inventario/reportes', [InventoryOperationsController::class, 'reports'])->middleware('permission:inventory.view')->name('inventario.reports');
         Route::get('/inventario/reportes/exportar/{section}', [InventoryOperationsController::class, 'exportReport'])->name('inventario.reports.export');
-        Route::get('/inventario/cierres', [InventoryOperationsController::class, 'periods'])->name('inventario.periods');
+        Route::get('/inventario/cierres', [InventoryOperationsController::class, 'periods'])->middleware('permission:inventory.view')->name('inventario.periods');
         Route::post('/inventario/cierres', [InventoryOperationsController::class, 'storePeriod'])->name('inventario.periods.store');
-        Route::get('/inventario/ubicaciones', [InventoryOperationsController::class, 'locations'])->name('inventario.locations');
+        Route::get('/inventario/ubicaciones', [InventoryOperationsController::class, 'locations'])->middleware('permission:inventory.view')->name('inventario.locations');
         Route::post('/inventario/ubicaciones', [InventoryOperationsController::class, 'storeLocation'])->name('inventario.locations.store');
-        Route::get('/inventario/proveedores', [InventoryOperationsController::class, 'suppliers'])->name('inventario.suppliers');
+        Route::get('/inventario/proveedores', [InventoryOperationsController::class, 'suppliers'])->middleware('permission:inventory.view')->name('inventario.suppliers');
         Route::post('/inventario/proveedores', [InventoryOperationsController::class, 'storeSupplier'])->name('inventario.suppliers.store');
-        Route::get('/inventario/compras', [InventoryOperationsController::class, 'purchases'])->name('inventario.purchases');
+        Route::get('/inventario/compras', [InventoryOperationsController::class, 'purchases'])->middleware('permission:inventory.view')->name('inventario.purchases');
         Route::post('/inventario/compras', [InventoryOperationsController::class, 'storePurchase'])->name('inventario.purchases.store');
-        Route::get('/inventario/transferencias', [InventoryOperationsController::class, 'transfers'])->name('inventario.transfers');
+        Route::get('/inventario/transferencias', [InventoryOperationsController::class, 'transfers'])->middleware('permission:inventory.view')->name('inventario.transfers');
         Route::post('/inventario/transferencias', [InventoryOperationsController::class, 'storeTransfer'])->name('inventario.transfers.store');
-        Route::get('/inventario/devoluciones', [InventoryOperationsController::class, 'returns'])->name('inventario.returns');
+        Route::get('/inventario/devoluciones', [InventoryOperationsController::class, 'returns'])->middleware('permission:inventory.view')->name('inventario.returns');
         Route::post('/inventario/devoluciones', [InventoryOperationsController::class, 'storeReturn'])->name('inventario.returns.store');
-        Route::get('/inventario/conteos', [InventoryOperationsController::class, 'counts'])->name('inventario.counts');
+        Route::get('/inventario/conteos', [InventoryOperationsController::class, 'counts'])->middleware('permission:inventory.view')->name('inventario.counts');
         Route::post('/inventario/conteos', [InventoryOperationsController::class, 'storeCount'])->name('inventario.counts.store');
         Route::get('/inventario/kardex/{variant}/exportar', [InventoryOperationsController::class, 'exportKardex'])->name('inventario.kardex.export');
-        Route::get('/inventario/kardex/{variant}', [InventoryOperationsController::class, 'kardex'])->name('inventario.kardex');
+        Route::get('/inventario/kardex/{variant}', [InventoryOperationsController::class, 'kardex'])->middleware('permission:inventory.view')->name('inventario.kardex');
         Route::get('/inventario/create', [InventarioController::class, 'create'])->name('inventario.create');
         Route::post('/inventario/movimientos', [InventarioController::class, 'storeMovement'])->name('inventario.movements.store');
         Route::get('/inventario/movimientos/{movement}/edit', [InventarioController::class, 'edit'])->name('inventario.movements.edit');
         Route::put('/inventario/movimientos/{movement}', [InventarioController::class, 'update'])->name('inventario.movements.update');
         Route::delete('/inventario/movimientos/{movement}', [InventarioController::class, 'destroy'])->name('inventario.movements.destroy');
-        Route::view('/catalogo', 'admin.catalog.index')->name('catalog.index');
+        Route::view('/catalogo', 'admin.catalog.index')->middleware('permission:catalog.view')->name('catalog.index');
         Route::resource('/catalogo/tipos', CatalogTypeController::class)
             ->parameters(['tipos' => 'catalogType'])
-            ->names('catalog-types');
+            ->names('catalog-types')->middleware('permission:catalog.manage');
         Route::resource('/catalogo/categorias', CatalogCategoryController::class)
             ->parameters(['categorias' => 'catalogCategory'])
-            ->names('catalog-categories');
+            ->names('catalog-categories')->middleware('permission:catalog.manage');
         Route::get('/catalogo/items/{catalogItem}/precios-vehiculo/create', [ServiceVehicleTypePriceController::class, 'create'])
-            ->name('catalog-service-prices.create');
+            ->middleware('permission:catalog.manage')->name('catalog-service-prices.create');
         Route::post('/catalogo/items/{catalogItem}/precios-vehiculo', [ServiceVehicleTypePriceController::class, 'store'])
-            ->name('catalog-service-prices.store');
+            ->middleware('permission:catalog.manage')->name('catalog-service-prices.store');
         Route::get('/catalogo/precios-vehiculo/{serviceVehicleTypePrice}/edit', [ServiceVehicleTypePriceController::class, 'edit'])
-            ->name('catalog-service-prices.edit');
+            ->middleware('permission:catalog.manage')->name('catalog-service-prices.edit');
         Route::put('/catalogo/precios-vehiculo/{serviceVehicleTypePrice}', [ServiceVehicleTypePriceController::class, 'update'])
-            ->name('catalog-service-prices.update');
+            ->middleware('permission:catalog.manage')->name('catalog-service-prices.update');
         Route::delete('/catalogo/precios-vehiculo/{serviceVehicleTypePrice}', [ServiceVehicleTypePriceController::class, 'destroy'])
-            ->name('catalog-service-prices.destroy');
+            ->middleware('permission:catalog.manage')->name('catalog-service-prices.destroy');
         Route::resource('/catalogo/items', CatalogItemController::class)
             ->parameters(['items' => 'catalogItem'])
             ->except(['index'])
-            ->names('catalog-items');
+            ->names('catalog-items')->middleware('permission:catalog.manage');
         Route::get('/catalogo/variantes', fn () => redirect()->route('admin.catalog-variants.index'));
-        Route::get('/catalogo/variantes/create', fn (\Illuminate\Http\Request $request) => redirect()->route('admin.catalog-variants.create', $request->query()));
-        Route::get('/catalogo/variantes/{catalogVariant}/edit', fn (\Illuminate\Http\Request $request, \App\Models\CatalogItemVariant $catalogVariant) => redirect()->route('admin.catalog-variants.edit', ['catalogVariant' => $catalogVariant] + $request->query()));
-        Route::get('/catalogo/variantes/{catalogVariant}', fn (\Illuminate\Http\Request $request, \App\Models\CatalogItemVariant $catalogVariant) => redirect()->route('admin.catalog-variants.show', ['catalogVariant' => $catalogVariant] + $request->query()));
+        Route::get('/catalogo/variantes/create', fn (Request $request) => redirect()->route('admin.catalog-variants.create', $request->query()));
+        Route::get('/catalogo/variantes/{catalogVariant}/edit', fn (Request $request, CatalogItemVariant $catalogVariant) => redirect()->route('admin.catalog-variants.edit', ['catalogVariant' => $catalogVariant] + $request->query()));
+        Route::get('/catalogo/variantes/{catalogVariant}', fn (Request $request, CatalogItemVariant $catalogVariant) => redirect()->route('admin.catalog-variants.show', ['catalogVariant' => $catalogVariant] + $request->query()));
         Route::resource('/catalogo/presentaciones', CatalogItemVariantController::class)
             ->parameters(['presentaciones' => 'catalogVariant'])
-            ->names('catalog-variants');
+            ->names('catalog-variants')->middleware('permission:catalog.manage');
 
         // Empresa
-        Route::get('/empresa', [EmpresaController::class, 'edit'])->name('empresa.edit');
-        Route::put('/empresa', [EmpresaController::class, 'update'])->name('empresa.update');
-        Route::delete('/empresa/logo', [EmpresaController::class, 'deleteLogo'])->name('empresa.deleteLogo');
+        Route::get('/empresa', [EmpresaController::class, 'edit'])->middleware('permission:company.view')->name('empresa.edit');
+        Route::put('/empresa', [EmpresaController::class, 'update'])->middleware('permission:company.manage')->name('empresa.update');
+        Route::delete('/empresa/logo', [EmpresaController::class, 'deleteLogo'])->middleware('permission:company.manage')->name('empresa.deleteLogo');
 
         // Landing Banners
-        Route::resource('/banners', BannerController::class);
+        Route::resource('/banners', BannerController::class)->only(['index', 'show'])->middleware('permission:banners.view');
+        Route::resource('/banners', BannerController::class)->only(['create', 'store', 'edit', 'update', 'destroy'])->middleware('permission:banners.manage');
 
-        Route::resource('/orders', OrderController::class)->only(['index', 'show', 'destroy']);
-        Route::patch('/orders/{order}/marcar-pagada', [OrderController::class, 'marcarPagada'])->name('orders.marcar-pagada');
-        Route::patch('/orders/{order}/estado-operativo', [OrderController::class, 'updateWorkStatus'])->name('orders.work-status');
-        Route::patch('/orders/{order}/datos-operativos', [OrderController::class, 'updateOperationalDetails'])->name('orders.operational-details');
+        Route::resource('/orders', OrderController::class)->only(['index', 'show'])->middleware('permission:orders.view');
+        Route::delete('/orders/{order}', [OrderController::class, 'destroy'])->middleware('permission:orders.delete')->name('orders.destroy');
+        Route::patch('/orders/{order}/marcar-pagada', [OrderController::class, 'marcarPagada'])->middleware('permission:sales.collect')->name('orders.marcar-pagada');
+        Route::patch('/orders/{order}/estado-operativo', [OrderController::class, 'updateWorkStatus'])->middleware('permission:orders.update')->name('orders.work-status');
+        Route::patch('/orders/{order}/datos-operativos', [OrderController::class, 'updateOperationalDetails'])->middleware('permission:orders.update')->name('orders.operational-details');
     });
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

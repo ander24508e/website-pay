@@ -24,8 +24,8 @@
         <li><a href="{{ route('carrito.index') }}">Carrito</a></li>
 
         @auth
-            @if(auth()->user()->hasRole('admin'))
-                <li><a href="{{ route('admin.dashboard') }}" class="btn-login">Panel Admin</a></li>
+            @if(auth()->user()->isStaff())
+                <li><a href="{{ route('dashboard') }}" class="btn-login">Panel interno</a></li>
             @else
                 <li><a href="{{ route('customer.compras') }}">Mis Compras</a></li>
                 <li><a href="{{ route('profile.edit') }}">Mi Perfil</a></li>
@@ -54,8 +54,8 @@
     <li><a href="{{ route('home') }}#contacto" onclick="closeMenu()">Contacto</a></li>
     <li><a href="{{ route('carrito.index') }}" onclick="closeMenu()">Carrito</a></li>
     @auth
-        @if(auth()->user()->hasRole('admin'))
-            <li><a href="{{ route('admin.dashboard') }}" class="btn-login-mobile" onclick="closeMenu()">Panel Admin</a></li>
+        @if(auth()->user()->isStaff())
+            <li><a href="{{ route('dashboard') }}" class="btn-login-mobile" onclick="closeMenu()">Panel interno</a></li>
         @else
             <li><a href="{{ route('customer.compras') }}" onclick="closeMenu()">Mis Compras</a></li>
             <li><a href="{{ route('profile.edit') }}" onclick="closeMenu()">Mi Perfil</a></li>

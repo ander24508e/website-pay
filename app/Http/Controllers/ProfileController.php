@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
@@ -16,7 +16,7 @@ class ProfileController extends Controller
     public function edit(Request $request): View
     {
         $activeTab = $request->query('tab', 'account');
-        if (!in_array($activeTab, ['account', 'security'], true)) {
+        if (! in_array($activeTab, ['account', 'security'], true)) {
             $activeTab = 'account';
         }
 
@@ -39,7 +39,7 @@ class ProfileController extends Controller
 
         $rules = [
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
+            'email' => 'required|email|unique:users,email,'.$user->id,
             'foto_perfil' => 'nullable|image|mimes:jpeg,png,jpg|max:4096',
         ];
 
@@ -71,7 +71,7 @@ class ProfileController extends Controller
                 Storage::disk('public')->delete($user->foto_perfil);
             }
 
-            $fileName = 'profile-' . $user->id . '-' . time() . '.' . $foto->getClientOriginalExtension();
+            $fileName = 'profile-'.$user->id.'-'.time().'.'.$foto->getClientOriginalExtension();
             $user->foto_perfil = $foto->storeAs('fotos_perfil', $fileName, 'public');
         }
 
@@ -105,6 +105,11 @@ class ProfileController extends Controller
         ]);
 
         $user = $request->user();
+
+        if ($user->hasRole('admin')) {
+            return Redirect::route('profile.edit', ['tab' => 'account'])
+                ->with('error', 'La cuenta del administrador principal no puede eliminarse.');
+        }
 
         if ($user->foto_perfil && Storage::disk('public')->exists($user->foto_perfil)) {
             Storage::disk('public')->delete($user->foto_perfil);

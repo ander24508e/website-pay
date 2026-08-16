@@ -30,8 +30,8 @@
         <a href="{{ route('home') }}" class="topbar-brand">{{ strtoupper($empresa->nombre_corto ?? 'CARWASH') }}</a>
         <nav class="topbar-nav">
             @auth
-                @if (auth()->user()->hasRole('admin'))
-                    <a href="{{ route('admin.dashboard') }}">Panel de control</a>
+                @if (auth()->user()->isStaff())
+                    <a href="{{ route('dashboard') }}">Panel de control</a>
                 @else
                     <a href="{{ route('customer.compras') }}">Mis Compras</a>
                 @endif
@@ -46,8 +46,8 @@
 
     <div class="cart-mobile-menu" id="cartMobileMenu" hidden>
         @auth
-            @if (auth()->user()->hasRole('admin'))
-                <a href="{{ route('admin.dashboard') }}">Panel de control</a>
+            @if (auth()->user()->isStaff())
+                <a href="{{ route('dashboard') }}">Panel de control</a>
             @else
                 <a href="{{ route('customer.compras') }}">Mis Compras</a>
             @endif

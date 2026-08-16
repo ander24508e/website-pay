@@ -3,14 +3,14 @@
 namespace App\Providers;
 
 use App\Models\Empresa;
-use Throwable;
-use Illuminate\Support\ServiceProvider;
+use App\Models\Order;
+use App\Policies\OrderPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
-use App\Models\Order;
-use App\Policies\OrderPolicy;
+use Illuminate\Support\ServiceProvider;
+use Throwable;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -33,6 +33,9 @@ class AppServiceProvider extends ServiceProvider
         }
 
         Gate::policy(Order::class, OrderPolicy::class);
+        Gate::before(function ($user) {
+            return $user->hasRole('admin') ? true : null;
+        });
 
         try {
             if (Schema::hasTable('empresas')) {
@@ -42,12 +45,12 @@ class AppServiceProvider extends ServiceProvider
                     $query->with('landingBanners');
                 }
 
-                $empresa = $query->first() ?? new Empresa();
+                $empresa = $query->first() ?? new Empresa;
             } else {
-                $empresa = new Empresa();
+                $empresa = new Empresa;
             }
         } catch (Throwable) {
-            $empresa = new Empresa();
+            $empresa = new Empresa;
         }
 
         View::share('empresa', $empresa);

@@ -4,136 +4,327 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\UserAudit;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 class UsuariosController extends Controller
 {
+    private const STAFF_ROLES = ['admin', 'gerente', 'empleado'];
+
     public function index(Request $request)
     {
         $search = trim((string) $request->query('q', ''));
+        $status = trim((string) $request->query('status', ''));
+        $actor = $request->user();
 
-        $usuarios = User::query()
-            ->with('roles')
-            ->withCount('orders')
-            ->when($search !== '', function ($query) use ($search) {
-                $query->where(function ($sub) use ($search) {
+        $usuarios = $this->visibleStaffQuery($actor)
+            ->with(['roles', 'manager:id,name'])
+            ->withCount('assignedOrders')
+            ->when($search !== '', function (Builder $query) use ($search) {
+                $query->where(function (Builder $sub) use ($search) {
                     $sub->where('name', 'like', "%{$search}%")
                         ->orWhere('email', 'like', "%{$search}%")
                         ->orWhere('telefono', 'like', "%{$search}%");
                 });
             })
+            ->when($status === 'active', fn (Builder $query) => $query->where('active', true))
+            ->when($status === 'inactive', fn (Builder $query) => $query->where('active', false))
             ->latest()
             ->paginate(15)
             ->withQueryString();
 
+        $statsQuery = $this->visibleStaffQuery($actor);
         $stats = [
-            'total_usuarios' => (int) User::query()->count(),
-            'admins' => (int) User::query()->role('admin')->count(),
-            'empleados' => (int) User::query()->role('empleado')->count(),
-            'clientes' => (int) User::query()->role('cliente')->count(),
+            'total_usuarios' => (clone $statsQuery)->count(),
+            'admins' => (clone $statsQuery)->role('admin')->count(),
+            'gerentes' => (clone $statsQuery)->role('gerente')->count(),
+            'empleados' => (clone $statsQuery)->role('empleado')->count(),
         ];
 
-        return view('admin.usuarios.index', compact('usuarios', 'stats', 'search'));
+        return view('admin.usuarios.index', compact('usuarios', 'stats', 'search', 'status'));
     }
 
-    public function show(User $usuario)
+    public function show(Request $request, User $usuario)
     {
-        $usuario->load(['roles', 'orders' => fn ($q) => $q->latest()->take(10)]);
+        $this->ensureVisible($request->user(), $usuario);
+
+        $usuario->load([
+            'roles', 'permissions', 'manager:id,name', 'createdBy:id,name',
+            'assignedOrders' => fn ($query) => $query->latest()->take(10),
+            'audits.actor:id,name',
+        ]);
 
         $resumen = [
-            'total_ordenes' => (int) $usuario->orders()->count(),
-            'total_comprado' => (float) $usuario->orders()->where('status', 'paid')->sum('total'),
+            'ordenes_asignadas' => $usuario->assignedOrders()->count(),
+            'ventas_atendidas' => $usuario->attendedSales()->count(),
+            'total_vendido' => (float) $usuario->attendedSales()->where('status', 'paid')->sum('total'),
             'registro' => $usuario->created_at,
         ];
 
         return view('admin.usuarios.show', compact('usuario', 'resumen'));
     }
 
-    public function edit(User $usuario)
+    public function create(Request $request)
     {
-        $roles = Role::query()
-            ->whereIn('name', ['admin', 'empleado', 'cliente'])
-            ->orderBy('name')
-            ->get();
+        $actor = $request->user();
+        $roles = $this->assignableRoles($actor);
+        abort_if($roles->isEmpty(), 403);
 
-        return view('admin.usuarios.edit', compact('usuario', 'roles'));
-    }
-
-    public function create()
-    {
-        $roles = Role::query()
-            ->whereIn('name', ['admin', 'empleado', 'cliente'])
-            ->orderBy('name')
-            ->get();
-
-        return view('admin.usuarios.create', compact('roles'));
+        return view('admin.usuarios.create', $this->formData($actor, $roles));
     }
 
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'telefono' => ['nullable', 'string', 'max:50'],
-            'direccion' => ['nullable', 'string', 'max:500'],
-            'password' => ['required', 'string', 'min:8'],
-            'role' => ['required', 'in:admin,empleado,cliente'],
+        $actor = $request->user();
+        $roles = $this->assignableRoles($actor)->pluck('name')->all();
+        abort_if(empty($roles), 403);
+
+        $permissionNames = $this->assignablePermissions($actor)->pluck('name')->all();
+        $data = $request->validate($this->rules($roles, $permissionNames));
+
+        $usuario = DB::transaction(function () use ($actor, $data) {
+            $managerId = $actor->hasRole('gerente')
+                ? $actor->id
+                : $this->validatedManagerId($data['manager_id'] ?? null);
+
+            $usuario = User::create([
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'telefono' => $this->clean($data['telefono'] ?? null),
+                'direccion' => $this->clean($data['direccion'] ?? null),
+                'password' => $data['password'],
+                'active' => (bool) ($data['active'] ?? true),
+                'created_by' => $actor->id,
+                'manager_id' => $data['role'] === 'empleado' ? $managerId : null,
+            ]);
+
+            $usuario->syncRoles([$data['role']]);
+            if ($this->canAssignPermissions($actor)) {
+                $usuario->syncPermissions($data['permissions'] ?? []);
+            }
+
+            $this->audit($usuario, $actor, 'staff.created', [
+                'role' => $data['role'],
+                'permissions' => $data['permissions'] ?? [],
+            ]);
+
+            return $usuario;
+        });
+
+        return redirect()->route('admin.usuarios.show', $usuario)
+            ->with('success', 'Personal creado correctamente.');
+    }
+
+    public function edit(Request $request, User $usuario)
+    {
+        $actor = $request->user();
+        $this->ensureManageable($actor, $usuario);
+
+        return view('admin.usuarios.edit', [
+            'usuario' => $usuario->load(['roles', 'permissions']),
+            ...$this->formData($actor, $this->assignableRoles($actor)),
         ]);
-
-        $usuario = User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'telefono' => trim((string) ($data['telefono'] ?? '')) ?: null,
-            'direccion' => trim((string) ($data['direccion'] ?? '')) ?: null,
-            'password' => $data['password'],
-        ]);
-
-        $role = Role::firstOrCreate([
-            'name' => $data['role'],
-            'guard_name' => 'web',
-        ]);
-
-        $usuario->syncRoles([$role->name]);
-
-        return redirect()->route('admin.usuarios.show', $usuario)->with('success', 'Usuario creado correctamente.');
     }
 
     public function update(Request $request, User $usuario)
     {
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $usuario->id],
-            'telefono' => ['nullable', 'string', 'max:50'],
-            'direccion' => ['nullable', 'string', 'max:500'],
-            'role' => ['required', 'in:admin,empleado,cliente'],
-        ]);
+        $actor = $request->user();
+        $this->ensureManageable($actor, $usuario);
 
-        $usuario->update([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'telefono' => trim((string) ($data['telefono'] ?? '')) !== '' ? $data['telefono'] : null,
-            'direccion' => trim((string) ($data['direccion'] ?? '')) !== '' ? $data['direccion'] : null,
-        ]);
+        $roles = $this->assignableRoles($actor)->pluck('name')->all();
+        $permissionNames = $this->assignablePermissions($actor)->pluck('name')->all();
+        $data = $request->validate($this->rules($roles, $permissionNames, $usuario));
 
-        $role = Role::firstOrCreate([
-            'name' => $data['role'],
-            'guard_name' => 'web',
-        ]);
+        DB::transaction(function () use ($actor, $usuario, $data) {
+            $before = [
+                'role' => $usuario->roles->pluck('name')->first(),
+                'active' => $usuario->active,
+                'permissions' => $usuario->getDirectPermissions()->pluck('name')->all(),
+            ];
 
-        $usuario->syncRoles([$role->name]);
+            $payload = [
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'telefono' => $this->clean($data['telefono'] ?? null),
+                'direccion' => $this->clean($data['direccion'] ?? null),
+                'manager_id' => $data['role'] === 'empleado'
+                    ? ($actor->hasRole('gerente') ? $actor->id : $this->validatedManagerId($data['manager_id'] ?? null))
+                    : null,
+            ];
 
-        return redirect()->route('admin.usuarios.show', $usuario)->with('success', 'Usuario actualizado correctamente.');
+            if (! empty($data['password'])) {
+                $payload['password'] = $data['password'];
+            }
+            if ($actor->hasRole('admin') || $actor->can('users.deactivate')) {
+                $payload['active'] = (bool) ($data['active'] ?? false);
+            }
+
+            $usuario->update($payload);
+            $usuario->syncRoles([$data['role']]);
+            if ($this->canAssignPermissions($actor)) {
+                $usuario->syncPermissions($data['permissions'] ?? []);
+            }
+
+            $this->audit($usuario, $actor, 'staff.updated', [
+                'before' => $before,
+                'after' => [
+                    'role' => $data['role'],
+                    'active' => $usuario->active,
+                    'permissions' => $data['permissions'] ?? $before['permissions'],
+                ],
+            ]);
+        });
+
+        return redirect()->route('admin.usuarios.show', $usuario)
+            ->with('success', 'Personal actualizado correctamente.');
     }
 
-    public function destroy(User $usuario)
+    public function destroy(Request $request, User $usuario)
     {
-        if (auth()->id() === $usuario->id) {
-            return redirect()->route('admin.usuarios.index')->with('error', 'No puedes eliminar tu propio usuario.');
+        $actor = $request->user();
+        $this->ensureManageable($actor, $usuario);
+        abort_unless($actor->hasRole('admin') || $actor->can('users.deactivate'), 403);
+
+        $usuario->update(['active' => false]);
+        $this->audit($usuario, $actor, 'staff.deactivated');
+
+        return redirect()->route('admin.usuarios.index')
+            ->with('success', 'El acceso del trabajador fue desactivado; su historial se conserva.');
+    }
+
+    private function rules(array $roles, array $permissions, ?User $usuario = null): array
+    {
+        $uniqueEmail = Rule::unique('users', 'email');
+        if ($usuario) {
+            $uniqueEmail->ignore($usuario->id);
         }
 
-        $usuario->delete();
+        return [
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', $uniqueEmail],
+            'telefono' => ['nullable', 'string', 'max:50'],
+            'direccion' => ['nullable', 'string', 'max:500'],
+            'password' => [$usuario ? 'nullable' : 'required', 'string', 'min:8', 'confirmed'],
+            'role' => ['required', Rule::in($roles)],
+            'manager_id' => ['nullable', 'integer', 'exists:users,id'],
+            'active' => ['nullable', 'boolean'],
+            'permissions' => ['nullable', 'array'],
+            'permissions.*' => [Rule::in($permissions)],
+        ];
+    }
 
-        return redirect()->route('admin.usuarios.index')->with('success', 'Usuario eliminado correctamente.');
+    private function visibleStaffQuery(User $actor): Builder
+    {
+        return User::query()
+            ->whereHas('roles', fn (Builder $query) => $query->whereIn('name', self::STAFF_ROLES))
+            ->when(! $actor->hasRole('admin'), function (Builder $query) use ($actor) {
+                $query->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'empleado'))
+                    ->where(function (Builder $staff) use ($actor) {
+                        $staff->where('manager_id', $actor->id)->orWhere('created_by', $actor->id);
+                    });
+            });
+    }
+
+    private function ensureVisible(User $actor, User $target): void
+    {
+        abort_unless($this->visibleStaffQuery($actor)->whereKey($target->id)->exists(), 404);
+    }
+
+    private function ensureManageable(User $actor, User $target): void
+    {
+        $this->ensureVisible($actor, $target);
+        abort_if($target->hasRole('admin') || $target->is($actor), 403);
+        abort_if(! $actor->hasRole('admin') && ! $target->hasRole('empleado'), 403);
+    }
+
+    private function assignableRoles(User $actor)
+    {
+        $names = $actor->hasRole('admin')
+            ? ['gerente', 'empleado']
+            : ($actor->can('users.create_employees') ? ['empleado'] : []);
+
+        return Role::query()->whereIn('name', $names)->orderBy('name')->get();
+    }
+
+    private function assignablePermissions(User $actor)
+    {
+        $query = Permission::query()->where('guard_name', 'web')->orderBy('name');
+
+        if (! $actor->hasRole('admin')) {
+            $query->whereIn('name', $actor->getAllPermissions()->pluck('name'))
+                ->where('name', 'not like', 'users.%');
+        }
+
+        return $query->get();
+    }
+
+    private function permissionGroups(User $actor): array
+    {
+        $labels = [
+            'dashboard' => 'Dashboard', 'users' => 'Usuarios', 'sales' => 'Ventas',
+            'transactions' => 'Pagos', 'orders' => 'Ordenes', 'clients' => 'Clientes',
+            'vehicles' => 'Vehiculos', 'catalog' => 'Catalogo', 'inventory' => 'Inventario',
+            'company' => 'Empresa', 'banners' => 'Banners',
+        ];
+
+        return $this->assignablePermissions($actor)
+            ->groupBy(fn (Permission $permission) => str($permission->name)->before('.')->toString())
+            ->map(fn ($items, string $group) => [
+                'label' => $labels[$group] ?? ucfirst($group),
+                'permissions' => $items,
+            ])->all();
+    }
+
+    private function formData(User $actor, $roles): array
+    {
+        return [
+            'roles' => $roles,
+            'permissionGroups' => $this->permissionGroups($actor),
+            'managers' => $this->availableManagers($actor),
+            'canAssignPermissions' => $this->canAssignPermissions($actor),
+        ];
+    }
+
+    private function availableManagers(User $actor)
+    {
+        return $actor->hasRole('admin')
+            ? User::query()->role('gerente')->where('active', true)->orderBy('name')->get(['id', 'name'])
+            : collect([$actor]);
+    }
+
+    private function canAssignPermissions(User $actor): bool
+    {
+        return $actor->hasRole('admin') || $actor->can('users.manage_permissions');
+    }
+
+    private function validatedManagerId(mixed $managerId): ?int
+    {
+        if (! $managerId) {
+            return null;
+        }
+
+        return User::query()->role('gerente')->where('active', true)->findOrFail((int) $managerId)->id;
+    }
+
+    private function audit(User $target, User $actor, string $action, array $payload = []): void
+    {
+        UserAudit::create([
+            'target_user_id' => $target->id,
+            'actor_user_id' => $actor->id,
+            'action' => $action,
+            'payload' => $payload ?: null,
+        ]);
+    }
+
+    private function clean(?string $value): ?string
+    {
+        $value = trim((string) $value);
+
+        return $value === '' ? null : $value;
     }
 }

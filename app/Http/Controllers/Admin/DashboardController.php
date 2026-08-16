@@ -25,6 +25,7 @@ class DashboardController extends Controller
                 ->whereBetween('created_at', [$startMonth, $endMonth])
                 ->count(),
             'clientes_nuevos_mes' => (int) User::query()
+                ->role('cliente')
                 ->whereBetween('created_at', [$startMonth, $endMonth])
                 ->count(),
             'ingresos_cobrados_mes' => (float) Transaction::query()

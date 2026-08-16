@@ -3,11 +3,11 @@
 use App\Http\Controllers\Api\OrderApiController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'role:admin'])
+Route::middleware(['auth', 'active', 'role:admin|gerente|empleado', 'permission:orders.view'])
     ->prefix('orders')
     ->name('api.orders.')
     ->group(function () {
         Route::get('/', [OrderApiController::class, 'index'])->name('index');
         Route::get('/{order}', [OrderApiController::class, 'show'])->name('show');
-        Route::patch('/{order}/estado-operativo', [OrderApiController::class, 'updateWorkStatus'])->name('work-status');
+        Route::patch('/{order}/estado-operativo', [OrderApiController::class, 'updateWorkStatus'])->middleware('permission:orders.update')->name('work-status');
     });

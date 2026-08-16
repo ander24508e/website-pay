@@ -8,27 +8,30 @@
         <div>
             <div class="flex items-center gap-2">
             <x-heroicon-o-user-group class="w-8 h-8 text-gray-800" />
-            <h2 class="text-2xl font-bold text-gray-800">Usuarios / Empleados</h2>
+            <h2 class="text-2xl font-bold text-gray-800">Personal interno</h2>
             </div>
-            <p class="text-gray-500 text-sm mt-1">Gestion de usuarios del sistema, roles y contexto comercial.</p>
+            <p class="text-gray-500 text-sm mt-1">Gestion de propietarios, gerentes, empleados y permisos. Los clientes se administran por separado.</p>
         </div>
+        @canany(['users.create_employees', 'users.create_managers'])
         <a href="{{ route('admin.usuarios.create') }}"
             class="inline-flex items-center justify-center bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition"
             title="Nuevo usuario" aria-label="Nuevo usuario">
             <x-heroicon-o-plus class="w-5 h-5" />
         </a>
+        @endcanany
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm"><p class="text-xs text-gray-400 uppercase font-semibold">Total Usuarios</p><p class="text-2xl font-bold text-gray-800 mt-1">{{ $stats['total_usuarios'] }}</p></div>
-        <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm"><p class="text-xs text-gray-400 uppercase font-semibold">Admins</p><p class="text-2xl font-bold text-gray-800 mt-1">{{ $stats['admins'] }}</p></div>
+        <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm"><p class="text-xs text-gray-400 uppercase font-semibold">Personal</p><p class="text-2xl font-bold text-gray-800 mt-1">{{ $stats['total_usuarios'] }}</p></div>
+        <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm"><p class="text-xs text-gray-400 uppercase font-semibold">Propietarios</p><p class="text-2xl font-bold text-gray-800 mt-1">{{ $stats['admins'] }}</p></div>
+        <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm"><p class="text-xs text-gray-400 uppercase font-semibold">Gerentes</p><p class="text-2xl font-bold text-gray-800 mt-1">{{ $stats['gerentes'] }}</p></div>
         <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm"><p class="text-xs text-gray-400 uppercase font-semibold">Empleados</p><p class="text-2xl font-bold text-gray-800 mt-1">{{ $stats['empleados'] }}</p></div>
-        <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm"><p class="text-xs text-gray-400 uppercase font-semibold">Clientes</p><p class="text-2xl font-bold text-gray-800 mt-1">{{ $stats['clientes'] }}</p></div>
     </div>
 
     <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
         <form method="GET" class="flex flex-col md:flex-row gap-3">
             <input type="text" name="q" value="{{ $search }}" placeholder="Buscar por nombre, correo o telefono" class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm">
+            <select name="status" class="border border-gray-300 rounded-lg px-3 py-2 text-sm"><option value="">Todos los estados</option><option value="active" @selected($status === 'active')>Activos</option><option value="inactive" @selected($status === 'inactive')>Inactivos</option></select>
             <button class="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium">Buscar</button>
             <a href="{{ route('admin.usuarios.index') }}" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium">Limpiar</a>
         </form>
@@ -41,8 +44,8 @@
                     $roleName = $usuario->roles->pluck('name')->first() ?? 'sin-rol';
                     $roleClass = [
                         'admin' => 'bg-red-100 text-red-700',
+                        'gerente' => 'bg-purple-100 text-purple-700',
                         'empleado' => 'bg-blue-100 text-blue-700',
-                        'cliente' => 'bg-emerald-100 text-emerald-700',
                     ][$roleName] ?? 'bg-gray-100 text-gray-600';
                 @endphp
                 <article class="p-4">
@@ -66,7 +69,7 @@
                             </div>
                             <div>
                                 <p class="text-xs uppercase text-gray-400 font-semibold">Ordenes</p>
-                                <p class="text-gray-700 font-semibold">{{ $usuario->orders_count }}</p>
+                                <p class="text-gray-700 font-semibold">{{ $usuario->assigned_orders_count }}</p>
                             </div>
                         </div>
                         <div>
@@ -81,20 +84,22 @@
                             title="Ver usuario" aria-label="Ver usuario">
                             <x-heroicon-o-eye class="w-5 h-5" />
                         </a>
-                        <a href="{{ route('admin.usuarios.edit', $usuario) }}"
+                        @if(!$usuario->hasRole('admin')) @can('users.update')<a href="{{ route('admin.usuarios.edit', $usuario) }}"
                             class="inline-flex items-center justify-center w-9 h-9 rounded-lg text-yellow-600 hover:text-yellow-800 hover:bg-yellow-50 transition"
                             title="Editar usuario" aria-label="Editar usuario">
                             <x-heroicon-o-pencil-square class="w-5 h-5" />
                         </a>
-                        <form method="POST" action="{{ route('admin.usuarios.destroy', $usuario) }}" onsubmit="return confirm('¿Eliminar usuario?');">
+                        @endcan @endif
+                        @if(!$usuario->hasRole('admin') && $usuario->active) @can('users.deactivate')<form method="POST" action="{{ route('admin.usuarios.destroy', $usuario) }}" onsubmit="return confirm('¿Desactivar el acceso de este trabajador?');">
                             @csrf
                             @method('DELETE')
                             <button type="submit"
                                 class="inline-flex items-center justify-center w-9 h-9 rounded-lg text-red-600 hover:text-red-800 hover:bg-red-50 transition"
-                                title="Eliminar usuario" aria-label="Eliminar usuario">
+                                title="Desactivar usuario" aria-label="Desactivar usuario">
                                 <x-heroicon-o-trash class="w-5 h-5" />
                             </button>
                         </form>
+                        @endcan @endif
                     </div>
                 </article>
             @empty
@@ -120,9 +125,9 @@
                         @php
                             $roleName = $usuario->roles->pluck('name')->first() ?? 'sin-rol';
                             $roleClass = [
-                                'admin' => 'bg-red-100 text-red-700',
-                                'empleado' => 'bg-blue-100 text-blue-700',
-                                'cliente' => 'bg-emerald-100 text-emerald-700',
+                            'admin' => 'bg-red-100 text-red-700',
+                            'gerente' => 'bg-purple-100 text-purple-700',
+                            'empleado' => 'bg-blue-100 text-blue-700',
                             ][$roleName] ?? 'bg-gray-100 text-gray-600';
                         @endphp
                         <tr class="border-t border-gray-100">
@@ -133,7 +138,7 @@
                             <td class="px-4 py-3 text-gray-600 text-center truncate">{{ $usuario->email }}</td>
                             <td class="px-4 py-3 text-gray-600 text-center truncate">{{ $usuario->telefono ?? '-' }}</td>
                             <td class="px-4 py-3 text-center"><span class="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold {{ $roleClass }}">{{ ucfirst($roleName) }}</span></td>
-                            <td class="px-4 py-3 text-gray-700 text-center">{{ $usuario->orders_count }}</td>
+                            <td class="px-4 py-3 text-gray-700 text-center">{{ $usuario->assigned_orders_count }}</td>
                             <td class="px-4 py-3 text-gray-500 text-center">{{ $usuario->created_at?->format('d/m/Y') ?? '-' }}</td>
                             <td class="px-4 py-3 text-center">
                                 <div class="flex items-center justify-center gap-1">
@@ -142,20 +147,22 @@
                                     title="Ver usuario" aria-label="Ver usuario">
                                     <x-heroicon-o-eye class="w-4 h-4" />
                                 </a>
-                                <a href="{{ route('admin.usuarios.edit', $usuario) }}"
+                                @if(!$usuario->hasRole('admin')) @can('users.update')<a href="{{ route('admin.usuarios.edit', $usuario) }}"
                                     class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-yellow-600 hover:text-yellow-800 hover:bg-yellow-50 transition"
                                     title="Editar usuario" aria-label="Editar usuario">
                                     <x-heroicon-o-pencil-square class="w-4 h-4" />
                                 </a>
-                                <form method="POST" action="{{ route('admin.usuarios.destroy', $usuario) }}" onsubmit="return confirm('¿Eliminar usuario?');">
+                                @endcan @endif
+                                @if(!$usuario->hasRole('admin') && $usuario->active) @can('users.deactivate')<form method="POST" action="{{ route('admin.usuarios.destroy', $usuario) }}" onsubmit="return confirm('¿Desactivar el acceso de este trabajador?');">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit"
                                         class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-red-600 hover:text-red-800 hover:bg-red-50 transition"
-                                        title="Eliminar usuario" aria-label="Eliminar usuario">
+                                        title="Desactivar usuario" aria-label="Desactivar usuario">
                                         <x-heroicon-o-trash class="w-4 h-4" />
                                     </button>
                                 </form>
+                                @endcan @endif
                                 </div>
                             </td>
                         </tr>

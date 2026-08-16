@@ -46,8 +46,8 @@
                 <x-heroicon-o-home class="w-4 h-4" />
                 Inicio
             </a>
-            @if (auth()->user()->hasRole('admin'))
-                <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-1">
+            @if (auth()->user()->isStaff())
+                <a href="{{ route('dashboard') }}" class="flex items-center gap-1">
                     <x-heroicon-o-chart-bar class="w-4 h-4" />
                     Panel Admin
                 </a>

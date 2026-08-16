@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\Order;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class OrderPolicy
 {
@@ -21,7 +20,8 @@ class OrderPolicy
      */
     public function view(User $user, Order $order): bool
     {
-        return $user->id === $order->user_id || $user->hasRole('admin');
+        return $user->id === $order->user_id
+            || ($user->isStaff() && $user->can('orders.view'));
     }
 
     /**
