@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
 class StaffManagementTest extends TestCase
@@ -25,6 +26,39 @@ class StaffManagementTest extends TestCase
         $this->actingAs($client)
             ->get(route('admin.usuarios.index'))
             ->assertForbidden();
+    }
+
+    public function test_system_owner_has_every_permission_and_is_not_managed_as_staff(): void
+    {
+        $owner = User::query()->where('is_owner', true)->firstOrFail();
+
+        $this->assertTrue($owner->isOwner());
+        $this->assertTrue($owner->hasExactRoles(['admin']));
+        $this->assertEqualsCanonicalizing(
+            Permission::query()->pluck('name')->all(),
+            $owner->getAllPermissions()->pluck('name')->all(),
+        );
+
+        $this->actingAs($owner)
+            ->get(route('admin.usuarios.index'))
+            ->assertOk()
+            ->assertDontSee($owner->email);
+
+        $this->actingAs($owner)
+            ->get(route('admin.usuarios.show', $owner))
+            ->assertNotFound();
+    }
+
+    public function test_owner_identity_cannot_be_assigned_through_mass_assignment(): void
+    {
+        $user = User::create([
+            'name' => 'Cuenta ordinaria',
+            'email' => 'ordinary@example.com',
+            'password' => 'password',
+            'is_owner' => true,
+        ]);
+
+        $this->assertFalse($user->isOwner());
     }
 
     public function test_authorized_manager_can_create_only_employees(): void

@@ -106,7 +106,7 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
-        if ($user->hasRole('admin')) {
+        if ($user->isOwner()) {
             return Redirect::route('profile.edit', ['tab' => 'account'])
                 ->with('error', 'La cuenta del administrador principal no puede eliminarse.');
         }

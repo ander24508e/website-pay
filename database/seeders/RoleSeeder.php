@@ -62,8 +62,9 @@ class RoleSeeder extends Seeder
         $managerRole->syncPermissions([]);
         $employeeRole->syncPermissions([]);
 
+        $ownerEmail = (string) config('auth.owner_email', 'admin@endara.com');
         $admin = User::firstOrCreate(
-            ['email' => 'admin@endara.com'],
+            ['email' => $ownerEmail],
             [
                 'name' => 'Administrador',
                 'password' => bcrypt('Admin123'),
@@ -71,8 +72,23 @@ class RoleSeeder extends Seeder
                 'active' => true,
             ]
         );
-        $admin->update(['active' => true]);
+        User::query()
+            ->where('is_owner', true)
+            ->whereKeyNot($admin->id)
+            ->update(['is_owner' => false]);
+
+        $admin->forceFill([
+            'active' => true,
+            'is_owner' => true,
+            'created_by' => null,
+            'manager_id' => null,
+        ])->save();
         $admin->syncRoles(['admin']);
+
+        User::role('admin')
+            ->whereKeyNot($admin->id)
+            ->get()
+            ->each(fn (User $user) => $user->removeRole('admin'));
 
         $client = User::firstOrCreate(
             ['email' => 'cliente@test.com'],

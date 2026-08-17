@@ -14,7 +14,7 @@ use Spatie\Permission\Models\Role;
 
 class UsuariosController extends Controller
 {
-    private const STAFF_ROLES = ['admin', 'gerente', 'empleado'];
+    private const STAFF_ROLES = ['gerente', 'empleado'];
 
     public function index(Request $request)
     {
@@ -41,7 +41,6 @@ class UsuariosController extends Controller
         $statsQuery = $this->visibleStaffQuery($actor);
         $stats = [
             'total_usuarios' => (clone $statsQuery)->count(),
-            'admins' => (clone $statsQuery)->role('admin')->count(),
             'gerentes' => (clone $statsQuery)->role('gerente')->count(),
             'empleados' => (clone $statsQuery)->role('empleado')->count(),
         ];
@@ -160,7 +159,7 @@ class UsuariosController extends Controller
             if (! empty($data['password'])) {
                 $payload['password'] = $data['password'];
             }
-            if ($actor->hasRole('admin') || $actor->can('users.deactivate')) {
+            if ($actor->isOwner() || $actor->can('users.deactivate')) {
                 $payload['active'] = (bool) ($data['active'] ?? false);
             }
 
@@ -188,7 +187,7 @@ class UsuariosController extends Controller
     {
         $actor = $request->user();
         $this->ensureManageable($actor, $usuario);
-        abort_unless($actor->hasRole('admin') || $actor->can('users.deactivate'), 403);
+        abort_unless($actor->isOwner() || $actor->can('users.deactivate'), 403);
 
         $usuario->update(['active' => false]);
         $this->audit($usuario, $actor, 'staff.deactivated');
@@ -221,8 +220,9 @@ class UsuariosController extends Controller
     private function visibleStaffQuery(User $actor): Builder
     {
         return User::query()
+            ->where('is_owner', false)
             ->whereHas('roles', fn (Builder $query) => $query->whereIn('name', self::STAFF_ROLES))
-            ->when(! $actor->hasRole('admin'), function (Builder $query) use ($actor) {
+            ->when(! $actor->isOwner(), function (Builder $query) use ($actor) {
                 $query->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'empleado'))
                     ->where(function (Builder $staff) use ($actor) {
                         $staff->where('manager_id', $actor->id)->orWhere('created_by', $actor->id);
@@ -238,13 +238,13 @@ class UsuariosController extends Controller
     private function ensureManageable(User $actor, User $target): void
     {
         $this->ensureVisible($actor, $target);
-        abort_if($target->hasRole('admin') || $target->is($actor), 403);
-        abort_if(! $actor->hasRole('admin') && ! $target->hasRole('empleado'), 403);
+        abort_if($target->isOwner() || $target->is($actor), 403);
+        abort_if(! $actor->isOwner() && ! $target->hasRole('empleado'), 403);
     }
 
     private function assignableRoles(User $actor)
     {
-        $names = $actor->hasRole('admin')
+        $names = $actor->isOwner()
             ? ['gerente', 'empleado']
             : ($actor->can('users.create_employees') ? ['empleado'] : []);
 
@@ -255,7 +255,7 @@ class UsuariosController extends Controller
     {
         $query = Permission::query()->where('guard_name', 'web')->orderBy('name');
 
-        if (! $actor->hasRole('admin')) {
+        if (! $actor->isOwner()) {
             $query->whereIn('name', $actor->getAllPermissions()->pluck('name'))
                 ->where('name', 'not like', 'users.%');
         }
@@ -292,14 +292,14 @@ class UsuariosController extends Controller
 
     private function availableManagers(User $actor)
     {
-        return $actor->hasRole('admin')
+        return $actor->isOwner()
             ? User::query()->role('gerente')->where('active', true)->orderBy('name')->get(['id', 'name'])
             : collect([$actor]);
     }
 
     private function canAssignPermissions(User $actor): bool
     {
-        return $actor->hasRole('admin') || $actor->can('users.manage_permissions');
+        return $actor->isOwner() || $actor->can('users.manage_permissions');
     }
 
     private function validatedManagerId(mixed $managerId): ?int

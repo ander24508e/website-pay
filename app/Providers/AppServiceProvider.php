@@ -34,7 +34,7 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::policy(Order::class, OrderPolicy::class);
         Gate::before(function ($user) {
-            return $user->hasRole('admin') ? true : null;
+            return $user->isOwner() ? true : null;
         });
 
         try {

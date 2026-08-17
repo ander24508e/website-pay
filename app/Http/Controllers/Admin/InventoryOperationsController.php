@@ -7,9 +7,9 @@ use App\Http\Controllers\Controller;
 use App\Models\CatalogItemVariant;
 use App\Models\CatalogType;
 use App\Models\Empresa;
+use App\Models\InventoryCount;
 use App\Models\InventoryLocation;
 use App\Models\InventoryMovement;
-use App\Models\InventoryCount;
 use App\Models\InventoryPeriod;
 use App\Models\InventoryReturn;
 use App\Models\InventoryStock;
@@ -67,6 +67,7 @@ class InventoryOperationsController extends Controller
         });
 
         NotificationHelper::success('Ubicacion creada correctamente.');
+
         return redirect()->route('admin.inventario.locations');
     }
 
@@ -109,6 +110,7 @@ class InventoryOperationsController extends Controller
         ]);
 
         NotificationHelper::success('Proveedor creado correctamente.');
+
         return redirect()->route('admin.inventario.suppliers');
     }
 
@@ -154,7 +156,7 @@ class InventoryOperationsController extends Controller
 
         DB::transaction(function () use ($empresa, $data, $location, $inventoryService) {
             $items = collect($data['items'])
-                ->filter(fn ($item) => !empty($item['catalog_item_variant_id']) && (int) ($item['quantity'] ?? 0) > 0);
+                ->filter(fn ($item) => ! empty($item['catalog_item_variant_id']) && (int) ($item['quantity'] ?? 0) > 0);
 
             if ($items->isEmpty()) {
                 throw ValidationException::withMessages(['items' => 'Agrega al menos un producto a la compra.']);
@@ -196,13 +198,13 @@ class InventoryOperationsController extends Controller
                     $variant,
                     'in',
                     $quantity,
-                    'Compra #' . $purchase->id,
+                    'Compra #'.$purchase->id,
                     [
                         'inventory_location_id' => $location->id,
                         'purchase_id' => $purchase->id,
                         'purchase_item_id' => $purchaseItem->id,
                         'reason' => 'compra',
-                        'reference' => $purchase->document_number ?: 'purchase:' . $purchase->id,
+                        'reference' => $purchase->document_number ?: 'purchase:'.$purchase->id,
                         'batch_number' => $this->cleanInput($row['batch_number'] ?? null),
                         'expires_at' => $row['expires_at'] ?? null,
                         'unit_cost' => $unitCost,
@@ -212,6 +214,7 @@ class InventoryOperationsController extends Controller
         });
 
         NotificationHelper::success('Compra registrada e inventario actualizado.');
+
         return redirect()->route('admin.inventario.purchases');
     }
 
@@ -259,7 +262,7 @@ class InventoryOperationsController extends Controller
             ]);
 
             $rows = collect($data['items'])
-                ->filter(fn ($item) => !empty($item['catalog_item_variant_id']) && (int) ($item['quantity'] ?? 0) > 0);
+                ->filter(fn ($item) => ! empty($item['catalog_item_variant_id']) && (int) ($item['quantity'] ?? 0) > 0);
 
             if ($rows->isEmpty()) {
                 throw ValidationException::withMessages(['items' => 'Agrega al menos un producto a transferir.']);
@@ -277,6 +280,7 @@ class InventoryOperationsController extends Controller
         });
 
         NotificationHelper::success('Transferencia registrada correctamente.');
+
         return redirect()->route('admin.inventario.transfers');
     }
 
@@ -293,7 +297,7 @@ class InventoryOperationsController extends Controller
             ->when($request->filled('inventory_location_id'), fn ($query) => $query->where('inventory_location_id', $request->query('inventory_location_id')))
             ->when(in_array($request->query('type'), ['in', 'out', 'adjust'], true), fn ($query) => $query->where('type', $request->query('type')))
             ->when($request->filled('reason'), fn ($query) => $query->where('reason', $request->query('reason')))
-            ->when($request->filled('reference'), fn ($query) => $query->where('reference', 'like', '%' . trim((string) $request->query('reference')) . '%'))
+            ->when($request->filled('reference'), fn ($query) => $query->where('reference', 'like', '%'.trim((string) $request->query('reference')).'%'))
             ->when($request->filled('date_from'), fn ($query) => $query->whereDate('created_at', '>=', $request->query('date_from')))
             ->when($request->filled('date_to'), fn ($query) => $query->whereDate('created_at', '<=', $request->query('date_to')))
             ->oldest()
@@ -329,7 +333,7 @@ class InventoryOperationsController extends Controller
             ->when($request->filled('inventory_location_id'), fn ($query) => $query->where('inventory_location_id', $request->query('inventory_location_id')))
             ->when(in_array($request->query('type'), ['in', 'out', 'adjust'], true), fn ($query) => $query->where('type', $request->query('type')))
             ->when($request->filled('reason'), fn ($query) => $query->where('reason', $request->query('reason')))
-            ->when($request->filled('reference'), fn ($query) => $query->where('reference', 'like', '%' . trim((string) $request->query('reference')) . '%'))
+            ->when($request->filled('reference'), fn ($query) => $query->where('reference', 'like', '%'.trim((string) $request->query('reference')).'%'))
             ->when($request->filled('date_from'), fn ($query) => $query->whereDate('created_at', '>=', $request->query('date_from')))
             ->when($request->filled('date_to'), fn ($query) => $query->whereDate('created_at', '<=', $request->query('date_to')))
             ->oldest()
@@ -364,7 +368,7 @@ class InventoryOperationsController extends Controller
                 $variant->name ?? '',
                 $variant->sku ?? '',
                 $movement->type,
-                $movement->location?->name ?? ($movement->fromLocation?->name && $movement->toLocation?->name ? $movement->fromLocation->name . ' -> ' . $movement->toLocation->name : ''),
+                $movement->location?->name ?? ($movement->fromLocation?->name && $movement->toLocation?->name ? $movement->fromLocation->name.' -> '.$movement->toLocation->name : ''),
                 $movement->reason ?? '',
                 $movement->reference ?? '',
                 $movement->batch_number ?? '',
@@ -381,7 +385,7 @@ class InventoryOperationsController extends Controller
             ];
         }
 
-        return $this->csvResponse($rows, 'kardex-' . ($variant->sku ?: $variant->id) . '-' . now()->format('Ymd-His') . '.csv');
+        return $this->csvResponse($rows, 'kardex-'.($variant->sku ?: $variant->id).'-'.now()->format('Ymd-His').'.csv');
     }
 
     public function returns()
@@ -422,7 +426,7 @@ class InventoryOperationsController extends Controller
 
         DB::transaction(function () use ($empresa, $data, $location, $inventoryService) {
             $rows = collect($data['items'])
-                ->filter(fn ($item) => !empty($item['catalog_item_variant_id']) && (int) ($item['quantity'] ?? 0) > 0);
+                ->filter(fn ($item) => ! empty($item['catalog_item_variant_id']) && (int) ($item['quantity'] ?? 0) > 0);
 
             if ($rows->isEmpty()) {
                 throw ValidationException::withMessages(['items' => 'Agrega al menos un producto a devolver.']);
@@ -456,13 +460,13 @@ class InventoryOperationsController extends Controller
                     $variant,
                     $data['type'] === 'customer' ? 'in' : 'out',
                     $quantity,
-                    ($data['type'] === 'customer' ? 'Devolucion cliente #' : 'Devolucion proveedor #') . $return->id,
+                    ($data['type'] === 'customer' ? 'Devolucion cliente #' : 'Devolucion proveedor #').$return->id,
                     [
                         'inventory_location_id' => $location->id,
                         'inventory_return_id' => $return->id,
                         'inventory_return_item_id' => $returnItem->id,
                         'reason' => $data['type'] === 'customer' ? 'devolucion_cliente' : 'devolucion_proveedor',
-                        'reference' => $return->reference ?: 'return:' . $return->id,
+                        'reference' => $return->reference ?: 'return:'.$return->id,
                         'batch_number' => $this->cleanInput($row['batch_number'] ?? null),
                         'expires_at' => $row['expires_at'] ?? null,
                         'unit_cost' => $unitCost,
@@ -472,6 +476,7 @@ class InventoryOperationsController extends Controller
         });
 
         NotificationHelper::success('Devolucion registrada correctamente.');
+
         return redirect()->route('admin.inventario.returns');
     }
 
@@ -503,13 +508,13 @@ class InventoryOperationsController extends Controller
             'items.*.counted_quantity' => ['nullable', 'integer', 'min:0'],
         ]);
 
-        $location = !empty($data['inventory_location_id'])
+        $location = ! empty($data['inventory_location_id'])
             ? InventoryLocation::query()->where('empresa_id', $empresa->id)->findOrFail($data['inventory_location_id'])
             : null;
 
         DB::transaction(function () use ($empresa, $data, $location, $inventoryService) {
             $rows = collect($data['items'])
-                ->filter(fn ($item) => !empty($item['catalog_item_variant_id']) && $item['counted_quantity'] !== null && $item['counted_quantity'] !== '');
+                ->filter(fn ($item) => ! empty($item['catalog_item_variant_id']) && $item['counted_quantity'] !== null && $item['counted_quantity'] !== '');
 
             if ($rows->isEmpty()) {
                 throw ValidationException::withMessages(['items' => 'Agrega al menos un producto contado.']);
@@ -550,13 +555,13 @@ class InventoryOperationsController extends Controller
                     $variant,
                     $difference > 0 ? 'in' : 'out',
                     abs($difference),
-                    'Conteo fisico #' . $count->id,
+                    'Conteo fisico #'.$count->id,
                     [
                         'inventory_location_id' => $location?->id,
                         'inventory_count_id' => $count->id,
                         'inventory_count_item_id' => $countItem->id,
                         'reason' => 'conteo_fisico',
-                        'reference' => $count->reference ?: 'count:' . $count->id,
+                        'reference' => $count->reference ?: 'count:'.$count->id,
                         'unit_cost' => $variant->cost_price,
                     ]
                 );
@@ -564,6 +569,7 @@ class InventoryOperationsController extends Controller
         });
 
         NotificationHelper::success('Conteo fisico registrado y diferencias ajustadas.');
+
         return redirect()->route('admin.inventario.counts');
     }
 
@@ -598,7 +604,7 @@ class InventoryOperationsController extends Controller
             default => throw ValidationException::withMessages(['section' => 'Reporte no valido.']),
         };
 
-        return $this->csvResponse($rows, 'inventario-' . $section . '-' . now()->format('Ymd-His') . '.csv');
+        return $this->csvResponse($rows, 'inventario-'.$section.'-'.now()->format('Ymd-His').'.csv');
     }
 
     public function periods()
@@ -646,6 +652,7 @@ class InventoryOperationsController extends Controller
         );
 
         NotificationHelper::success('Periodo de inventario cerrado correctamente.');
+
         return redirect()->route('admin.inventario.periods');
     }
 
@@ -922,7 +929,7 @@ class InventoryOperationsController extends Controller
 
         return Response::make((string) $csv, 200, [
             'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
         ]);
     }
 
@@ -930,6 +937,6 @@ class InventoryOperationsController extends Controller
     {
         $user = auth()->user();
 
-        return (bool) ($user && ($user->hasRole('admin') || $user->can($permission)));
+        return (bool) ($user && ($user->isOwner() || $user->can($permission)));
     }
 }

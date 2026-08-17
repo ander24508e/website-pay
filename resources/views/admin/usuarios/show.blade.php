@@ -53,8 +53,7 @@
                         </div>
                     </div>
 
-                    @if(!$usuario->hasRole('admin'))
-                        <div class="flex flex-col gap-3 border-t border-gray-100 pt-4 sm:flex-row">
+                    <div class="flex flex-col gap-3 border-t border-gray-100 pt-4 sm:flex-row">
                             @can('users.update')
                                 <a href="{{ route('admin.usuarios.edit', $usuario) }}" class="w-full rounded-lg bg-gray-900 px-5 py-2.5 text-center text-sm font-medium text-white transition hover:bg-gray-700 sm:w-auto">Editar</a>
                             @endcan
@@ -67,8 +66,7 @@
                                     </form>
                                 @endcan
                             @endif
-                        </div>
-                    @endif
+                    </div>
                 </div>
             </aside>
 

@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Helpers\NotificationHelper;
 use App\Http\Controllers\Controller;
 use App\Models\CatalogItem;
-use App\Models\CatalogType;
 use App\Models\CatalogItemVariant;
+use App\Models\CatalogType;
 use App\Models\Empresa;
 use App\Models\InventoryLocation;
 use App\Models\InventoryMovement;
@@ -34,7 +34,7 @@ class InventarioController extends Controller
             ->ordered()
             ->get();
 
-        if ($selectedTypeId > 0 && !$productTypes->contains('id', $selectedTypeId)) {
+        if ($selectedTypeId > 0 && ! $productTypes->contains('id', $selectedTypeId)) {
             $selectedTypeId = 0;
         }
 
@@ -194,11 +194,11 @@ class InventarioController extends Controller
         }
 
         $csv = $this->buildCsv($rows);
-        $fileName = 'inventario-' . now()->format('Ymd-His') . '.csv';
+        $fileName = 'inventario-'.now()->format('Ymd-His').'.csv';
 
         return Response::make($csv, 200, [
             'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
         ]);
     }
 
@@ -226,7 +226,7 @@ class InventarioController extends Controller
 
         return view('admin.inventario.import', [
             'previewRows' => $previewRows,
-            'hasErrors' => $previewRows->contains(fn ($row) => !$row['valid']),
+            'hasErrors' => $previewRows->contains(fn ($row) => ! $row['valid']),
             'rawRows' => $rows,
         ]);
     }
@@ -241,13 +241,13 @@ class InventarioController extends Controller
 
         $rows = json_decode($data['rows'], true);
 
-        if (!is_array($rows)) {
+        if (! is_array($rows)) {
             throw ValidationException::withMessages(['rows' => 'La vista previa ya no es valida. Vuelve a subir el archivo.']);
         }
 
         $previewRows = $this->buildImportPreview($rows);
 
-        if ($previewRows->contains(fn ($row) => !$row['valid'])) {
+        if ($previewRows->contains(fn ($row) => ! $row['valid'])) {
             return view('admin.inventario.import', [
                 'previewRows' => $previewRows,
                 'hasErrors' => true,
@@ -278,7 +278,7 @@ class InventarioController extends Controller
                     'Importacion CSV',
                     [
                         'reason' => 'importacion',
-                        'reference' => 'csv:' . now()->format('YmdHis'),
+                        'reference' => 'csv:'.now()->format('YmdHis'),
                     ]
                 );
             }
@@ -331,14 +331,15 @@ class InventarioController extends Controller
         $variant = $this->resolveInventoryVariant($data['catalog_item_variant_id'] ?? null, $data['catalog_item_id'] ?? null);
 
         if (
-            !$variant->item
+            ! $variant->item
             || ($variant->item->type?->business_model !== CatalogType::BUSINESS_MODEL_PRODUCTS)
         ) {
             NotificationHelper::error('Este producto no tiene inventario habilitado.');
+
             return redirect()->back();
         }
 
-        if (!$variant->item->uses_inventory) {
+        if (! $variant->item->uses_inventory) {
             $variant->item->update(['uses_inventory' => true]);
         }
 
@@ -402,6 +403,7 @@ class InventarioController extends Controller
         ]);
 
         NotificationHelper::success('Movimiento actualizado.');
+
         return redirect()->route('admin.inventario.index');
     }
 
@@ -413,6 +415,7 @@ class InventarioController extends Controller
 
         $inventoryService->reverseMovement($movement);
         NotificationHelper::success('Movimiento anulado y reversa registrada.');
+
         return redirect()->route('admin.inventario.index');
     }
 
@@ -437,7 +440,7 @@ class InventarioController extends Controller
             })
             ->findOrFail($itemId);
 
-        if (!$item->uses_inventory) {
+        if (! $item->uses_inventory) {
             $item->update(['uses_inventory' => true]);
         }
 
@@ -445,6 +448,7 @@ class InventarioController extends Controller
 
         if ($variant) {
             $variant->load('item.type');
+
             return $variant;
         }
 
@@ -519,13 +523,14 @@ class InventarioController extends Controller
     private function readCsv(string $path): array
     {
         $handle = fopen($path, 'r');
-        if (!$handle) {
+        if (! $handle) {
             return [];
         }
 
         $headers = fgetcsv($handle);
-        if (!$headers) {
+        if (! $headers) {
             fclose($handle);
+
             return [];
         }
 
@@ -576,7 +581,7 @@ class InventarioController extends Controller
                 $errors[] = 'SKU repetido en archivo';
             } elseif ($skuMatches > 1) {
                 $errors[] = 'SKU duplicado en catalogo';
-            } elseif (!$variant) {
+            } elseif (! $variant) {
                 $errors[] = 'SKU no encontrado';
             }
 
@@ -603,8 +608,9 @@ class InventarioController extends Controller
             return null;
         }
 
-        if (!ctype_digit((string) $value)) {
+        if (! ctype_digit((string) $value)) {
             $errors[] = "{$field} debe ser entero positivo";
+
             return null;
         }
 
@@ -617,8 +623,9 @@ class InventarioController extends Controller
             return null;
         }
 
-        if (!is_numeric($value) || (float) $value < 0) {
+        if (! is_numeric($value) || (float) $value < 0) {
             $errors[] = "{$field} debe ser numerico positivo";
+
             return null;
         }
 
@@ -636,6 +643,6 @@ class InventarioController extends Controller
     {
         $user = auth()->user();
 
-        return (bool) ($user && ($user->hasRole('admin') || $user->can($permission)));
+        return (bool) ($user && ($user->isOwner() || $user->can($permission)));
     }
 }

@@ -10,7 +10,7 @@
             <x-heroicon-o-user-group class="w-8 h-8 text-gray-800" />
             <h2 class="text-2xl font-bold text-gray-800">Personal interno</h2>
             </div>
-            <p class="text-gray-500 text-sm mt-1">Gestion de propietarios, gerentes, empleados y permisos. Los clientes se administran por separado.</p>
+            <p class="text-gray-500 text-sm mt-1">Gestiona gerentes, empleados y sus permisos. La cuenta propietaria y los clientes se administran por separado.</p>
         </div>
         @canany(['users.create_employees', 'users.create_managers'])
         <a href="{{ route('admin.usuarios.create') }}"
@@ -21,9 +21,8 @@
         @endcanany
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm"><p class="text-xs text-gray-400 uppercase font-semibold">Personal</p><p class="text-2xl font-bold text-gray-800 mt-1">{{ $stats['total_usuarios'] }}</p></div>
-        <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm"><p class="text-xs text-gray-400 uppercase font-semibold">Propietarios</p><p class="text-2xl font-bold text-gray-800 mt-1">{{ $stats['admins'] }}</p></div>
         <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm"><p class="text-xs text-gray-400 uppercase font-semibold">Gerentes</p><p class="text-2xl font-bold text-gray-800 mt-1">{{ $stats['gerentes'] }}</p></div>
         <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm"><p class="text-xs text-gray-400 uppercase font-semibold">Empleados</p><p class="text-2xl font-bold text-gray-800 mt-1">{{ $stats['empleados'] }}</p></div>
     </div>
@@ -84,13 +83,13 @@
                             title="Ver usuario" aria-label="Ver usuario">
                             <x-heroicon-o-eye class="w-5 h-5" />
                         </a>
-                        @if(!$usuario->hasRole('admin')) @can('users.update')<a href="{{ route('admin.usuarios.edit', $usuario) }}"
+                        @can('users.update')<a href="{{ route('admin.usuarios.edit', $usuario) }}"
                             class="inline-flex items-center justify-center w-9 h-9 rounded-lg text-yellow-600 hover:text-yellow-800 hover:bg-yellow-50 transition"
                             title="Editar usuario" aria-label="Editar usuario">
                             <x-heroicon-o-pencil-square class="w-5 h-5" />
                         </a>
-                        @endcan @endif
-                        @if(!$usuario->hasRole('admin') && $usuario->active) @can('users.deactivate')<form method="POST" action="{{ route('admin.usuarios.destroy', $usuario) }}" onsubmit="return confirm('¿Desactivar el acceso de este trabajador?');">
+                        @endcan
+                        @if($usuario->active) @can('users.deactivate')<form method="POST" action="{{ route('admin.usuarios.destroy', $usuario) }}" onsubmit="return confirm('¿Desactivar el acceso de este trabajador?');">
                             @csrf
                             @method('DELETE')
                             <button type="submit"
@@ -147,13 +146,13 @@
                                     title="Ver usuario" aria-label="Ver usuario">
                                     <x-heroicon-o-eye class="w-4 h-4" />
                                 </a>
-                                @if(!$usuario->hasRole('admin')) @can('users.update')<a href="{{ route('admin.usuarios.edit', $usuario) }}"
+                                @can('users.update')<a href="{{ route('admin.usuarios.edit', $usuario) }}"
                                     class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-yellow-600 hover:text-yellow-800 hover:bg-yellow-50 transition"
                                     title="Editar usuario" aria-label="Editar usuario">
                                     <x-heroicon-o-pencil-square class="w-4 h-4" />
                                 </a>
-                                @endcan @endif
-                                @if(!$usuario->hasRole('admin') && $usuario->active) @can('users.deactivate')<form method="POST" action="{{ route('admin.usuarios.destroy', $usuario) }}" onsubmit="return confirm('¿Desactivar el acceso de este trabajador?');">
+                                @endcan
+                                @if($usuario->active) @can('users.deactivate')<form method="POST" action="{{ route('admin.usuarios.destroy', $usuario) }}" onsubmit="return confirm('¿Desactivar el acceso de este trabajador?');">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit"

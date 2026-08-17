@@ -32,6 +32,7 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'active' => 'boolean',
+        'is_owner' => 'boolean',
     ];
 
     // URL de foto de perfil
@@ -45,7 +46,12 @@ class User extends Authenticatable
     // Helpers de rol
     public function isAdmin(): bool
     {
-        return $this->hasRole('admin');
+        return $this->isOwner();
+    }
+
+    public function isOwner(): bool
+    {
+        return $this->is_owner === true;
     }
 
     public function isStaff(): bool
