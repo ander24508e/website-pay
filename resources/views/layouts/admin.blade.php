@@ -40,70 +40,79 @@
                 <span><x-heroicon-o-globe-alt class="w-5 h-5" /></span>
                 <span>Página web</span>
             </a>
-            @can('dashboard.view')<a href="{{ route('admin.dashboard') }}"
-                class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-                <span><x-heroicon-o-chart-bar class="w-5 h-5" /></span>
-                <span>Dashboard</span>
-            </a>
+            @can('dashboard.view')
+                <a href="{{ route('admin.dashboard') }}"
+                    class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                    <span><x-heroicon-o-chart-bar class="w-5 h-5" /></span>
+                    <span>Dashboard</span>
+                </a>
             @endcan
 
-            @can('banners.view')<a href="{{ route('admin.banners.index') }}"
-                class="{{ request()->routeIs('admin.banners.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-rectangle-group class="w-5 h-5" /></span>
-                <span>Banners</span>
-            </a>
+            @can('banners.view')
+                <a href="{{ route('admin.banners.index') }}"
+                    class="{{ request()->routeIs('admin.banners.*') ? 'active' : '' }}">
+                    <span><x-heroicon-o-rectangle-group class="w-5 h-5" /></span>
+                    <span>Banners</span>
+                </a>
             @endcan
 
             <p class="px-4 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">Comercial</p>
-            @canany(['sales.view', 'sales.create'])<a href="{{ auth()->user()->can('sales.view') ? route('admin.ventas.index') : route('admin.ventas.create') }}"
-                class="{{ request()->routeIs('admin.ventas.*') || request()->routeIs('admin.transactions.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-banknotes class="w-5 h-5" /></span>
-                <span>Ventas</span>
-            </a>
+            @canany(['sales.view', 'sales.create'])
+                <a href="{{ auth()->user()->can('sales.view') ? route('admin.ventas.index') : route('admin.ventas.create') }}"
+                    class="{{ request()->routeIs('admin.ventas.*') || request()->routeIs('admin.transactions.*') ? 'active' : '' }}">
+                    <span><x-heroicon-o-banknotes class="w-5 h-5" /></span>
+                    <span>Ventas</span>
+                </a>
             @endcanany
-            @can('orders.view')<a href="{{ route('admin.orders.index') }}"
-                class="{{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-shopping-bag class="w-5 h-5" /></span>
-                <span>Órdenes</span>
-            </a>
+            @can('orders.view')
+                <a href="{{ route('admin.orders.index') }}"
+                    class="{{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
+                    <span><x-heroicon-o-shopping-bag class="w-5 h-5" /></span>
+                    <span>Órdenes</span>
+                </a>
             @endcan
             <p class="px-3 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">Activos
                 Operacionales</p>
 
-            @can('catalog.view')<a href="{{ route('admin.catalog.index') }}"
-                class="{{ request()->routeIs('admin.catalog.*') || request()->routeIs('admin.catalog-types.*') || request()->routeIs('admin.catalog-categories.*') || request()->routeIs('admin.catalog-items.*') || request()->routeIs('admin.catalog-variants.*') || request()->routeIs('admin.catalog-service-prices.*') || request()->routeIs('admin.catalog.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-squares-2x2 class="w-5 h-5" /></span>
-                <span>Catálogo</span>
-            </a>
+            @can('catalog.view')
+                <a href="{{ route('admin.catalog.index') }}"
+                    class="{{ request()->routeIs('admin.catalog.*') || request()->routeIs('admin.catalog-types.*') || request()->routeIs('admin.catalog-categories.*') || request()->routeIs('admin.catalog-items.*') || request()->routeIs('admin.catalog-variants.*') || request()->routeIs('admin.catalog-service-prices.*') || request()->routeIs('admin.catalog.*') ? 'active' : '' }}">
+                    <span><x-heroicon-o-squares-2x2 class="w-5 h-5" /></span>
+                    <span>Catálogo</span>
+                </a>
             @endcan
-            @can('inventory.view')<a href="{{ route('admin.inventario.index') }}"
-                class="{{ request()->routeIs('admin.inventario.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-archive-box class="w-5 h-5" /></span>
-                <span>Inventario</span>
-            </a>
+            @can('inventory.view')
+                <a href="{{ route('admin.inventario.index') }}"
+                    class="{{ request()->routeIs('admin.inventario.*') ? 'active' : '' }}">
+                    <span><x-heroicon-o-archive-box class="w-5 h-5" /></span>
+                    <span>Inventario</span>
+                </a>
             @endcan
-            @can('vehicles.view')<a href="{{ route('admin.vehiculos.index') }}"
-                class="{{ request()->routeIs('admin.vehiculos.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-truck class="w-5 h-5" /></span>
-                <span>Vehiculos</span>
-            </a>
+            @can('vehicles.view')
+                <a href="{{ route('admin.vehiculos.index') }}"
+                    class="{{ request()->routeIs('admin.vehiculos.*') ? 'active' : '' }}">
+                    <span><x-heroicon-o-truck class="w-5 h-5" /></span>
+                    <span>Vehiculos</span>
+                </a>
             @endcan
 
             <p class="px-4 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">
                 Administracion</p>
 
-            @can('clients.view')<a href="{{ route('admin.clientes.index') }}"
-                class="{{ request()->routeIs('admin.clientes.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-users class="w-5 h-5" /></span>
-                <span>Clientes</span>
-            </a>
+            @can('clients.view')
+                <a href="{{ route('admin.clientes.index') }}"
+                    class="{{ request()->routeIs('admin.clientes.*') ? 'active' : '' }}">
+                    <span><x-heroicon-o-users class="w-5 h-5" /></span>
+                    <span>Clientes</span>
+                </a>
             @endcan
 
-            @canany(['users.view', 'users.create_employees', 'users.create_managers'])<a href="{{ auth()->user()->can('users.view') ? route('admin.usuarios.index') : route('admin.usuarios.create') }}"
-                class="{{ request()->routeIs('admin.usuarios.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-user-group class="w-5 h-5" /></span>
-                <span>Personal</span>
-            </a>
+            @canany(['users.view', 'users.create_employees', 'users.create_managers'])
+                <a href="{{ auth()->user()->can('users.view') ? route('admin.usuarios.index') : route('admin.usuarios.create') }}"
+                    class="{{ request()->routeIs('admin.usuarios.*') ? 'active' : '' }}">
+                    <span><x-heroicon-o-user-group class="w-5 h-5" /></span>
+                    <span>Usuarios</span>
+                </a>
             @endcanany
 
         </nav>
@@ -115,11 +124,12 @@
                     <span>Configuracion</span>
                 </summary>
                 <div class="sidebar-settings-links">
-                    @can('company.view')<a href="{{ route('admin.empresa.edit') }}"
-                        class="{{ request()->routeIs('admin.empresa.*') ? 'active' : '' }}">
-                        {{-- <span><x-heroicon-o-building-office class="w-5 h-5" /></span> --}}
-                        <span>Mi Empresa</span>
-                    </a>
+                    @can('company.view')
+                        <a href="{{ route('admin.empresa.edit') }}"
+                            class="{{ request()->routeIs('admin.empresa.*') ? 'active' : '' }}">
+                            {{-- <span><x-heroicon-o-building-office class="w-5 h-5" /></span> --}}
+                            <span>Mi Empresa</span>
+                        </a>
                     @endcan
                     <a href="{{ route('profile.edit', ['tab' => 'account']) }}"
                         class="{{ request()->routeIs('profile.edit') && request('tab', 'account') === 'account' ? 'active' : '' }}">Cuenta</a>
@@ -173,72 +183,81 @@
                 <span>Pagina web</span>
             </a>
 
-            @can('dashboard.view')<a href="{{ route('admin.dashboard') }}"
-                class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-                <span><x-heroicon-o-chart-bar class="w-5 h-5" /></span>
-                <span>Dashboard</span>
-            </a>
+            @can('dashboard.view')
+                <a href="{{ route('admin.dashboard') }}"
+                    class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                    <span><x-heroicon-o-chart-bar class="w-5 h-5" /></span>
+                    <span>Dashboard</span>
+                </a>
             @endcan
 
-            @can('banners.view')<a href="{{ route('admin.banners.index') }}"
-                class="{{ request()->routeIs('admin.banners.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-rectangle-group class="w-5 h-5" /></span>
-                <span>Banners</span>
-            </a>
+            @can('banners.view')
+                <a href="{{ route('admin.banners.index') }}"
+                    class="{{ request()->routeIs('admin.banners.*') ? 'active' : '' }}">
+                    <span><x-heroicon-o-rectangle-group class="w-5 h-5" /></span>
+                    <span>Banners</span>
+                </a>
             @endcan
 
             <p class="px-3 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">Comercial</p>
-            @canany(['sales.view', 'sales.create'])<a href="{{ auth()->user()->can('sales.view') ? route('admin.ventas.index') : route('admin.ventas.create') }}"
-                class="{{ request()->routeIs('admin.ventas.*') || request()->routeIs('admin.transactions.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-banknotes class="w-5 h-5" /></span>
-                <span>Ventas</span>
-            </a>
+            @canany(['sales.view', 'sales.create'])
+                <a href="{{ auth()->user()->can('sales.view') ? route('admin.ventas.index') : route('admin.ventas.create') }}"
+                    class="{{ request()->routeIs('admin.ventas.*') || request()->routeIs('admin.transactions.*') ? 'active' : '' }}">
+                    <span><x-heroicon-o-banknotes class="w-5 h-5" /></span>
+                    <span>Ventas</span>
+                </a>
             @endcanany
 
-            @can('orders.view')<a href="{{ route('admin.orders.index') }}"
-                class="{{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-shopping-bag class="w-5 h-5" /></span>
-                <span>Órdenes</span>
-            </a>
+            @can('orders.view')
+                <a href="{{ route('admin.orders.index') }}"
+                    class="{{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
+                    <span><x-heroicon-o-shopping-bag class="w-5 h-5" /></span>
+                    <span>Órdenes</span>
+                </a>
             @endcan
 
             <p class="px-3 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">Activos
                 Operacionales</p>
 
-            @can('catalog.view')<a href="{{ route('admin.catalog.index') }}"
-                class="{{ request()->routeIs('admin.catalog.*') || request()->routeIs('admin.catalog-types.*') || request()->routeIs('admin.catalog-categories.*') || request()->routeIs('admin.catalog-items.*') || request()->routeIs('admin.catalog-variants.*') || request()->routeIs('admin.catalog-service-prices.*') || request()->routeIs('admin.catalog.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-squares-2x2 class="w-5 h-5" /></span>
-                <span>Catálogo</span>
-            </a>
+            @can('catalog.view')
+                <a href="{{ route('admin.catalog.index') }}"
+                    class="{{ request()->routeIs('admin.catalog.*') || request()->routeIs('admin.catalog-types.*') || request()->routeIs('admin.catalog-categories.*') || request()->routeIs('admin.catalog-items.*') || request()->routeIs('admin.catalog-variants.*') || request()->routeIs('admin.catalog-service-prices.*') || request()->routeIs('admin.catalog.*') ? 'active' : '' }}">
+                    <span><x-heroicon-o-squares-2x2 class="w-5 h-5" /></span>
+                    <span>Catálogo</span>
+                </a>
             @endcan
 
-            @can('inventory.view')<a href="{{ route('admin.inventario.index') }}"
-                class="{{ request()->routeIs('admin.inventario.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-archive-box class="w-5 h-5" /></span>
-                <span>Inventario</span>
-            </a>
+            @can('inventory.view')
+                <a href="{{ route('admin.inventario.index') }}"
+                    class="{{ request()->routeIs('admin.inventario.*') ? 'active' : '' }}">
+                    <span><x-heroicon-o-archive-box class="w-5 h-5" /></span>
+                    <span>Inventario</span>
+                </a>
             @endcan
-            @can('vehicles.view')<a href="{{ route('admin.vehiculos.index') }}"
-                class="{{ request()->routeIs('admin.vehiculos.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-truck class="w-5 h-5" /></span>
-                <span>Vehiculos</span>
-            </a>
+            @can('vehicles.view')
+                <a href="{{ route('admin.vehiculos.index') }}"
+                    class="{{ request()->routeIs('admin.vehiculos.*') ? 'active' : '' }}">
+                    <span><x-heroicon-o-truck class="w-5 h-5" /></span>
+                    <span>Vehiculos</span>
+                </a>
             @endcan
 
             <p class="px-3 pt-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/80 font-semibold">
                 Administracion</p>
-            @can('clients.view')<a href="{{ route('admin.clientes.index') }}"
-                class="{{ request()->routeIs('admin.clientes.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-users class="w-5 h-5" /></span>
-                <span>Clientes</span>
-            </a>
+            @can('clients.view')
+                <a href="{{ route('admin.clientes.index') }}"
+                    class="{{ request()->routeIs('admin.clientes.*') ? 'active' : '' }}">
+                    <span><x-heroicon-o-users class="w-5 h-5" /></span>
+                    <span>Clientes</span>
+                </a>
             @endcan
 
-            @canany(['users.view', 'users.create_employees', 'users.create_managers'])<a href="{{ auth()->user()->can('users.view') ? route('admin.usuarios.index') : route('admin.usuarios.create') }}"
-                class="{{ request()->routeIs('admin.usuarios.*') ? 'active' : '' }}">
-                <span><x-heroicon-o-user-group class="w-5 h-5" /></span>
-                <span>Personal</span>
-            </a>
+            @canany(['users.view', 'users.create_employees', 'users.create_managers'])
+                <a href="{{ auth()->user()->can('users.view') ? route('admin.usuarios.index') : route('admin.usuarios.create') }}"
+                    class="{{ request()->routeIs('admin.usuarios.*') ? 'active' : '' }}">
+                    <span><x-heroicon-o-user-group class="w-5 h-5" /></span>
+                    <span>Usuarios</span>
+                </a>
             @endcanany
         </nav>
 
@@ -249,17 +268,18 @@
                     <span>Configuracion</span>
                 </summary>
                 <div class="sidebar-settings-links">
-                    @can('company.view')<a href="{{ route('admin.empresa.edit') }}"
-                        class="{{ request()->routeIs('admin.empresa.*') ? 'active' : '' }}">
+                    @can('company.view')
+                        <a href="{{ route('admin.empresa.edit') }}"
+                            class="{{ request()->routeIs('admin.empresa.*') ? 'active' : '' }}">
 
-                        <span>Mi Empresa</span>
-                        {{-- <span><x-heroicon-o-building-office class="w-5 h-5" /></span> --}}
-                    </a>
+                            <span>Mi Empresa</span>
+                            {{-- <span><x-heroicon-o-building-office class="w-5 h-5" /></span> --}}
+                        </a>
                     @endcan
 
                     <a href="{{ route('profile.edit', ['tab' => 'account']) }}"
                         class="{{ request()->routeIs('profile.edit') && request('tab', 'account') === 'account' ? 'active' : '' }}">Cuenta</a>
-                        
+
                     <a href="{{ route('profile.edit', ['tab' => 'security']) }}"
                         class="{{ request()->routeIs('profile.edit') && request('tab') === 'security' ? 'active' : '' }}">Seguridad</a>
                 </div>
@@ -446,9 +466,9 @@
             const isVisible = input.type === 'text';
             input.type = isVisible ? 'password' : 'text';
             button.setAttribute('aria-pressed', String(!isVisible));
-            button.setAttribute('aria-label', isVisible
-                ? button.getAttribute('aria-label').replace('Ocultar', 'Mostrar')
-                : button.getAttribute('aria-label').replace('Mostrar', 'Ocultar'));
+            button.setAttribute('aria-label', isVisible ?
+                button.getAttribute('aria-label').replace('Ocultar', 'Mostrar') :
+                button.getAttribute('aria-label').replace('Mostrar', 'Ocultar'));
             button.querySelector('[data-password-visible-icon]')?.classList.toggle('hidden', !isVisible);
             button.querySelector('[data-password-hidden-icon]')?.classList.toggle('hidden', isVisible);
         });
