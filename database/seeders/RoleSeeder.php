@@ -15,8 +15,8 @@ class RoleSeeder extends Seeder
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         $adminRole = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
-        $managerRole = Role::firstOrCreate(['name' => 'gerente', 'guard_name' => 'web']);
-        $employeeRole = Role::firstOrCreate(['name' => 'empleado', 'guard_name' => 'web']);
+        Role::firstOrCreate(['name' => 'gerente', 'guard_name' => 'web']);
+        Role::firstOrCreate(['name' => 'empleado', 'guard_name' => 'web']);
         Role::firstOrCreate(['name' => 'cliente', 'guard_name' => 'web']);
 
         $permissions = [
@@ -51,7 +51,9 @@ class RoleSeeder extends Seeder
             'company.view',
             'company.manage',
             'banners.view',
-            'banners.manage',
+            'banners.create',
+            'banners.update',
+            'banners.delete',
         ];
 
         foreach ($permissions as $permission) {
@@ -59,8 +61,10 @@ class RoleSeeder extends Seeder
         }
 
         $adminRole->syncPermissions($permissions);
-        $managerRole->syncPermissions([]);
-        $employeeRole->syncPermissions([]);
+
+        // Los permisos de gerente y empleado pueden estar personalizados en
+        // producción. Crear los roles arriba es suficiente; no se deben borrar
+        // sus asignaciones al volver a sincronizar el catálogo de permisos.
 
         $ownerEmail = (string) config('auth.owner_email', 'admin@endara.com');
         $admin = User::firstOrCreate(

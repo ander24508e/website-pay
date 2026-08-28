@@ -5,7 +5,7 @@
 @section('content')
 <div class="mx-auto w-full max-w-full overflow-x-hidden px-3 pb-4 sm:px-6">
     <div class="flex flex-wrap items-center gap-3 mb-6">
-        <a href="{{ route('admin.banners.index') }}"
+        <a href="{{ auth()->user()->can('banners.view') ? route('admin.banners.index') : route('home') }}"
            class="flex items-center justify-center w-9 h-9 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition text-gray-500 hover:text-gray-800">
             <-
         </a>
@@ -74,6 +74,7 @@
                 </label>
             </div>
 
+            @can('banners.delete')
             <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-red-100">
                 <p class="text-xs font-semibold text-red-400 uppercase tracking-wide mb-3">Zona de peligro</p>
                 <p class="text-xs text-gray-400 mb-4">Esta accion es permanente y no se puede deshacer.</p>
@@ -86,6 +87,7 @@
                     </button>
                 </form>
             </div>
+            @endcan
         </div>
 
         <div class="w-full lg:w-2/3">
@@ -140,7 +142,7 @@
                                 class="bg-gray-900 text-white px-6 py-2.5 rounded-lg hover:bg-gray-700 transition font-medium text-sm">
                             Actualizar Banner
                         </button>
-                        <a href="{{ route('admin.banners.index') }}"
+                        <a href="{{ auth()->user()->can('banners.view') ? route('admin.banners.index') : route('home') }}"
                            class="bg-gray-100 text-gray-600 px-6 py-2.5 rounded-lg hover:bg-gray-200 transition font-medium text-sm text-center">
                             Cancelar
                         </a>

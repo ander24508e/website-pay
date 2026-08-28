@@ -14,6 +14,8 @@ class BannerController extends Controller
      */
     public function index(Request $request)
     {
+        $this->authorize('banners.view');
+
         $empresa = $this->getOrCreateEmpresa();
         $search = trim((string) $request->query('q', ''));
 
@@ -38,6 +40,8 @@ class BannerController extends Controller
      */
     public function create()
     {
+        $this->authorize('banners.create');
+
         $empresa = $this->getOrCreateEmpresa();
         $nextOrder = (int) (LandingBanner::where('empresa_id', $empresa->id)->max('orden') ?? -1) + 1;
 
@@ -49,6 +53,8 @@ class BannerController extends Controller
      */
     public function show(LandingBanner $banner)
     {
+        $this->authorize('banners.view');
+
         return view('admin.banners.show', compact('banner'));
     }
 
@@ -57,6 +63,8 @@ class BannerController extends Controller
      */
     public function edit(LandingBanner $banner)
     {
+        $this->authorize('banners.update');
+
         return view('admin.banners.edit', compact('banner'));
     }
 
@@ -65,25 +73,27 @@ class BannerController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('banners.create');
+
         $data = $request->validate([
-            'etiqueta'    => 'nullable|string|max:80',
-            'titulo'      => 'nullable|string|max:120',
-            'texto'       => 'nullable|string|max:400',
-            'imagen'      => 'nullable|image|mimes:jpeg,png,jpg,webp|max:6144',
-            'orden'       => 'nullable|integer|min:0|max:9999',
-            'activo'      => 'nullable|boolean',
+            'etiqueta' => 'nullable|string|max:80',
+            'titulo' => 'nullable|string|max:120',
+            'texto' => 'nullable|string|max:400',
+            'imagen' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:6144',
+            'orden' => 'nullable|integer|min:0|max:9999',
+            'activo' => 'nullable|boolean',
             'es_principal' => 'nullable|boolean',
         ]);
 
         $empresa = $this->getOrCreateEmpresa();
 
-        $banner = new LandingBanner();
+        $banner = new LandingBanner;
         $banner->empresa_id = $empresa->id;
-        $banner->etiqueta    = $this->cleanInput($data['etiqueta'] ?? null);
-        $banner->titulo      = $this->cleanInput($data['titulo'] ?? null);
-        $banner->texto       = $this->cleanInput($data['texto'] ?? null);
-        $banner->orden       = (int) ($data['orden'] ?? 0);
-        $banner->activo      = (bool) ($data['activo'] ?? true);
+        $banner->etiqueta = $this->cleanInput($data['etiqueta'] ?? null);
+        $banner->titulo = $this->cleanInput($data['titulo'] ?? null);
+        $banner->texto = $this->cleanInput($data['texto'] ?? null);
+        $banner->orden = (int) ($data['orden'] ?? 0);
+        $banner->activo = (bool) ($data['activo'] ?? true);
         $banner->es_principal = (bool) ($data['es_principal'] ?? false);
         if ($request->hasFile('imagen') && $request->file('imagen')->isValid()) {
             $banner->imagen = $request->file('imagen')->store('landing_banners', 'public');
@@ -98,7 +108,11 @@ class BannerController extends Controller
                 ->update(['es_principal' => false]);
         }
 
-        return redirect()->route('admin.banners.index')->with('success', 'Banner creado correctamente.');
+        $destination = $request->user()->can('banners.view')
+            ? 'admin.banners.index'
+            : 'admin.banners.create';
+
+        return redirect()->route($destination)->with('success', 'Banner creado correctamente.');
     }
 
     /**
@@ -106,23 +120,25 @@ class BannerController extends Controller
      */
     public function update(Request $request, LandingBanner $banner)
     {
+        $this->authorize('banners.update');
+
         $data = $request->validate([
-            'etiqueta'    => 'nullable|string|max:80',
-            'titulo'      => 'nullable|string|max:120',
-            'texto'       => 'nullable|string|max:400',
-            'imagen'      => 'nullable|image|mimes:jpeg,png,jpg,webp|max:6144',
-            'orden'       => 'nullable|integer|min:0|max:9999',
-            'activo'      => 'nullable|boolean',
+            'etiqueta' => 'nullable|string|max:80',
+            'titulo' => 'nullable|string|max:120',
+            'texto' => 'nullable|string|max:400',
+            'imagen' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:6144',
+            'orden' => 'nullable|integer|min:0|max:9999',
+            'activo' => 'nullable|boolean',
             'es_principal' => 'nullable|boolean',
         ]);
 
         $empresa = $this->getOrCreateEmpresa();
 
-        $banner->etiqueta    = $this->cleanInput($data['etiqueta'] ?? null);
-        $banner->titulo      = $this->cleanInput($data['titulo'] ?? null);
-        $banner->texto       = $this->cleanInput($data['texto'] ?? null);
-        $banner->orden       = (int) ($data['orden'] ?? 0);
-        $banner->activo      = (bool) ($data['activo'] ?? false);
+        $banner->etiqueta = $this->cleanInput($data['etiqueta'] ?? null);
+        $banner->titulo = $this->cleanInput($data['titulo'] ?? null);
+        $banner->texto = $this->cleanInput($data['texto'] ?? null);
+        $banner->orden = (int) ($data['orden'] ?? 0);
+        $banner->activo = (bool) ($data['activo'] ?? false);
         $banner->es_principal = (bool) ($data['es_principal'] ?? false);
 
         if ($request->hasFile('imagen') && $request->file('imagen')->isValid()) {
@@ -142,7 +158,11 @@ class BannerController extends Controller
                 ->update(['es_principal' => false]);
         }
 
-        return redirect()->route('admin.banners.index')->with('success', 'Banner actualizado correctamente.');
+        $destination = $request->user()->can('banners.view')
+            ? route('admin.banners.index')
+            : route('admin.banners.edit', $banner);
+
+        return redirect($destination)->with('success', 'Banner actualizado correctamente.');
     }
 
     /**
@@ -150,12 +170,19 @@ class BannerController extends Controller
      */
     public function destroy(LandingBanner $banner)
     {
+        $this->authorize('banners.delete');
+
         if ($banner->imagen && Storage::disk('public')->exists($banner->imagen)) {
             Storage::disk('public')->delete($banner->imagen);
         }
         LandingBanner::destroy($banner->id);
 
-        return redirect()->route('admin.banners.index')->with('success', 'Banner eliminado correctamente.');
+        $user = request()->user();
+        $destination = $user->can('banners.view')
+            ? route('admin.banners.index')
+            : ($user->can('banners.create') ? route('admin.banners.create') : route('home'));
+
+        return redirect($destination)->with('success', 'Banner eliminado correctamente.');
     }
 
     // ------------------------------------------------------------
@@ -164,6 +191,7 @@ class BannerController extends Controller
     private function cleanInput(?string $value): ?string
     {
         $value = trim((string) $value);
+
         return $value === '' ? null : $value;
     }
 

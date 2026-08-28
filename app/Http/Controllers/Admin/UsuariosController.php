@@ -271,13 +271,29 @@ class UsuariosController extends Controller
             'vehicles' => 'Vehiculos', 'catalog' => 'Catalogo', 'inventory' => 'Inventario',
             'company' => 'Empresa', 'banners' => 'Banners',
         ];
+        $operationLabels = [
+            'banners.view' => 'Ver banners',
+            'banners.create' => 'Crear banners',
+            'banners.update' => 'Editar banners',
+            'banners.delete' => 'Eliminar banners',
+        ];
 
         return $this->assignablePermissions($actor)
             ->groupBy(fn (Permission $permission) => str($permission->name)->before('.')->toString())
-            ->map(fn ($items, string $group) => [
-                'label' => $labels[$group] ?? ucfirst($group),
-                'permissions' => $items,
-            ])->all();
+            ->map(function ($items, string $group) use ($labels, $operationLabels): array {
+                $items->each(function (Permission $permission) use ($operationLabels): void {
+                    $permission->setAttribute(
+                        'display_name',
+                        $operationLabels[$permission->name]
+                            ?? str($permission->name)->after('.')->replace('_', ' ')->headline()
+                    );
+                });
+
+                return [
+                    'label' => $labels[$group] ?? ucfirst($group),
+                    'permissions' => $items,
+                ];
+            })->all();
     }
 
     private function formData(User $actor, $roles): array

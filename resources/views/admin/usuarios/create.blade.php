@@ -53,7 +53,7 @@
                 <div><h3 class="font-semibold text-gray-800">Permisos individuales</h3><p class="text-sm text-gray-500">Selecciona solamente las tareas que podrá ejecutar.</p></div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     @foreach($permissionGroups as $group)
-                        <fieldset class="border border-gray-200 rounded-lg p-4"><legend class="px-2 text-sm font-semibold text-gray-700">{{ $group['label'] }}</legend><div class="space-y-2 mt-1">@foreach($group['permissions'] as $permission)<label class="flex items-start gap-2 text-sm text-gray-600"><input type="checkbox" name="permissions[]" value="{{ $permission->name }}" @checked(in_array($permission->name, old('permissions', []), true)) class="mt-0.5 rounded border-gray-300"><span>{{ str($permission->name)->after('.')->replace('_', ' ')->headline() }}</span></label>@endforeach</div></fieldset>
+                        <fieldset class="border border-gray-200 rounded-lg p-4"><legend class="px-2 text-sm font-semibold text-gray-700">{{ $group['label'] }}</legend><div class="space-y-2 mt-1">@foreach($group['permissions'] as $permission)<label class="flex items-start gap-2 text-sm text-gray-600"><input type="checkbox" name="permissions[]" value="{{ $permission->name }}" @checked(in_array($permission->name, old('permissions', []), true)) class="mt-0.5 rounded border-gray-300"><span>{{ $permission->display_name }}</span></label>@endforeach</div></fieldset>
                     @endforeach
                 </div>
             </section>
